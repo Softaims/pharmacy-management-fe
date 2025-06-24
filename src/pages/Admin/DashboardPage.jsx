@@ -3,6 +3,7 @@ import { Menu, X, ChevronLeft, Home, Plus } from "lucide-react";
 import Sidebar from "../../components/Admin/Sidebar";
 import PharmacyManagement from "../../components/Admin/PharmacyManagement.jsx";
 import SettingsPanel from "../../components/Admin/SettingsPanel.jsx";
+import { useAuth } from "../../contexts/AuthContext";
 
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -10,6 +11,8 @@ const DashboardPage = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const { user } = useAuth();
+  console.log("🚀 ~ DashboardPage ~ user:", user);
   const [pharmacies, setPharmacies] = useState([
     {
       id: 1,

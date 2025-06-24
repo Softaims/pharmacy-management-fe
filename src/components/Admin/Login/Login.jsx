@@ -1,20 +1,27 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuth } from "../../../contexts/AuthContext";
 import logo from "../../../assets/logo.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("admin");
-  const [loading, setLoading] = useState(false);
-
+  const [loading, setLoading] = useState(false); // Local loading state for button
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isLoading } = useAuth();
+
+  // Get the intended destination or default to role-based route
+  const from =
+    location.state?.from?.pathname ||
+    (role === "admin" ? "/admin" : "/pharmacy-dashboard");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // --- Validation ---
+    // Validation
     if (!email || !password || !role) {
       toast.error("Veuillez remplir tous les champs", {
         autoClose: 3000,
@@ -32,42 +39,23 @@ const Login = () => {
       return;
     }
 
-    setLoading(true);
+    setLoading(true); // Set local loading state immediately
 
     try {
-      // Simulated delay to mimic API
-      await new Promise((res) => setTimeout(res, 1000));
-      // Replace this with real API call later
-      // Example:
-      // const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login`, {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, password, role }),
-      // });
-
-      // const result = await response.json();
-      // if (!response.ok) throw new Error(result.message);
+      await login({ email, password, role });
 
       toast.success("Connexion réussie ! Redirection...", {
         autoClose: 2000,
         theme: "dark",
       });
-
-      // Redirect based on role
-      setTimeout(() => {
-        if (role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/pharmacy-dashboard");
-        }
-      }, 2000);
+      navigate(from, { replace: true });
     } catch (err) {
+      console.log("🚀 ~ handleSubmit ~ err:", err);
       toast.error(err.message || "Une erreur s'est produite", {
-        autoClose: 3000,
         theme: "dark",
       });
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset local loading state
     }
   };
 
@@ -109,6 +97,7 @@ const Login = () => {
                 className="mt-1 w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                 autoComplete="email"
                 required
+                disabled={isLoading || loading} // Use both states for input
               />
             </div>
 
@@ -129,6 +118,7 @@ const Login = () => {
                 className="mt-1 w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
                 autoComplete="current-password"
                 required
+                disabled={isLoading || loading} // Use both states for input
               />
             </div>
 
@@ -150,10 +140,15 @@ const Login = () => {
                     key={option.value}
                     type="button"
                     onClick={() => setRole(option.value)}
+                    disabled={isLoading || loading} // Use both states for role buttons
                     className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 ${
                       role === option.value
                         ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-500"
+                    } ${
+                      isLoading || loading
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
                     }`}
                     role="radio"
                     aria-checked={role === option.value}
@@ -169,10 +164,10 @@ const Login = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading || !email || !password}
+                disabled={loading || !email || !password} // Use local loading for button
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-[#069AA2] hover:bg-[#05828A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#069AA2] transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                {loading ? (
+                {loading ? ( // Use local loading for spinner
                   <span className="flex items-center">
                     <svg
                       className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
