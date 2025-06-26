@@ -291,7 +291,8 @@ const PharmacyManagement = ({
                 </div>
                 <div className="flex items-center gap-2 ml-3">
                   <button
-                    onClick={() => toggleStatus(pharmacy.id)}
+                    // onClick={() => toggleStatus(pharmacy.id)}
+                    onClick={() => handleStatusToggle(pharmacy)}
                     className={`px-2 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
                       pharmacy.status === "Active"
                         ? "bg-green-100 text-green-800"

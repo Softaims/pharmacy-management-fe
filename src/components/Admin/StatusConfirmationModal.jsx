@@ -39,7 +39,7 @@ const StatusConfirmationModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 ease-in-out animate-fade-in"
+      className="fixed inset-0 z-50 px-8 flex items-center justify-center bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 ease-in-out animate-fade-in"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
