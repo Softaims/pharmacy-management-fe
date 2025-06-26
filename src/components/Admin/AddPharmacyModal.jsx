@@ -13,7 +13,7 @@ const AddPharmacyModal = ({
 }) => {
   const [newPharmacy, setNewPharmacy] = useState({
     name: "",
-    owner: "",
+    // owner: "",
     email: "",
     phone: "",
     address: "",
@@ -28,7 +28,7 @@ const AddPharmacyModal = ({
     if (pharmacyToEdit) {
       setNewPharmacy({
         name: pharmacyToEdit.name,
-        owner: pharmacyToEdit.owner,
+        // owner: pharmacyToEdit.owner,
         email: pharmacyToEdit.email,
         phone: pharmacyToEdit.phone,
         address: pharmacyToEdit.address,
@@ -43,7 +43,7 @@ const AddPharmacyModal = ({
   const resetForm = () => {
     setNewPharmacy({
       name: "",
-      owner: "",
+      // owner: "",
       email: "",
       phone: "",
       address: "",
@@ -57,7 +57,7 @@ const AddPharmacyModal = ({
     // Basic validation
     if (
       !newPharmacy.name ||
-      !newPharmacy.owner ||
+      // !newPharmacy.owner ||
       !newPharmacy.email ||
       (!isEditMode && !newPharmacy.password)
     ) {
@@ -160,7 +160,7 @@ const AddPharmacyModal = ({
           name: result.data.name,
           address: result.data.address,
           phone: result.data.user.phoneNumber,
-          owner: newPharmacy.owner, // Use form owner instead of hardcoded
+          // owner: newPharmacy.owner, // Use form owner instead of hardcoded
           status: "Active",
           joinedDate: dayjs(result.data.createdAt).format("DD MMMM YYYY"),
         };
@@ -253,12 +253,12 @@ const AddPharmacyModal = ({
               type: "text",
               placeholder: "Entrez le nom de la pharmacie",
             },
-            {
-              label: "Nom du propriétaire *",
-              name: "owner",
-              type: "text",
-              placeholder: "Entrez le nom du propriétaire",
-            },
+            // {
+            //   label: "Nom du propriétaire *",
+            //   name: "owner",
+            //   type: "text",
+            //   placeholder: "Entrez le nom du propriétaire",
+            // },
             {
               label: "Adresse e-mail *",
               name: "email",

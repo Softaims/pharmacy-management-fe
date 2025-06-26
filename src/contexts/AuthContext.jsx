@@ -126,19 +126,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout function
-  const logout = async () => {
-    try {
-      await apiService.logout();
-    } catch (error) {
-      console.log("Logout API error:", error);
-    } finally {
-      // Clear cookies
-      // Cookies.remove("accessToken");
-      // Cookies.remove("refreshToken");
-      // Cookies.remove("userRole");
+  const logout = () => {
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
 
-      dispatch({ type: actionTypes.LOGOUT });
-    }
+    dispatch({ type: actionTypes.LOGOUT });
   };
 
   // Refresh token function
