@@ -10,11 +10,12 @@ import {
   MapPin,
   Calendar,
   Filter,
-  X,
 } from "lucide-react";
 import AddPharmacyModal from "./AddPharmacyModal.jsx";
 import DeleteConfirmationModal from "./DeleteConfirmationModal.jsx";
 import StatusConfirmationModal from "./StatusConfirmationModal.jsx";
+import apiService from "../../api/apiService.js";
+import { toast } from "react-toastify";
 
 const PharmacyManagement = ({
   pharmacies,
@@ -37,12 +38,21 @@ const PharmacyManagement = ({
       pharmacy.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDeletePharmacy = (id) => {
-    setPharmacies(pharmacies.filter((pharmacy) => pharmacy.id !== id));
-    setShowDeleteModal(false);
-    setSelectedPharmacy(null);
+  const handleDeletePharmacy = async (id) => {
+    try {
+      await apiService.deletePharmacy(id); // Appel de l'API pour supprimer la pharmacie
+      setPharmacies(pharmacies.filter((pharmacy) => pharmacy.id !== id)); // Mise à jour de l'état local
+      setShowDeleteModal(false);
+      setSelectedPharmacy(null);
+      toast.success("Pharmacie supprimée avec succès !"); // Toast de succès
+    } catch (error) {
+      console.error("Échec de la suppression de la pharmacie :", error);
+      toast.error(
+        error.message ||
+          "Échec de la suppression de la pharmacie. Veuillez réessayer biotechnology."
+      ); // Toast d'erreur
+    }
   };
-
   const openDeleteModal = (pharmacy) => {
     setSelectedPharmacy(pharmacy);
     setShowDeleteModal(true);
@@ -61,19 +71,30 @@ const PharmacyManagement = ({
     setStatusPharmacy(pharmacy);
     setShowStatusModal(true);
   };
-  const confirmStatusToggle = () => {
-    setPharmacies(
-      pharmacies.map((pharmacy) =>
-        pharmacy.id === statusPharmacy.id
-          ? {
-              ...pharmacy,
-              status: pharmacy.status === "Active" ? "Inactif" : "Active",
-            }
-          : pharmacy
-      )
-    );
-    setShowStatusModal(false);
-    setStatusPharmacy(null);
+  const confirmStatusToggle = async () => {
+    try {
+      const newStatus = statusPharmacy.status === "Active" ? false : true;
+      await apiService.changeStatus(statusPharmacy.id, newStatus);
+      setPharmacies(
+        pharmacies.map((pharmacy) =>
+          pharmacy.id === statusPharmacy.id
+            ? {
+                ...pharmacy,
+                status: newStatus ? "Active" : "Inactif",
+              }
+            : pharmacy
+        )
+      );
+      setShowStatusModal(false);
+      setStatusPharmacy(null);
+      toast.success("Statut de la pharmacie mis à jour avec succès !");
+    } catch (error) {
+      console.error("Échec de la mise à jour du statut :", error);
+      toast.error(
+        error.message ||
+          "Échec de la mise à jour du statut. Veuillez réessayer."
+      ); // Toast d'erreur
+    }
   };
 
   const toggleStatus = (id) => {

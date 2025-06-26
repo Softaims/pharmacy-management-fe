@@ -140,10 +140,31 @@ const apiService = {
 
   deletePharmacy: async (id) => {
     try {
-      const response = await axios.delete(`/admin/pharmacies/${id}`);
+      const response = await axios.delete(`/admin/pharmacy/${id}`);
+      console.log("🚀 ~ deletePharmacy: ~ response:", response);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: "Failed to delete pharmacy" };
+    }
+  },
+  changeStatus: async (id, isActive) => {
+    console.log(
+      "🚀 ~ changeStatus: ~ isActive:,,,,,,,,,,,,,,,,,,,,,,,,,",
+      isActive,
+      id
+    );
+    try {
+      const response = await axios.patch(`/admin/pharmacy/${id}/status`, {
+        isActive,
+      });
+      console.log("🚀 ~ changeStatus: ~ response:", response);
+      return response.data;
+    } catch (error) {
+      throw (
+        error.response?.data || {
+          message: "Échec de la mise à jour du statut de la pharmacie",
+        }
+      );
     }
   },
 

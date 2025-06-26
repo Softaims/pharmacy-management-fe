@@ -114,10 +114,10 @@ const AddPharmacyModal = ({
         toast.success("Pharmacie mise à jour avec succès !");
       } else {
         result = await apiService.addPharmacy(payload);
-        console.log("🚀 ~ handleSubmit ~ result:", result);
+        console.log("🚀 ~ handleSubmit ~ result:,,,,,,,,,,,,,,", result);
         const newPharmacy = {
           ...result.data.user.pharmacy,
-          id: result.data.user.id,
+          id: result.data.id,
           email: result.data.user.email,
           name: result.data.name,
           address: result.data.address,

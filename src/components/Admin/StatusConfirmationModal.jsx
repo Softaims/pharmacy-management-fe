@@ -31,10 +31,7 @@ const StatusConfirmationModal = ({
 
   const handleConfirm = () => {
     onConfirm();
-    toast.success(`Status changed successfully for ${pharmacyName}`, {
-      autoClose: 3000,
-      theme: "dark",
-    });
+    // toast.success(`Status changed successfully for ${pharmacyName}`);
     onClose();
   };
 

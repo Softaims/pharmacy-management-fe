@@ -31,7 +31,6 @@ const DashboardPage = () => {
           phone: pharmacy.user?.phoneNumber || "N/A",
           address: pharmacy.address,
           status: pharmacy.isActive ? "Active" : "Inactif",
-          // joinedDate: new Date(pharmacy.createdAt).toISOString().split("T")[0], // Format date as YYYY-MM-DD
           joinedDate: dayjs(pharmacy.createdAt).format("DD MMMM YYYY"),
         }));
         console.log(

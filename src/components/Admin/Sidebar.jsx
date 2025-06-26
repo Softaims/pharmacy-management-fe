@@ -1,5 +1,6 @@
 import React from "react";
 import { Users, Settings, X } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Sidebar = ({
   activeTab,
@@ -7,6 +8,9 @@ const Sidebar = ({
   sidebarOpen,
   setSidebarOpen,
 }) => {
+  const { user } = useAuth(); // Access user from AuthContext
+  console.log("🚀 ~ user:", user);
+
   const sidebarItems = [
     { id: "users", label: "Gestion des pharmacies", icon: Users },
     // { id: "settings", label: "Settings", icon: Settings },
@@ -81,7 +85,7 @@ const Sidebar = ({
               <p className="text-sm font-medium text-gray-900 truncate">
                 Administrateur
               </p>
-              <p className="text-xs text-gray-500 truncate">admin@pharma.com</p>
+              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
             </div>
           </div>
         </div>
