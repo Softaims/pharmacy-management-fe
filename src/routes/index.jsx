@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "../pages/HomePage.jsx";
 import LoginPage from "../pages/Admin/LoginPage.jsx";
 import DashboardPage from "../pages/Admin/DashboardPage.jsx";
+import PharmacyDashboard from "../pages/Pharmacy/PharmacyDashboard.jsx";
+
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
@@ -42,16 +44,6 @@ export default function AppRoutes() {
         }
       />
 
-      {/* Protected Pharmacy Routes */}
-      {/* <Route
-        path="/pharmacy-dashboard"
-        element={
-          <ProtectedRoute roles={["pharmacy"]}>
-            <PharmacyDashboard />
-          </ProtectedRoute>
-        }
-      /> */}
-
       {/* Catch all route - redirect to appropriate dashboard or home */}
       <Route
         path="*"
@@ -68,6 +60,7 @@ export default function AppRoutes() {
           />
         }
       />
+      <Route path="/pharmacy/*" element={<PharmacyDashboard />} />
     </Routes>
   );
 }
