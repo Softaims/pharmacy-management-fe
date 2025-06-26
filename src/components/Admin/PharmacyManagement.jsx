@@ -189,7 +189,7 @@ const PharmacyManagement = ({
       {/* Pharmacies Table/Cards */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Desktop Table View */}
-        <div className="hidden lg:block overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -279,7 +279,7 @@ const PharmacyManagement = ({
         </div>
 
         {/* Mobile Card View */}
-        <div className="lg:hidden divide-y divide-gray-200">
+        <div className="md:hidden divide-y divide-gray-200">
           {filteredPharmacies.map((pharmacy) => (
             <div key={pharmacy.id} className="p-4">
               <div className="flex items-start justify-between mb-3">
@@ -291,7 +291,7 @@ const PharmacyManagement = ({
                 </div>
                 <div className="flex items-center gap-2 ml-3">
                   <button
-                    // onClick={() => toggleStatus(pharmacy.id)}
+                    onClick={() => toggleStatus(pharmacy.id)}
                     onClick={() => handleStatusToggle(pharmacy)}
                     className={`px-2 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
                       pharmacy.status === "Active"
