@@ -97,18 +97,18 @@ const PharmacyManagement = ({
     }
   };
 
-  const toggleStatus = (id) => {
-    setPharmacies(
-      pharmacies.map((pharmacy) =>
-        pharmacy.id === id
-          ? {
-              ...pharmacy,
-              status: pharmacy.status === "Active" ? "Inactif" : "Active",
-            }
-          : pharmacy
-      )
-    );
-  };
+  // const toggleStatus = (id) => {
+  //   setPharmacies(
+  //     pharmacies.map((pharmacy) =>
+  //       pharmacy.id === id
+  //         ? {
+  //             ...pharmacy,
+  //             status: pharmacy.status === "Active" ? "Inactif" : "Active",
+  //           }
+  //         : pharmacy
+  //     )
+  //   );
+  // };
 
   return (
     <div className="space-y-4 lg:space-y-6">
@@ -291,7 +291,6 @@ const PharmacyManagement = ({
                 </div>
                 <div className="flex items-center gap-2 ml-3">
                   <button
-                    onClick={() => toggleStatus(pharmacy.id)}
                     onClick={() => handleStatusToggle(pharmacy)}
                     className={`px-2 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
                       pharmacy.status === "Active"
