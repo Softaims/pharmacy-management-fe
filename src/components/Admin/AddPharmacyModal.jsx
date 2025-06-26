@@ -18,7 +18,7 @@ const AddPharmacyModal = ({
     phone: "",
     address: "",
     password: "",
-    joinedDate: "",
+    status: "",
   });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -48,7 +48,7 @@ const AddPharmacyModal = ({
       phone: "",
       address: "",
       password: "",
-      joinedDate: "",
+      status: "",
     });
     setShowPassword(false);
   };
@@ -85,48 +85,86 @@ const AddPharmacyModal = ({
       return;
     }
 
-    const payload = {
-      name: newPharmacy.name,
-      email: newPharmacy.email,
-      phoneNumber: newPharmacy.phone,
-      password: newPharmacy.password,
-      address: newPharmacy.address,
-      latitude: 48.8534,
-      longitude: 2.3488,
-      role: "PHARMACY",
-    };
-
     try {
       let result;
       if (isEditMode) {
-        if (!payload.password) {
-          delete payload.password;
+        // Create payload with only changed fields
+        const payload = {};
+        if (newPharmacy.name !== pharmacyToEdit.name)
+          payload.name = newPharmacy.name;
+        if (newPharmacy.email !== pharmacyToEdit.email)
+          payload.email = newPharmacy.email;
+        if (newPharmacy.phone !== pharmacyToEdit.phone)
+          payload.phoneNumber = newPharmacy.phone;
+        if (newPharmacy.address !== pharmacyToEdit.address)
+          payload.address = newPharmacy.address;
+        if (newPharmacy.password) payload.password = newPharmacy.password;
+        if (newPharmacy.status !== pharmacyToEdit.status) {
+          payload.isActive = newPharmacy.status === "Active";
         }
+
+        // Only send PATCH request if there are changes
+        if (Object.keys(payload).length === 0) {
+          toast.info("Aucune modification détectée", {
+            autoClose: 3000,
+            theme: "dark",
+          });
+          resetForm();
+          setShowAddModal(false);
+          return;
+        }
+
         result = await apiService.updatePharmacy(pharmacyToEdit.id, payload);
         console.log("🚀 ~ handleSubmit ~ result:", result);
+
+        // Update local state
         setPharmacies(
           pharmacies.map((pharmacy) =>
             pharmacy.id === pharmacyToEdit.id
-              ? { ...pharmacy, ...result }
+              ? {
+                  ...pharmacy,
+                  ...payload,
+                  phone: payload.phoneNumber || pharmacy.phone,
+                  status:
+                    payload.isActive !== undefined
+                      ? payload.isActive
+                        ? "Active"
+                        : "Inactif"
+                      : pharmacy.status,
+                }
               : pharmacy
           )
         );
-        toast.success("Pharmacie mise à jour avec succès !");
+
+        toast.success("Pharmacie mise à jour avec succès !", {
+          autoClose: 3000,
+          theme: "dark",
+        });
       } else {
+        const payload = {
+          name: newPharmacy.name,
+          email: newPharmacy.email,
+          phoneNumber: newPharmacy.phone,
+          password: newPharmacy.password,
+          address: newPharmacy.address,
+          latitude: 48.8534,
+          longitude: 2.3488,
+          role: "PHARMACY",
+        };
+
         result = await apiService.addPharmacy(payload);
-        console.log("🚀 ~ handleSubmit ~ result:,,,,,,,,,,,,,,", result);
-        const newPharmacy = {
+        const newPharmacyData = {
           ...result.data.user.pharmacy,
           id: result.data.id,
           email: result.data.user.email,
           name: result.data.name,
           address: result.data.address,
           phone: result.data.user.phoneNumber,
-          owner: "static owner",
+          owner: newPharmacy.owner, // Use form owner instead of hardcoded
           status: "Active",
           joinedDate: dayjs(result.data.createdAt).format("DD MMMM YYYY"),
         };
-        setPharmacies([...pharmacies, newPharmacy]);
+        setPharmacies([...pharmacies, newPharmacyData]);
         toast.success("Pharmacie ajoutée avec succès !", {
           autoClose: 3000,
           theme: "dark",
@@ -304,7 +342,7 @@ const AddPharmacyModal = ({
                 Statut
               </label>
               <select
-                value={newPharmacy.status || "Active"} // Default to "Active" if undefined
+                value={newPharmacy.status || "Active"}
                 onChange={(e) =>
                   setNewPharmacy({ ...newPharmacy, status: e.target.value })
                 }

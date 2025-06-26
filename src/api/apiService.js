@@ -131,7 +131,7 @@ const apiService = {
   },
   updatePharmacy: async (id, payload) => {
     try {
-      const response = await axios.put(`/admin/pharmacies/${id}`, payload);
+      const response = await axios.patch(`/admin/pharmacy/${id}`, payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: "Failed to update pharmacy" };
