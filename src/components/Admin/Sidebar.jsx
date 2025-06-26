@@ -1,6 +1,7 @@
 import React from "react";
-import { Users, Settings, X } from "lucide-react";
+import { Users, X, LogOut } from "lucide-react"; // Added LogOut icon
 import { useAuth } from "../../contexts/AuthContext";
+import { toast } from "react-toastify"; // To show toast notifications for logout
 
 const Sidebar = ({
   activeTab,
@@ -8,13 +9,22 @@ const Sidebar = ({
   sidebarOpen,
   setSidebarOpen,
 }) => {
-  const { user } = useAuth(); // Access user from AuthContext
-  console.log("🚀 ~ user:", user);
+  const { user, logout } = useAuth(); // Access user and logout function from AuthContext
 
   const sidebarItems = [
     { id: "users", label: "Gestion des pharmacies", icon: Users },
     // { id: "settings", label: "Settings", icon: Settings },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Déconnexion réussie !");
+    } catch (error) {
+      console.log("🚀 ~ handleLogout ~ error:", error);
+      toast.error("Erreur lors de la déconnexion. Veuillez réessayer.");
+    }
+  };
 
   return (
     <aside
@@ -88,6 +98,15 @@ const Sidebar = ({
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
             </div>
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="mt-4 w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-100 focus:outline-none transition-all duration-200"
+          >
+            <LogOut className="w-5 h-5 mr-3" />
+            Se déconnecter
+          </button>
         </div>
       </div>
     </aside>

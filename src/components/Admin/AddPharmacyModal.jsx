@@ -13,7 +13,6 @@ const AddPharmacyModal = ({
 }) => {
   const [newPharmacy, setNewPharmacy] = useState({
     name: "",
-    // owner: "",
     email: "",
     phone: "",
     address: "",
@@ -28,7 +27,6 @@ const AddPharmacyModal = ({
     if (pharmacyToEdit) {
       setNewPharmacy({
         name: pharmacyToEdit.name,
-        // owner: pharmacyToEdit.owner,
         email: pharmacyToEdit.email,
         phone: pharmacyToEdit.phone,
         address: pharmacyToEdit.address,
@@ -43,7 +41,6 @@ const AddPharmacyModal = ({
   const resetForm = () => {
     setNewPharmacy({
       name: "",
-      // owner: "",
       email: "",
       phone: "",
       address: "",
@@ -57,7 +54,6 @@ const AddPharmacyModal = ({
     // Basic validation
     if (
       !newPharmacy.name ||
-      // !newPharmacy.owner ||
       !newPharmacy.email ||
       (!isEditMode && !newPharmacy.password)
     ) {
@@ -98,10 +94,6 @@ const AddPharmacyModal = ({
           payload.phoneNumber = newPharmacy.phone;
         if (newPharmacy.address !== pharmacyToEdit.address)
           payload.address = newPharmacy.address;
-        if (newPharmacy.password) payload.password = newPharmacy.password;
-        if (newPharmacy.status !== pharmacyToEdit.status) {
-          payload.isActive = newPharmacy.status === "Active";
-        }
 
         // Only send PATCH request if there are changes
         if (Object.keys(payload).length === 0) {
@@ -125,12 +117,6 @@ const AddPharmacyModal = ({
                   ...pharmacy,
                   ...payload,
                   phone: payload.phoneNumber || pharmacy.phone,
-                  status:
-                    payload.isActive !== undefined
-                      ? payload.isActive
-                        ? "Active"
-                        : "Inactif"
-                      : pharmacy.status,
                 }
               : pharmacy
           )
@@ -160,7 +146,6 @@ const AddPharmacyModal = ({
           name: result.data.name,
           address: result.data.address,
           phone: result.data.user.phoneNumber,
-          // owner: newPharmacy.owner, // Use form owner instead of hardcoded
           status: "Active",
           joinedDate: dayjs(result.data.createdAt).format("DD MMMM YYYY"),
         };
@@ -177,11 +162,7 @@ const AddPharmacyModal = ({
       toast.error(
         `Erreur lors de ${
           isEditMode ? "la mise à jour" : "l'ajout"
-        } de la pharmacie : ${error.message}`,
-        {
-          autoClose: 3000,
-          theme: "dark",
-        }
+        } de la pharmacie : ${error.message}`
       );
     }
   };
@@ -251,14 +232,8 @@ const AddPharmacyModal = ({
               label: "Nom de la pharmacie *",
               name: "name",
               type: "text",
-              placeholder: "Entrez le nom de la pharmacie",
+              placeholder: "Entrez le nom de Apollopharmacy",
             },
-            // {
-            //   label: "Nom du propriétaire *",
-            //   name: "owner",
-            //   type: "text",
-            //   placeholder: "Entrez le nom du propriétaire",
-            // },
             {
               label: "Adresse e-mail *",
               name: "email",
@@ -271,15 +246,17 @@ const AddPharmacyModal = ({
               type: "tel",
               placeholder: "Entrez le numéro de téléphone",
             },
-            {
-              label: isEditMode ? "Nouveau mot de passe" : "Mot de passe *",
-              name: "password",
-              type: showPassword ? "text" : "password",
-              placeholder: isEditMode
-                ? "Entrez un nouveau mot de passe (facultatif)"
-                : "Entrez le mot de passe",
-              isPassword: true,
-            },
+            ...(!isEditMode
+              ? [
+                  {
+                    label: "Mot de passe *",
+                    name: "password",
+                    type: showPassword ? "text" : "password",
+                    placeholder: "Entrez le mot de passe",
+                    isPassword: true,
+                  },
+                ]
+              : []),
           ].map((field) => (
             <div key={field.name} className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -334,25 +311,6 @@ const AddPharmacyModal = ({
               placeholder="Entrez l'adresse complète"
             />
           </div>
-
-          {/* Show Statut dropdown only in edit mode */}
-          {isEditMode && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Statut
-              </label>
-              <select
-                value={newPharmacy.status || "Active"}
-                onChange={(e) =>
-                  setNewPharmacy({ ...newPharmacy, status: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactif">Inactif</option>
-              </select>
-            </div>
-          )}
         </div>
 
         {/* Footer */}

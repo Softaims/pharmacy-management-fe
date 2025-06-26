@@ -8,7 +8,7 @@ const apiService = {
     console.log("🚀 ~ Signin: ~ payload:", payload);
 
     try {
-      const response = await axios.post("/auth/admin/login", payload);
+      const response = await axios.post("/admin/login", payload);
       console.log("🚀 ~ Signin: ~ response:", response);
       const staticExpiryDate = new Date();
       staticExpiryDate.setDate(staticExpiryDate.getDate() + 7); // 7 days from now
