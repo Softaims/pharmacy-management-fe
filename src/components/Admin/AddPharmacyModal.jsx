@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
+import apiService from "../../api/apiService";
+import dayjs from "dayjs";
 
 const AddPharmacyModal = ({
   showAddModal,
@@ -15,8 +17,10 @@ const AddPharmacyModal = ({
     email: "",
     phone: "",
     address: "",
-    status: "Active",
+    password: "",
+    joinedDate: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const isEditMode = !!pharmacyToEdit;
 
@@ -29,6 +33,7 @@ const AddPharmacyModal = ({
         phone: pharmacyToEdit.phone,
         address: pharmacyToEdit.address,
         status: pharmacyToEdit.status,
+        password: "",
       });
     } else {
       resetForm();
@@ -42,20 +47,27 @@ const AddPharmacyModal = ({
       email: "",
       phone: "",
       address: "",
-      status: "Active",
+      password: "",
+      joinedDate: "",
     });
+    setShowPassword(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Basic validation
-    if (!newPharmacy.name || !newPharmacy.owner || !newPharmacy.email) {
+    if (
+      !newPharmacy.name ||
+      !newPharmacy.owner ||
+      !newPharmacy.email ||
+      (!isEditMode && !newPharmacy.password)
+    ) {
       toast.error("Veuillez remplir tous les champs obligatoires (*)", {
         autoClose: 3000,
         theme: "dark",
       });
       return;
     }
-    // Simple email validation (adjust regex as needed)
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newPharmacy.email)) {
       toast.error("Veuillez entrer une adresse e-mail valide", {
@@ -64,34 +76,76 @@ const AddPharmacyModal = ({
       });
       return;
     }
-
-    if (isEditMode) {
-      setPharmacies(
-        pharmacies.map((pharmacy) =>
-          pharmacy.id === pharmacyToEdit.id
-            ? { ...pharmacy, ...newPharmacy }
-            : pharmacy
-        )
-      );
-      toast.success("Pharmacie mise à jour avec succès !", {
+    // Password validation (minimum 8 characters, only required for add mode)
+    if (!isEditMode && newPharmacy.password.length < 8) {
+      toast.error("Le mot de passe doit contenir au moins 8 caractères", {
         autoClose: 3000,
         theme: "dark",
       });
-    } else {
-      const pharmacy = {
-        ...newPharmacy,
-        id: pharmacies.length + 1,
-        joinedDate: new Date().toISOString().split("T")[0],
-        revenue: "$0",
-      };
-      setPharmacies([...pharmacies, pharmacy]);
-      toast.success("Pharmacie ajoutée avec succès !", {
-        autoClose: 3000,
-        theme: "dark",
-      });
+      return;
     }
-    resetForm();
-    setShowAddModal(false);
+
+    const payload = {
+      name: newPharmacy.name,
+      email: newPharmacy.email,
+      phoneNumber: newPharmacy.phone,
+      password: newPharmacy.password,
+      address: newPharmacy.address,
+      latitude: 48.8534,
+      longitude: 2.3488,
+      role: "PHARMACY",
+    };
+
+    try {
+      let result;
+      if (isEditMode) {
+        if (!payload.password) {
+          delete payload.password;
+        }
+        result = await apiService.updatePharmacy(pharmacyToEdit.id, payload);
+        console.log("🚀 ~ handleSubmit ~ result:", result);
+        setPharmacies(
+          pharmacies.map((pharmacy) =>
+            pharmacy.id === pharmacyToEdit.id
+              ? { ...pharmacy, ...result }
+              : pharmacy
+          )
+        );
+        toast.success("Pharmacie mise à jour avec succès !");
+      } else {
+        result = await apiService.addPharmacy(payload);
+        console.log("🚀 ~ handleSubmit ~ result:", result);
+        const newPharmacy = {
+          ...result.data.user.pharmacy,
+          id: result.data.user.id,
+          email: result.data.user.email,
+          name: result.data.name,
+          address: result.data.address,
+          phone: result.data.user.phoneNumber,
+          owner: "static owner",
+          status: "Active",
+          joinedDate: dayjs(result.data.createdAt).format("DD MMMM YYYY"),
+        };
+        setPharmacies([...pharmacies, newPharmacy]);
+        toast.success("Pharmacie ajoutée avec succès !", {
+          autoClose: 3000,
+          theme: "dark",
+        });
+      }
+
+      resetForm();
+      setShowAddModal(false);
+    } catch (error) {
+      toast.error(
+        `Erreur lors de ${
+          isEditMode ? "la mise à jour" : "l'ajout"
+        } de la pharmacie : ${error.message}`,
+        {
+          autoClose: 3000,
+          theme: "dark",
+        }
+      );
+    }
   };
 
   const handleCancel = () => {
@@ -179,23 +233,52 @@ const AddPharmacyModal = ({
               type: "tel",
               placeholder: "Entrez le numéro de téléphone",
             },
+            {
+              label: isEditMode ? "Nouveau mot de passe" : "Mot de passe *",
+              name: "password",
+              type: showPassword ? "text" : "password",
+              placeholder: isEditMode
+                ? "Entrez un nouveau mot de passe (facultatif)"
+                : "Entrez le mot de passe",
+              isPassword: true,
+            },
           ].map((field) => (
-            <div key={field.name}>
+            <div key={field.name} className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {field.label}
               </label>
-              <input
-                type={field.type}
-                value={newPharmacy[field.name]}
-                onChange={(e) =>
-                  setNewPharmacy({
-                    ...newPharmacy,
-                    [field.name]: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-                placeholder={field.placeholder}
-              />
+              <div className="relative">
+                <input
+                  type={field.type}
+                  value={newPharmacy[field.name]}
+                  onChange={(e) =>
+                    setNewPharmacy({
+                      ...newPharmacy,
+                      [field.name]: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10"
+                  placeholder={field.placeholder}
+                />
+                {field.isPassword && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    aria-label={
+                      showPassword
+                        ? "Masquer le mot de passe"
+                        : "Afficher le mot de passe"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
 
@@ -214,21 +297,24 @@ const AddPharmacyModal = ({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Statut
-            </label>
-            <select
-              value={newPharmacy.status}
-              onChange={(e) =>
-                setNewPharmacy({ ...newPharmacy, status: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-            >
-              <option value="Active">Active</option>
-              <option value="Inactif">Inactif</option>
-            </select>
-          </div>
+          {/* Show Statut dropdown only in edit mode */}
+          {isEditMode && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Statut
+              </label>
+              <select
+                value={newPharmacy.status || "Active"} // Default to "Active" if undefined
+                onChange={(e) =>
+                  setNewPharmacy({ ...newPharmacy, status: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactif">Inactif</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

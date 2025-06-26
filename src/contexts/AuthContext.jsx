@@ -67,7 +67,6 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       const accessToken = Cookies.get("accessToken");
       const userRole = Cookies.get("userRole");
-
       if (accessToken) {
         try {
           // Verify token and get user data
@@ -106,7 +105,7 @@ export const AuthProvider = ({ children }) => {
 
       // Store user role in cookie
       Cookies.set("userRole", credentials.role, {
-        expires: 7,
+        // expires: 7,
         // secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
       });

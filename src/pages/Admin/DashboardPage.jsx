@@ -4,6 +4,8 @@ import Sidebar from "../../components/Admin/Sidebar";
 import PharmacyManagement from "../../components/Admin/PharmacyManagement.jsx";
 import SettingsPanel from "../../components/Admin/SettingsPanel.jsx";
 import { useAuth } from "../../contexts/AuthContext";
+import apiService from "../../api/apiService.js";
+import dayjs from "dayjs";
 
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -13,53 +15,39 @@ const DashboardPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
   console.log("🚀 ~ DashboardPage ~ user:", user);
-  const [pharmacies, setPharmacies] = useState([
-    {
-      id: 1,
-      name: "Pharmacie SantéPlus",
-      owner: "Dr. Jean Dupont",
-      email: "jean@santeplus.com",
-      phone: "+1 (555) 123-4567",
-      address: "123 rue Principale, New York, NY 10001",
-      status: "Active",
-      joinedDate: "2023-01-15",
-      revenue: "45 230 $",
-    },
-    {
-      id: 2,
-      name: "Pharmacie Médicale de la Ville",
-      owner: "Dr. Sarah Martin",
-      email: "sarah@medville.com",
-      phone: "+1 (555) 234-5678",
-      address: "456 avenue du Chêne, Los Angeles, CA 90210",
-      status: "Active",
-      joinedDate: "2023-03-22",
-      revenue: "38 450 $",
-    },
-    {
-      id: 3,
-      name: "Pharmacie Rapid'Médic",
-      owner: "Dr. Michel Brun",
-      email: "michel@rapidmedic.com",
-      phone: "+1 (555) 345-6789",
-      address: "789 rue des Pins, Chicago, IL 60601",
-      status: "Inactif",
-      joinedDate: "2022-11-08",
-      revenue: "22180$",
-    },
-    {
-      id: 4,
-      name: "Pharmacie FamilleSanté",
-      owner: "Dr. Émilie Dubois",
-      email: "emilie@famillesante.com",
-      phone: "+1 (555) 456-7890",
-      address: "321 rue Orme, Houston, TX 77001",
-      status: "Active",
-      joinedDate: "2023-05-10",
-      revenue: "51 670 $",
-    },
-  ]);
+  const [pharmacies, setPharmacies] = useState([]);
+  useEffect(() => {
+    const fetchPharmacies = async () => {
+      try {
+        const response = await apiService.getPharmacies();
+        console.log("🚀 ~ fetchPharmacies ~ data:", response);
 
+        // Transform API data to match the static data structure
+        const transformedPharmacies = response.data.map((pharmacy) => ({
+          id: pharmacy.id,
+          name: pharmacy.name,
+          owner: pharmacy.user ? pharmacy.user.email.split("@")[0] : "Unknown", // Extract owner name from email or fallback
+          email: pharmacy.user?.email || "N/A",
+          phone: pharmacy.user?.phoneNumber || "N/A",
+          address: pharmacy.address,
+          status: pharmacy.isActive ? "Active" : "Inactif",
+          // joinedDate: new Date(pharmacy.createdAt).toISOString().split("T")[0], // Format date as YYYY-MM-DD
+          joinedDate: dayjs(pharmacy.createdAt).format("DD MMMM YYYY"),
+        }));
+        console.log(
+          "🚀 ~ transformedPharmacies ~ transformedPharmacies:",
+          transformedPharmacies
+        );
+
+        setPharmacies(transformedPharmacies);
+      } catch (error) {
+        console.error("Error fetching pharmacies:", error.message);
+        // Optionally handle error (e.g., show notification)
+      }
+    };
+
+    fetchPharmacies();
+  }, []); // Empty dependency array to run once on mount
   // Close mobile sidebar when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {

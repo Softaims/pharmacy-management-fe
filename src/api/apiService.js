@@ -123,13 +123,12 @@ const apiService = {
 
   addPharmacy: async (payload) => {
     try {
-      const response = await axios.post("/admin/pharmacies", payload);
+      const response = await axios.post("/admin/pharmacy/create", payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: "Failed to add pharmacy" };
     }
   },
-
   updatePharmacy: async (id, payload) => {
     try {
       const response = await axios.put(`/admin/pharmacies/${id}`, payload);

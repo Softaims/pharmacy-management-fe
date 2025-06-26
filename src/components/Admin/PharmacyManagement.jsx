@@ -303,9 +303,6 @@ const PharmacyManagement = ({
                   Joined {pharmacy.joinedDate}
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-medium text-gray-900 text-sm">
-                    {pharmacy.revenue}
-                  </span>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => openEditModal(pharmacy)}

@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 const ProtectedRoute = ({ children, roles = [] }) => {
   const { isAuthenticated, isLoading, role } = useAuth();
   console.log("🚀 ~ ProtectedRoute ~ isLoading:", isLoading);
+  console.log("🚀 ~ ProtectedRoute ~ isAuthenticated:", isAuthenticated);
   const location = useLocation();
 
   // Show loading spinner while checking authentication
