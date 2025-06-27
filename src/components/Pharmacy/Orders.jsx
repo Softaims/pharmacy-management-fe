@@ -7,10 +7,10 @@ import OrderDetailsSidebar from "./Orders/OrderDetailsSidebar.jsx";
 const dummyOrders = [
   {
     id: 1,
-    patientName: "Jean Pascal DURANT",
+    patientName: "Marie Dubois",
     status: "À valider",
-    statusColor: "bg-yellow-100 text-yellow-800",
-    inquiryDate: "28/11/2024 à 14:00",
+    statusColor: "bg-[#FEEEB8] text-[#8C8469]",
+    inquiryDate: "15/06/2025 à 09:30",
     documents: {
       prescription: "/api/placeholder/400/500",
       mutualCard: "/api/placeholder/400/500",
@@ -18,20 +18,20 @@ const dummyOrders = [
     },
     details: {
       patientInfo: {
-        name: "Jean Pascal DURANT",
-        birthDate: "01/01/1990",
-        socialSecurityNumber: "1900010010001",
-        phone: "0123456789",
-        email: "jeanpascal.durant@gmail.com",
+        name: "Marie Dubois",
+        birthDate: "12/03/1985",
+        socialSecurityNumber: "1850312010002",
+        phone: "0678901234",
+        email: "marie.dubois@email.com",
       },
     },
   },
   {
     id: 2,
-    patientName: "Jean Pascal DURANT updated",
+    patientName: "Pierre Lefèvre",
     status: "En préparation",
     statusColor: "bg-blue-100 text-blue-800",
-    inquiryDate: "28/11/2024 à 14:00",
+    inquiryDate: "20/06/2025 à 11:15",
     documents: {
       prescription: "/api/placeholder/400/500",
       mutualCard: "/api/placeholder/400/500",
@@ -39,20 +39,20 @@ const dummyOrders = [
     },
     details: {
       patientInfo: {
-        name: "Jean Pascal DURANT",
-        birthDate: "01/01/1990",
-        socialSecurityNumber: "1900010010001",
-        phone: "0123456789",
-        email: "jeanpascal.durant@gmail.com",
+        name: "Pierre Lefèvre",
+        birthDate: "25/07/1978",
+        socialSecurityNumber: "1780725010003",
+        phone: "0612345678",
+        email: "pierre.lefevre@email.com",
       },
     },
   },
   {
     id: 3,
-    patientName: "Jean Pascal DURANT",
+    patientName: "Sophie Martin",
     status: "Prêt à collecter",
     statusColor: "bg-green-100 text-green-800",
-    inquiryDate: "28/11/2024 à 14:00",
+    inquiryDate: "25/06/2025 à 14:45",
     documents: {
       prescription: "/api/placeholder/400/500",
       mutualCard: "/api/placeholder/400/500",
@@ -60,20 +60,20 @@ const dummyOrders = [
     },
     details: {
       patientInfo: {
-        name: "Jean Pascal DURANT",
-        birthDate: "01/01/1990",
-        socialSecurityNumber: "1900010010001",
-        phone: "0123456789",
-        email: "jeanpascal.durant@gmail.com",
+        name: "Sophie Martin",
+        birthDate: "03/09/1992",
+        socialSecurityNumber: "1920903010004",
+        phone: "0698765432",
+        email: "sophie.martin@email.com",
       },
     },
   },
   {
     id: 4,
-    patientName: "Jean Pascal DURANT",
+    patientName: "Luc Renault",
     status: "Finalisé",
     statusColor: "bg-gray-100 text-gray-800",
-    inquiryDate: "28/11/2024 à 14:00",
+    inquiryDate: "26/06/2025 à 16:20",
     documents: {
       prescription: "/api/placeholder/400/500",
       mutualCard: "/api/placeholder/400/500",
@@ -81,20 +81,20 @@ const dummyOrders = [
     },
     details: {
       patientInfo: {
-        name: "Jean Pascal DURANT",
-        birthDate: "01/01/1990",
-        socialSecurityNumber: "1900010010001",
-        phone: "0123456789",
-        email: "jeanpascal.durant@gmail.com",
+        name: "Luc Renault",
+        birthDate: "14/11/1965",
+        socialSecurityNumber: "1651114010005",
+        phone: "0643217890",
+        email: "luc.renault@email.com",
       },
     },
   },
   {
     id: 5,
-    patientName: "Jean Pascal DURANT",
+    patientName: "Claire Dupont",
     status: "Finalisé",
     statusColor: "bg-gray-100 text-gray-800",
-    inquiryDate: "28/11/2024 à 14:00",
+    inquiryDate: "27/06/2025 à 10:05",
     documents: {
       prescription: "/api/placeholder/400/500",
       mutualCard: "/api/placeholder/400/500",
@@ -102,11 +102,11 @@ const dummyOrders = [
     },
     details: {
       patientInfo: {
-        name: "Jean Pascal DURANT",
-        birthDate: "01/01/1990",
-        socialSecurityNumber: "1900010010001",
-        phone: "0123456789",
-        email: "jeanpascal.durant@gmail.com",
+        name: "Claire Dupont",
+        birthDate: "30/04/1980",
+        socialSecurityNumber: "1800430010006",
+        phone: "0623456789",
+        email: "claire.dupont@email.com",
       },
     },
   },
@@ -210,7 +210,7 @@ const Orders = () => {
                 onClick={() => setActiveMobileTab(tab.id)}
                 className={`flex-1 py-2 px-4 font-medium text-sm transition-colors ${
                   activeMobileTab === tab.id
-                    ? "border-b-2 border-red-500 text-red-600"
+                    ? "border-b-2 border-[#069AA2] text-[#069AA2]"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >

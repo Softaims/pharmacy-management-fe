@@ -1,13 +1,13 @@
 import React from "react";
+import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 
 const OrderDetailsSidebar = ({
   selectedOrder,
   activeDetailsTab,
   setActiveDetailsTab,
-  isModalOpen,
   setIsModalOpen,
-  handleValidate,
 }) => {
+  console.log("🚀 ~ selectedOrder:,,,,,,,,,,,,,", selectedOrder);
   const detailsTabs = [
     { id: "details", label: "Détails ordonnance" },
     { id: "history", label: "Historique" },
@@ -16,22 +16,24 @@ const OrderDetailsSidebar = ({
   return (
     <div className="w-150 bg-white flex flex-col">
       <div className="border-b border-gray-200">
-        <nav className="flex px-4 pt-4">
+        <nav className="flex gap-3 px-4 pt-4 relative">
           {detailsTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveDetailsTab(tab.id)}
-              className={`py-2 px-4 font-medium text-sm rounded-t-lg transition-colors ${
+              className={`py-2 px-4 font-medium text-sm rounded-t-lg transition-colors relative ${
                 activeDetailsTab === tab.id
-                  ? "bg-yellow-400 text-black"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "text-[#069AA2] border-b-2 border-[#069AA2] bg-transparent"
+                  : "text-gray-500 hover:text-gray-700 bg-transparent border-b-2 border-transparent"
               }`}
+              style={{ background: "none" }}
             >
               {tab.label}
             </button>
           ))}
         </nav>
       </div>
+
       <div className="flex-1 p-4 overflow-y-auto">
         {activeDetailsTab === "details" ? (
           <div>
@@ -46,55 +48,68 @@ const OrderDetailsSidebar = ({
                   {selectedOrder?.status}
                 </span>
               </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Id reçu:
-                </label>
-                <p className="text-sm text-gray-900">{selectedOrder?.id}789</p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Numéro de commande:
-                </label>
-                <p className="text-sm text-gray-900">{selectedOrder?.id}4567</p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Patient:
-                </label>
-                <p className="text-sm text-gray-900">
-                  {selectedOrder?.details.patientInfo.name}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Date de naissance:{" "}
-                  {selectedOrder?.details.patientInfo.birthDate}
-                </p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Numéro de sécurité social:
-                </label>
-                <p className="text-sm text-gray-900">
-                  {selectedOrder?.details.patientInfo.socialSecurityNumber}
-                </p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  📞 Téléphone:
-                </label>
-                <p className="text-sm text-gray-900">
-                  {selectedOrder?.details.patientInfo.phone}
-                </p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  ✉️ Email:
-                </label>
-                <p className="text-sm text-gray-900">
-                  {selectedOrder?.details.patientInfo.email}
-                </p>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center text-xs text-gray-900 font-medium">
+                    <span className="w-36 text-gray-500 font-medium">
+                      Id ordo :
+                    </span>
+                    <span className="ml-2 text-black font-normal">
+                      {selectedOrder?.id || "—"}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-900 font-medium">
+                    <span className="w-36 text-gray-500 font-medium">
+                      Numéro de commande :
+                    </span>
+                    <span className="ml-2 text-black font-normal">
+                      {selectedOrder?.orderNumber || "00000000"}
+                    </span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-gray-900 font-semibold text-sm">
+                      Patient :
+                    </span>
+                    <ul className="ml-4 mt-1 space-y-1 text-xs text-gray-900 list-disc">
+                      <li>
+                        {selectedOrder?.details?.patientInfo?.name || "—"}
+                      </li>
+                      <li>
+                        <span className="font-bold">Date de naissance</span> :{" "}
+                        {selectedOrder?.details?.patientInfo?.birthDate || "—"}
+                      </li>
+                      <li>
+                        <span className="font-bold">
+                          Numéro de sécurité social
+                        </span>{" "}
+                        :{" "}
+                        {selectedOrder?.details?.patientInfo
+                          ?.socialSecurityNumber || "—"}
+                      </li>
+                      <li className="flex items-center gap-1">
+                        <FaMapMarkerAlt className="text-gray-500 text-xs" />
+                        <span>
+                          {selectedOrder?.details?.patientInfo?.address ||
+                            "33 avenue victor hugo, 75006 Paris"}
+                        </span>
+                      </li>
+                      <li className="flex items-center gap-1">
+                        <FaPhoneAlt className="text-gray-500 text-xs" />
+                        <span>
+                          {selectedOrder?.details?.patientInfo?.phone ||
+                            "0600000000"}
+                        </span>
+                      </li>
+                      <li className="flex items-center gap-1">
+                        <FaEnvelope className="text-gray-500 text-xs" />
+                        <span>
+                          {selectedOrder?.details?.patientInfo?.email ||
+                            "jeanpascaldurant@gmail.com"}
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="mt-8">
@@ -115,16 +130,6 @@ const OrderDetailsSidebar = ({
                 )}
               </div>
             </div>
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-center">
-                <span className="bg-gray-200 text-gray-600 px-3 py-2 rounded-full text-sm">
-                  ND
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 text-center mt-2">
-                Bouton à activer lorsque qu'il y a 2 premières ordonnances
-              </p>
-            </div>
           </div>
         ) : (
           <div className="text-center text-gray-500">
@@ -133,30 +138,6 @@ const OrderDetailsSidebar = ({
             </p>
           </div>
         )}
-      </div>
-      <div className="border-t border-gray-200 p-4">
-        <div className="flex items-center space-x-2">
-          <input
-            type="text"
-            placeholder="Envoyer un message"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <button className="p-2 text-gray-400 hover:text-gray-600">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-              />
-            </svg>
-          </button>
-        </div>
       </div>
     </div>
   );
