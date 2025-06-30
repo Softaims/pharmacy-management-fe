@@ -6,7 +6,6 @@ const apiService = {
   // Admin login
   Signin: async (payload) => {
     console.log("🚀 ~ Signin: ~ payload:", payload);
-
     try {
       const response = await axios.post("/admin/login", payload);
       console.log("🚀 ~ Signin: ~ response:", response);
@@ -18,12 +17,6 @@ const apiService = {
       Cookies.set("accessToken", accessToken, {
         expires: staticExpiryDate,
       });
-      // Store access token
-      // Cookies.set("accessToken", accessToken, {
-      //   expires: 7, // 1 day
-      //   secure: process.env.NODE_ENV === "production",
-      //   sameSite: "Strict",
-      // });
 
       // Store refresh token
       Cookies.set("refreshToken", refreshToken, {
@@ -44,8 +37,14 @@ const apiService = {
     console.log("🚀 ~ PharSign: ~ payload:", payload);
 
     try {
-      const response = await axios.post("/auth/pharmacy/login", payload);
-      console.log("🚀 ~ PharSign: ~ response:", response);
+      // Format the payload to match the required structure
+      const formattedPayload = {
+        identifier: payload.email,
+        password: payload.password,
+        role: "PHARMACY",
+      };
+
+      const response = await axios.post("/auth/login", formattedPayload);
 
       // Store tokens in cookies
       const { accessToken, refreshToken, user } = response.data.data;

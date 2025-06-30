@@ -14,7 +14,7 @@ const OrderDetailsSidebar = ({
   ];
 
   return (
-    <div className="w-150 bg-white flex flex-col">
+    <div className="w-150 bg-white flex flex-col md:w-150 w-full">
       <div className="border-b border-gray-200">
         <nav className="flex gap-3 px-4 pt-4 relative">
           {detailsTabs.map((tab) => (
@@ -38,19 +38,19 @@ const OrderDetailsSidebar = ({
         {activeDetailsTab === "details" ? (
           <div>
             <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex  tems-center justify-between mb-4 gap-2">
                 <span className="text-sm font-medium text-gray-900">
                   Statut:
                 </span>
-                <span
+                <div
                   className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${selectedOrder?.statusColor}`}
                 >
                   {selectedOrder?.status}
-                </span>
+                </div>
               </div>
               <div className="space-y-4">
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center text-xs text-gray-900 font-medium">
+                  <div className="flex  sm:flex-row sm:items-center text-xs text-gray-900 font-medium">
                     <span className="w-36 text-gray-500 font-medium">
                       Id ordo :
                     </span>
@@ -58,7 +58,7 @@ const OrderDetailsSidebar = ({
                       {selectedOrder?.id || "—"}
                     </span>
                   </div>
-                  <div className="flex items-center text-xs text-gray-900 font-medium">
+                  <div className="flex  sm:flex-row sm:items-center text-xs text-gray-900 font-medium">
                     <span className="w-36 text-gray-500 font-medium">
                       Numéro de commande :
                     </span>
@@ -116,7 +116,7 @@ const OrderDetailsSidebar = ({
               <h3 className="text-sm font-medium text-gray-900 mb-4">
                 Ordonnance à valider
               </h3>
-              <div className="flex space-x-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:space-x-3">
                 <button className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-red-600 transition-colors">
                   Refuser
                 </button>

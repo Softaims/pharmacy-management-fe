@@ -53,14 +53,21 @@ export default function AppRoutes() {
               isAuthenticated
                 ? role === "admin"
                   ? "/admin"
-                  : "/pharmacy-dashboard"
+                  : "/pharmacy"
                 : "/"
             }
             replace
           />
         }
       />
-      <Route path="/pharmacy/*" element={<PharmacyDashboard />} />
+      <Route
+        path="/pharmacy/*"
+        element={
+          <ProtectedRoute roles={["pharmacy"]}>
+            <PharmacyDashboard />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

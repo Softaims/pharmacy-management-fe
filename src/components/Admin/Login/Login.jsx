@@ -16,7 +16,7 @@ const Login = () => {
   // Get the intended destination or default to role-based route
   const from =
     location.state?.from?.pathname ||
-    (role === "admin" ? "/admin" : "/pharmacy-dashboard");
+    (role === "admin" ? "/admin" : "/pharmacy");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,7 +39,7 @@ const Login = () => {
       return;
     }
 
-    setLoading(true); // Set local loading state immediately
+    setLoading(true);
 
     try {
       await login({ email, password, role });
