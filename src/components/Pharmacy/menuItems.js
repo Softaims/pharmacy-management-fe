@@ -1,39 +1,33 @@
-import mailIcon from "../../assets/mailsvg.svg";
-import userIcon from "../../assets/user-icon.svg";
-import chartIcon from "../../assets/chart-icon.svg";
-import settingIcon from "../../assets/settin-icon.svg";
-import orderIcon from "../../assets/order-icon.svg";
+import userIcon from "../../assets/user-icon.png";
+import staticsIcon from "../../assets/statics.png";
+import settingIcon from "../../assets/setting-icon.png";
+import orderIcon2 from "../../assets/order-2.png";
 
 const menuItems = [
   {
     id: "orders",
-    icon: orderIcon,
+    icon: orderIcon2,
     path: "/pharmacy/orders",
-    tooltip: "Orders",
+    tooltip: "Ordonnances",
   },
   {
-    id: "charts",
-    icon: chartIcon,
-    path: "/pharmacy/charts",
-    tooltip: "Charts",
+    id: "Statistiques",
+    icon: staticsIcon,
+    path: "/pharmacy/Statistiques",
+    tooltip: "Statistiques",
   },
-  {
-    id: "mail",
-    icon: mailIcon,
-    path: "/pharmacy/mail",
-    tooltip: "Mail",
-  },
+
   {
     id: "profile",
     icon: userIcon,
     path: "/pharmacy/profile",
-    tooltip: "Profile",
+    tooltip: "Mon compte",
   },
   {
     id: "settings",
     icon: settingIcon,
     path: "/pharmacy/settings",
-    tooltip: "Settings",
+    tooltip: "Paramètres",
   },
 ];
 

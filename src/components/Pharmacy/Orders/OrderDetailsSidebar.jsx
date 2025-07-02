@@ -1,27 +1,75 @@
 import React from "react";
-import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
+import {
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaCircle,
+  FaRegCircle,
+} from "react-icons/fa";
 
 const OrderDetailsSidebar = ({
   selectedOrder,
   activeDetailsTab,
   setActiveDetailsTab,
   setIsModalOpen,
+  setIsPrepModalOpen,
+  setIsWithdrawModalOpen,
 }) => {
   console.log("🚀 ~ selectedOrder:,,,,,,,,,,,,,", selectedOrder);
+
   const detailsTabs = [
     { id: "details", label: "Détails ordonnance" },
     { id: "history", label: "Historique" },
   ];
 
+  // Define status styling based on order status
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "À valider":
+        return "bg-[#FEEEB8] text-black border-2 border-[#FAC710]";
+      case "En préparation":
+        return "bg-[#E7D5AA] text-black border-2 border-[#FAA010]";
+      case "Prêt à collecter":
+        return "bg-[#B8F0F2] text-black border-2 border-[#12CDD4]";
+      case "Finalisé":
+        return "bg-[#DEF1CB] text-black border-2 border-[#8FD14F]";
+      default:
+        return "bg-gray-200 text-black border-2 border-gray-400";
+    }
+  };
+
+  // Define status progress icons
+  const statusOrder = [
+    "À valider",
+    "En préparation",
+    "Prêt à collecter",
+    "Finalisé",
+  ];
+  const filledCount = selectedOrder
+    ? statusOrder.indexOf(selectedOrder.status) + 1
+    : 0;
+  const statusIcons = Array(4)
+    .fill()
+    .map((_, index) =>
+      index < filledCount ? (
+        <FaCircle key={index} className="text-black w-4 h-4 sm:w-5 sm:h-5" />
+      ) : (
+        <FaRegCircle
+          key={index}
+          className="text-gray-300 w-4 h-4 sm:w-5 sm:h-5"
+        />
+      )
+    );
+
   return (
-    <div className="w-150 bg-white flex flex-col md:w-150 w-full">
+    <div className=" bg-white flex flex-col overflow-y-auto h-full">
       <div className="border-b border-gray-200">
-        <nav className="flex gap-3 px-4 pt-4 relative">
+        <nav className="flex flex-row justify-between gap-2 px-4 pt-4 overflow-x-auto">
           {detailsTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveDetailsTab(tab.id)}
-              className={`py-2 px-4 font-medium text-sm rounded-t-lg transition-colors relative ${
+              className={`py-2 font-medium text-base sm:text-lg rounded-t-lg transition-colors relative ${
                 activeDetailsTab === tab.id
                   ? "text-[#069AA2] border-b-2 border-[#069AA2] bg-transparent"
                   : "text-gray-500 hover:text-gray-700 bg-transparent border-b-2 border-transparent"
@@ -34,107 +82,153 @@ const OrderDetailsSidebar = ({
         </nav>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
         {activeDetailsTab === "details" ? (
           <div>
             <div className="mb-6">
-              <div className="flex  tems-center justify-between mb-4 gap-2">
-                <span className="text-sm font-medium text-gray-900">
-                  Statut:
-                </span>
-                <div
-                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${selectedOrder?.statusColor}`}
-                >
-                  {selectedOrder?.status}
-                </div>
-              </div>
               <div className="space-y-4">
-                <div className="flex flex-col gap-2">
-                  <div className="flex  sm:flex-row sm:items-center text-xs text-gray-900 font-medium">
-                    <span className="w-36 text-gray-500 font-medium">
-                      Id ordo :
-                    </span>
-                    <span className="ml-2 text-black font-normal">
-                      {selectedOrder?.id || "—"}
-                    </span>
-                  </div>
-                  <div className="flex  sm:flex-row sm:items-center text-xs text-gray-900 font-medium">
-                    <span className="w-36 text-gray-500 font-medium">
-                      Numéro de commande :
-                    </span>
-                    <span className="ml-2 text-black font-normal">
-                      {selectedOrder?.orderNumber || "00000000"}
-                    </span>
-                  </div>
+                <div className="flex flex-col gap-3">
                   <div className="mt-2">
-                    <span className="text-gray-900 font-semibold text-sm">
+                    <span className="text-gray-900 font-semibold text-base sm:text-lg">
                       Patient :
                     </span>
-                    <ul className="ml-4 mt-1 space-y-1 text-xs text-gray-900 list-disc">
-                      <li>
+                    <ul className="mt-2 space-y-2 text-sm sm:text-base text-gray-600 border-b-[1.5px] pb-4 border-gray-200">
+                      <li className="text-[#069AA2] truncate text-sm">
                         {selectedOrder?.details?.patientInfo?.name || "—"}
                       </li>
-                      <li>
-                        <span className="font-bold">Date de naissance</span> :{" "}
+                      <li className="text-sm">
                         {selectedOrder?.details?.patientInfo?.birthDate || "—"}
                       </li>
-                      <li>
-                        <span className="font-bold">
-                          Numéro de sécurité social
-                        </span>{" "}
-                        :{" "}
-                        {selectedOrder?.details?.patientInfo
-                          ?.socialSecurityNumber || "—"}
-                      </li>
-                      <li className="flex items-center gap-1">
-                        <FaMapMarkerAlt className="text-gray-500 text-xs" />
-                        <span>
-                          {selectedOrder?.details?.patientInfo?.address ||
-                            "33 avenue victor hugo, 75006 Paris"}
-                        </span>
-                      </li>
-                      <li className="flex items-center gap-1">
-                        <FaPhoneAlt className="text-gray-500 text-xs" />
-                        <span>
+                      <li className="flex items-center gap-2 text-sm">
+                        <span className="truncate">
                           {selectedOrder?.details?.patientInfo?.phone ||
-                            "0600000000"}
+                            "0600000000"}{" "}
                         </span>
                       </li>
-                      <li className="flex items-center gap-1">
-                        <FaEnvelope className="text-gray-500 text-xs" />
-                        <span>
+                      <li className="flex items-center gap-2 text-sm">
+                        <span className="truncate">
                           {selectedOrder?.details?.patientInfo?.email ||
                             "jeanpascaldurant@gmail.com"}
                         </span>
                       </li>
+                      <li className="flex items-center gap-2 text-sm">
+                        <span className="break-words">
+                          {selectedOrder?.details?.patientInfo?.address ||
+                            "33 avenue victor hugo, 75006 Paris"}
+                        </span>
+                      </li>
                     </ul>
+                  </div>
+                  <div className="flex flex-col gap-3 border-b-[1.5px] pb-4 border-gray-200">
+                    <div className="space-y-2 mt-2">
+                      <div className="flex flex-row flex-wrap items-baseline gap-x-2 gap-y-1 text-base">
+                        <span className="font-bold text-black text-sm">
+                          Livraison :
+                        </span>
+                        <span className="text-[#E9486C] font-normal text-sm">
+                          Retrait en pharmacie
+                        </span>
+                      </div>
+                      <div className="flex flex-row flex-wrap items-baseline gap-x-2 gap-y-1 text-base">
+                        <span className="font-bold text-black">Id ordo :</span>
+                        <span className="text-black font-normal">
+                          {selectedOrder?.id || "1234567890"}
+                        </span>
+                      </div>
+                      <div className="flex flex-row flex-wrap text-sm items-baseline gap-x-2 gap-y-1 text-base">
+                        <span className="font-bold text-black">
+                          Numéro de commande :
+                        </span>
+                        <span className="text-black font-normal">
+                          {selectedOrder?.orderNumber || "00000000"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col justify-between mb-4 gap-4 border-b-[1.5px] pb-4 border-gray-200">
+                    <span className="text-sm font-bold text-gray-900">
+                      Statut
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`flex items-center justify-center w-32 py-1.5 rounded-md text-sm  font-medium ${getStatusClass(
+                          selectedOrder?.status
+                        )}`}
+                      >
+                        {selectedOrder?.status || "—"}
+                      </span>
+                    </div>
+                    <div className="flex gap-3">{statusIcons}</div>
                   </div>
                 </div>
               </div>
             </div>
             <div className="mt-8">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">
-                Ordonnance à valider
-              </h3>
-              <div className="flex flex-col gap-2 sm:flex-row sm:space-x-3">
-                <button className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-red-600 transition-colors">
-                  Refuser
-                </button>
-                {selectedOrder?.status === "À valider" && (
+              {selectedOrder?.status !== "Finalisé" && (
+                <h3 className="text-base sm:text-md font-medium text-gray-900 mb-4">
+                  Ordonnance à
+                  {selectedOrder?.status === "En préparation"
+                    ? " préparer"
+                    : selectedOrder?.status === "Prêt à collecter"
+                    ? " retirer"
+                    : selectedOrder?.status === "Finalisé"
+                    ? ""
+                    : " valider"}
+                </h3>
+              )}
+              {selectedOrder?.status === "À valider" ? (
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                  <button
+                    className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
+                    onClick={() => console.log("Order refused")}
+                  >
+                    Refuser
+                  </button>
                   <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex-1 bg-teal-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+                    className="w-full sm:w-auto flex-1 bg-teal-600 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-teal-700 transition-colors"
                   >
                     Valider
                   </button>
-                )}
-              </div>
+                </div>
+              ) : selectedOrder?.status === "En préparation" ? (
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                  <button
+                    onClick={() => console.log("Order canceled directly")}
+                    className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={() => setIsPrepModalOpen(true)}
+                    className="w-full sm:w-auto flex-1 bg-teal-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-teal-600 transition-colors"
+                  >
+                    Prête
+                  </button>
+                </div>
+              ) : selectedOrder?.status === "Prêt à collecter" ? (
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                  <button
+                    onClick={() => console.log("Order canceled directly")}
+                    className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={() => setIsWithdrawModalOpen(true)}
+                    className="w-full sm:w-auto flex-1 bg-teal-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-teal-600 transition-colors"
+                  >
+                    Retirer
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         ) : (
-          <div className="text-center text-gray-500">
+          <div className="text-center text-gray-500 text-base sm:text-lg">
             <p>
-              Historique des commandes pour l'ordonnance {selectedOrder?.id}
+              Historique des commandes pour l'ordonnance{" "}
+              {selectedOrder?.id || "—"}
             </p>
           </div>
         )}

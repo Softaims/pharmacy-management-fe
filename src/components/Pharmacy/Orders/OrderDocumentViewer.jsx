@@ -12,7 +12,7 @@ const OrderDocumentViewer = ({
   ];
 
   return (
-    <div className="md:w-3/5 bg-white border-r border-gray-200 flex flex-col">
+    <div className="bg-white border-r border-gray-200 flex flex-col">
       <div className="border-b border-gray-200">
         <nav className="flex space-x-8 px-6 pt-4">
           {documentTabs.map((tab) => (

@@ -33,8 +33,8 @@ const OrderSidebar = ({
 
   return (
     <div
-      className={`w-full md:w-76 bg-white border-r border-gray-200 flex flex-col ${
-        selectedOrder ? "hidden md:flex" : "flex"
+      className={`w-full lg:w-76 bg-white border-r border-gray-200 flex flex-col  ${
+        selectedOrder ? "hidden lg:flex" : "flex"
       }`}
     >
       {/* Header */}
