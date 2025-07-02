@@ -1,5 +1,5 @@
 import React from "react";
-import { FaCircle, FaRegCircle } from "react-icons/fa"; // Import icons
+import { FaCircle, FaRegCircle } from "react-icons/fa";
 
 const OrderSidebar = ({
   activeOrderTab,
@@ -21,7 +21,8 @@ const OrderSidebar = ({
         (o) =>
           o.status === "À valider" ||
           o.status === "En préparation" ||
-          o.status === "Prêt à collecter"
+          o.status === "Prêt à collecter" ||
+          o.status === "PENDING"
       ).length,
     },
     {
@@ -31,9 +32,20 @@ const OrderSidebar = ({
     },
   ];
 
+  const statusOrder = [
+    "À valider",
+    "En préparation",
+    "Prêt à collecter",
+    "Finalisé",
+  ];
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("fr-FR");
+  };
+
   return (
     <div
-      className={`w-full lg:w-76 bg-white border-r border-gray-200 flex flex-col  ${
+      className={`w-full lg:w-76 bg-white border-r border-gray-200 flex flex-col ${
         selectedOrder ? "hidden lg:flex" : "flex"
       }`}
     >
@@ -72,43 +84,51 @@ const OrderSidebar = ({
           Renouvellements automatiques
         </p>
       </div>
+
       {/* Orders List */}
       <div className="flex-1 overflow-y-auto">
         {getFilteredOrders().map((order) => {
+          const normalizedStatus =
+            order.status === "PENDING" ? "À valider" : order.status;
+
           let statusClass = "";
-          if (order.status === "À valider") {
-            statusClass = "bg-[#FEEEB8] text-[#] border-2 border-[#FAC710]";
-          } else if (order.status === "Finalisé") {
-            statusClass = "bg-[#DEF1CB] text-[#] border-2 border-[#8FD14F]";
-          } else if (order.status === "Prêt à collecter") {
-            statusClass = "bg-[#B8F0F2]  border-2 border-[#12CDD4]";
-          } else if (order.status === "En préparation") {
-            statusClass = "bg-[#E7D5AA] text-[#] border-2 border-[#FAA010]";
+          if (normalizedStatus === "À valider") {
+            statusClass = "bg-[#FEEEB8] text-black border-2 border-[#FAC710]";
+          } else if (normalizedStatus === "Finalisé") {
+            statusClass = "bg-[#DEF1CB] text-black border-2 border-[#8FD14F]";
+          } else if (normalizedStatus === "Prêt à collecter") {
+            statusClass = "bg-[#B8F0F2] text-black border-2 border-[#12CDD4]";
+          } else if (normalizedStatus === "En préparation") {
+            statusClass = "bg-[#E7D5AA] text-black border-2 border-[#FAA010]";
+          } else {
+            statusClass = "bg-gray-100 text-black border border-gray-300";
           }
 
-          // Get status progress
-          const statusOrder = [
-            "À valider",
-            "En préparation",
-            "Prêt à collecter",
-            "Finalisé",
-          ];
-          const filledCount = statusOrder.indexOf(order.status) + 1;
+          const filledCount = statusOrder.indexOf(normalizedStatus) + 1;
           const statusIcons = Array(4)
             .fill()
             .map((_, index) =>
               index < filledCount ? (
                 <FaCircle key={index} className="text-black w-3 h-3" />
               ) : (
-                <FaRegCircle key={index} className="-300 w-3 h-3" />
+                <FaRegCircle key={index} className="text-gray-300 w-3 h-3" />
               )
             );
+
+          const name =
+            order.orderFor === "familymember"
+              ? `${order.familyMember?.firstName || "N/A"} ${
+                  order.familyMember?.lastName || ""
+                }`
+              : `${order.patient?.firstName || "N/A"} ${
+                  order.patient?.lastName || ""
+                }`;
 
           return (
             <div
               key={order.id}
               onClick={() => setSelectedOrder(order)}
-              className={`p-4 border-b border-gray-100 cursor-pointer  ${
+              className={`p-4 border-b border-gray-100 cursor-pointer ${
                 selectedOrder?.id === order.id
                   ? "bg-[#DFEBEC] border-l-4 border-l-[#89d5dc]"
                   : "hover:bg-gray-50"
@@ -116,19 +136,19 @@ const OrderSidebar = ({
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900 text-sm">
-                    {order.patientName}
+                  <h3 className="font-medium text-gray-900 text-sm truncate">
+                    {name.trim()}
                   </h3>
                   <div className="flex items-center justify-between mt-1">
                     <span
                       className={`flex items-center justify-center w-30 py-1 rounded-md text-xs font-medium ${statusClass}`}
                     >
-                      {order.status}
+                      {normalizedStatus}
                     </span>
                     <div className="flex gap-2 ml-2">{statusIcons}</div>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Enquête le {order.inquiryDate}
+                    Enquête le {formatDate(order.updatedAt)}
                   </p>
                 </div>
               </div>

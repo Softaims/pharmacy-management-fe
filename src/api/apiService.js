@@ -176,7 +176,25 @@ const apiService = {
       throw error.response?.data || { message: "Failed to get dashboard data" };
     }
   },
-
+  changeOrderStatus: async (id, status) => {
+    console.log(
+      "🚀 ~ changeOrderStatus: ~ id, status,,,,,,,,,,,,,,,:",
+      id,
+      status
+    );
+    try {
+      const response = await axios.patch(`/order/status/${id}`, {
+        status,
+      });
+      return response.data;
+    } catch (error) {
+      throw (
+        error.response?.data || {
+          message: "Échec de la mise à jour du statut de la commande",
+        }
+      );
+    }
+  },
   getOrders: async () => {
     try {
       const response = await axios.get("/pharmacy/orders");
@@ -188,49 +206,3 @@ const apiService = {
 };
 
 export default apiService;
-// import axios from "./axiosInstance";
-// import Cookies from "js-cookie"; // Import js-cookie to manage cookies
-
-// const apiService = {
-//   Signin: async (payload) => {
-//     console.log("🚀 ~ Signin: ~ payload:", payload);
-
-//     try {
-//       const response = await axios.post("/auth/admin/login", payload);
-//       console.log("🚀 ~ Signin: ~ response:", response);
-
-//       // Store tokens in cookies (Set cookie with HttpOnly, Secure, and SameSite flags for best security)
-//       const { accessToken, refreshToken } = response.data.data;
-
-//       // Store access token in a cookie with HttpOnly, Secure and SameSite flags (Recommended for Security)
-//       Cookies.set("accessToken", accessToken, {
-//         expires: 1, // 1 day expiration for example
-//         secure: true, // Cookie is only sent over HTTPS
-//         sameSite: "Strict", // Helps mitigate CSRF
-//       });
-
-//       // Store refresh token as well, for refreshing access token when expired
-//       Cookies.set("refreshToken", refreshToken, {
-//         expires: 7, // Longer expiration for refresh token (7 days as an example)
-//         secure: true,
-//         sameSite: "Strict",
-//       });
-
-//       return response.data;
-//     } catch (error) {
-//       console.log("🚀 ~ Signin: ~ error:", error.response?.data || error);
-//       throw error.response ? error.response.data : "Something went wrong";
-//     }
-//   },
-
-//   logout: () => {
-//     // Delete cookies upon logout
-//     Cookies.remove("accessToken");
-//     Cookies.remove("refreshToken");
-//     return axios.post("/v1/logout");
-//   },
-
-//   getCurrentUser: () => axios.get("/v1/me"),
-// };
-
-// export default apiService;

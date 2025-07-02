@@ -15,14 +15,13 @@ const OrderDetailsSidebar = ({
   setIsPrepModalOpen,
   setIsWithdrawModalOpen,
 }) => {
-  console.log("🚀 ~ selectedOrder:,,,,,,,,,,,,,", selectedOrder);
+  console.log("🚀 ~ selectedOrder:", selectedOrder);
 
   const detailsTabs = [
     { id: "details", label: "Détails ordonnance" },
     { id: "history", label: "Historique" },
   ];
 
-  // Define status styling based on order status
   const getStatusClass = (status) => {
     switch (status) {
       case "À valider":
@@ -38,15 +37,16 @@ const OrderDetailsSidebar = ({
     }
   };
 
-  // Define status progress icons
   const statusOrder = [
     "À valider",
     "En préparation",
     "Prêt à collecter",
     "Finalisé",
   ];
+  const normalizedStatus =
+    selectedOrder?.status === "PENDING" ? "À valider" : selectedOrder?.status;
   const filledCount = selectedOrder
-    ? statusOrder.indexOf(selectedOrder.status) + 1
+    ? statusOrder.indexOf(normalizedStatus) + 1
     : 0;
   const statusIcons = Array(4)
     .fill()
@@ -61,8 +61,13 @@ const OrderDetailsSidebar = ({
       )
     );
 
+  const isFamilyOrder = selectedOrder?.orderFor === "familymember";
+  const person = isFamilyOrder
+    ? selectedOrder?.familyMember
+    : selectedOrder?.patient;
+
   return (
-    <div className=" bg-white flex flex-col overflow-y-auto h-full">
+    <div className="bg-white flex flex-col overflow-y-auto h-full">
       <div className="border-b border-gray-200">
         <nav className="flex flex-row justify-between gap-2 px-4 pt-4 overflow-x-auto">
           {detailsTabs.map((tab) => (
@@ -90,35 +95,33 @@ const OrderDetailsSidebar = ({
                 <div className="flex flex-col gap-3">
                   <div className="mt-2">
                     <span className="text-gray-900 font-semibold text-base sm:text-lg">
-                      Patient :
+                      {isFamilyOrder ? "Membre de la famille :" : "Patient :"}
                     </span>
                     <ul className="mt-2 space-y-2 text-sm sm:text-base text-gray-600 border-b-[1.5px] pb-4 border-gray-200">
                       <li className="text-[#069AA2] truncate text-sm">
-                        {selectedOrder?.details?.patientInfo?.name || "—"}
+                        {`${person?.firstName || "—"} ${
+                          person?.lastName || ""
+                        }`.trim()}
                       </li>
                       <li className="text-sm">
-                        {selectedOrder?.details?.patientInfo?.birthDate || "—"}
+                        {person?.dateOfBirth
+                          ? new Date(person.dateOfBirth).toLocaleDateString(
+                              "fr-FR"
+                            )
+                          : "—"}
                       </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <span className="truncate">
-                          {selectedOrder?.details?.patientInfo?.phone ||
-                            "0600000000"}{" "}
-                        </span>
-                      </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <span className="truncate">
-                          {selectedOrder?.details?.patientInfo?.email ||
-                            "jeanpascaldurant@gmail.com"}
-                        </span>
-                      </li>
-                      <li className="flex items-center gap-2 text-sm">
-                        <span className="break-words">
-                          {selectedOrder?.details?.patientInfo?.address ||
-                            "33 avenue victor hugo, 75006 Paris"}
-                        </span>
-                      </li>
+
+                      <li className="text-sm">{person?.phoneNumber || "—"}</li>
+                      <li className="text-sm">{person?.email || "—"}</li>
+                      <li className="text-sm">{person?.address || "—"}</li>
+                      {isFamilyOrder && person?.relationship && (
+                        <li className="italic text-gray-500 text-sm">
+                          Lien : {person.relationship}
+                        </li>
+                      )}
                     </ul>
                   </div>
+
                   <div className="flex flex-col gap-3 border-b-[1.5px] pb-4 border-gray-200">
                     <div className="space-y-2 mt-2">
                       <div className="flex flex-row flex-wrap items-baseline gap-x-2 gap-y-1 text-base">
@@ -126,7 +129,9 @@ const OrderDetailsSidebar = ({
                           Livraison :
                         </span>
                         <span className="text-[#E9486C] font-normal text-sm">
-                          Retrait en pharmacie
+                          {selectedOrder?.orderType === "delivery"
+                            ? "Livraison à domicile"
+                            : "Retrait en pharmacie"}
                         </span>
                       </div>
                       <div className="flex flex-row flex-wrap items-baseline gap-x-2 gap-y-1 text-base">
@@ -145,17 +150,18 @@ const OrderDetailsSidebar = ({
                       </div>
                     </div>
                   </div>
+
                   <div className="flex flex-col justify-between mb-4 gap-4 border-b-[1.5px] pb-4 border-gray-200">
                     <span className="text-sm font-bold text-gray-900">
                       Statut
                     </span>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`flex items-center justify-center w-32 py-1.5 rounded-md text-sm  font-medium ${getStatusClass(
-                          selectedOrder?.status
+                        className={`flex items-center justify-center w-32 py-1.5 rounded-md text-sm font-medium ${getStatusClass(
+                          normalizedStatus
                         )}`}
                       >
-                        {selectedOrder?.status || "—"}
+                        {normalizedStatus || "—"}
                       </span>
                     </div>
                     <div className="flex gap-3">{statusIcons}</div>
@@ -163,20 +169,20 @@ const OrderDetailsSidebar = ({
                 </div>
               </div>
             </div>
+
             <div className="mt-8">
-              {selectedOrder?.status !== "Finalisé" && (
+              {normalizedStatus !== "Finalisé" && (
                 <h3 className="text-base sm:text-md font-medium text-gray-900 mb-4">
                   Ordonnance à
-                  {selectedOrder?.status === "En préparation"
+                  {normalizedStatus === "En préparation"
                     ? " préparer"
-                    : selectedOrder?.status === "Prêt à collecter"
+                    : normalizedStatus === "Prêt à collecter"
                     ? " retirer"
-                    : selectedOrder?.status === "Finalisé"
-                    ? ""
                     : " valider"}
                 </h3>
               )}
-              {selectedOrder?.status === "À valider" ? (
+
+              {normalizedStatus === "À valider" && (
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <button
                     className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
@@ -191,7 +197,9 @@ const OrderDetailsSidebar = ({
                     Valider
                   </button>
                 </div>
-              ) : selectedOrder?.status === "En préparation" ? (
+              )}
+
+              {normalizedStatus === "En préparation" && (
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <button
                     onClick={() => console.log("Order canceled directly")}
@@ -206,7 +214,9 @@ const OrderDetailsSidebar = ({
                     Prête
                   </button>
                 </div>
-              ) : selectedOrder?.status === "Prêt à collecter" ? (
+              )}
+
+              {normalizedStatus === "Prêt à collecter" && (
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <button
                     onClick={() => console.log("Order canceled directly")}
@@ -221,7 +231,7 @@ const OrderDetailsSidebar = ({
                     Retirer
                   </button>
                 </div>
-              ) : null}
+              )}
             </div>
           </div>
         ) : (

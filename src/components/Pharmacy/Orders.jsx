@@ -3,126 +3,14 @@ import { toast } from "react-toastify";
 import OrderSidebar from "./Orders/OrderSidebar.jsx";
 import OrderDocumentViewer from "./Orders/OrderDocumentViewer.jsx";
 import OrderDetailsSidebar from "./Orders/OrderDetailsSidebar.jsx";
-
-// Dummy order data
-const dummyOrders = [
-  {
-    id: 1,
-    patientName: "Marie Dubois",
-    status: "À valider",
-    statusColor: "bg-[#FEEEB8] text-[#8C8469]",
-    inquiryDate: "15/06/2025 à 09:30",
-    documents: {
-      prescription: "/api/placeholder/400/500",
-      mutualCard: "/api/placeholder/400/500",
-      vitalCard: "/api/placeholder/400/500",
-    },
-    details: {
-      patientInfo: {
-        name: "Marie Dubois",
-        birthDate: "12/03/1985",
-        socialSecurityNumber: "1850312010002",
-        phone: "0678901234",
-        email: "marie.dubois@email.com",
-      },
-    },
-  },
-  {
-    id: 2,
-    patientName: "Pierre Lefèvre",
-    status: "En préparation",
-    statusColor: "bg-blue-100 text-blue-800",
-    inquiryDate: "20/06/2025 à 11:15",
-    documents: {
-      prescription: "/api/placeholder/400/500",
-      mutualCard: "/api/placeholder/400/500",
-      vitalCard: "/api/placeholder/400/500",
-    },
-    details: {
-      patientInfo: {
-        name: "Pierre Lefèvre",
-        birthDate: "25/07/1978",
-        socialSecurityNumber: "1780725010003",
-        phone: "0612345678",
-        email: "pierre.lefevre@email.com",
-      },
-    },
-  },
-  {
-    id: 3,
-    patientName: "Sophie Martin",
-    status: "Prêt à collecter",
-    statusColor: "bg-green-100 text-green-800",
-    inquiryDate: "25/06/2025 à 14:45",
-    documents: {
-      prescription: "/api/placeholder/400/500",
-      mutualCard: "/api/placeholder/400/500",
-      vitalCard: "/api/placeholder/400/500",
-    },
-    details: {
-      patientInfo: {
-        name: "Sophie Martin",
-        birthDate: "03/09/1992",
-        socialSecurityNumber: "1920903010004",
-        phone: "0698765432",
-        email: "sophie.martin@email.com",
-      },
-    },
-  },
-  {
-    id: 4,
-    patientName: "Luc Renault",
-    status: "Finalisé",
-    statusColor: "bg-gray-100 text-gray-800",
-    inquiryDate: "26/06/2025 à 16:20",
-    documents: {
-      prescription: "/api/placeholder/400/500",
-      mutualCard: "/api/placeholder/400/500",
-      vitalCard: "/api/placeholder/400/500",
-    },
-    details: {
-      patientInfo: {
-        name: "Luc Renault",
-        birthDate: "14/11/1965",
-        socialSecurityNumber: "1651114010005",
-        phone: "0643217890",
-        email: "luc.renault@email.com",
-      },
-    },
-  },
-  {
-    id: 5,
-    patientName: "Claire Dupont",
-    status: "Finalisé",
-    statusColor: "bg-gray-100 text-gray-800",
-    inquiryDate: "27/06/2025 à 10:05",
-    documents: {
-      prescription: "/api/placeholder/400/500",
-      mutualCard: "/api/placeholder/400/500",
-      vitalCard: "/api/placeholder/400/500",
-    },
-    details: {
-      patientInfo: {
-        name: "Claire Dupont",
-        birthDate: "30/04/1980",
-        socialSecurityNumber: "1800430010006",
-        phone: "0623456789",
-        email: "claire.dupont@email.com",
-      },
-    },
-  },
-];
+import apiService from "../../api/apiService.js";
 
 const Orders = () => {
   const [activeOrderTab, setActiveOrderTab] = useState("all");
   const [activeDocumentTab, setActiveDocumentTab] = useState("prescription");
   const [activeDetailsTab, setActiveDetailsTab] = useState("details");
-  const [orders, setOrders] = useState(dummyOrders);
+  const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  // const [selectedOrder, setSelectedOrder] = useState(
-  //   isLargeScreen ? dummyOrders[0] : null
-  // );
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
@@ -135,24 +23,40 @@ const Orders = () => {
     type: "complete",
     note: "",
   });
+
   useEffect(() => {
     const handleResize = () => {
       setIsLargeScreen(window.innerWidth >= 1024);
     };
 
     handleResize();
-
     window.addEventListener("resize", handleResize);
-
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
   useEffect(() => {
-    if (isLargeScreen && !selectedOrder) {
-      setSelectedOrder(dummyOrders[0]); // Set the first order if on large screen and no order is selected
+    const fetchOrders = async () => {
+      try {
+        const response = await apiService.getOrders();
+        setOrders(response.data);
+        if (window.innerWidth >= 1024 && response.data.length > 0) {
+          setSelectedOrder(response.data[0]);
+        }
+      } catch (err) {
+        toast.error("Erreur lors de la récupération des ordonnances");
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  useEffect(() => {
+    if (isLargeScreen && !selectedOrder && orders.length > 0) {
+      setSelectedOrder(orders[0]);
     } else if (!isLargeScreen) {
-      setSelectedOrder(null); // Deselect order if on small or medium screen
+      setSelectedOrder(null);
     }
-  }, [isLargeScreen]);
+  }, [isLargeScreen, orders]);
 
   const getStatusCircles = (status) => {
     const statusOrder = [
@@ -171,11 +75,13 @@ const Orders = () => {
     const tabFilteredOrders = (() => {
       switch (activeOrderTab) {
         case "preparation":
-          return orders.filter(
-            (order) =>
-              order.status === "À valider" ||
-              order.status === "En préparation" ||
-              order.status === "Prêt à collecter"
+          return orders.filter((order) =>
+            [
+              "À valider",
+              "PENDING",
+              "En préparation",
+              "Prêt à collecter",
+            ].includes(order.status)
           );
         case "past":
           return orders.filter((order) => order.status === "Finalisé");
@@ -185,31 +91,40 @@ const Orders = () => {
     })();
 
     return searchTerm
-      ? tabFilteredOrders.filter((order) =>
-          order.patientName.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+      ? tabFilteredOrders.filter((order) => {
+          const firstName =
+            order.orderFor === "familymember"
+              ? order.familyMember?.firstName
+              : order.patient?.firstName;
+          const lastName =
+            order.orderFor === "familymember"
+              ? order.familyMember?.lastName
+              : order.patient?.lastName;
+          const fullName = `${firstName || ""} ${lastName || ""}`.toLowerCase();
+          return fullName.includes(searchTerm.toLowerCase());
+        })
       : tabFilteredOrders;
   };
 
-  const handleValidate = (issueDate, duration) => {
-    if (issueDate && duration) {
+  const handleValidate = async () => {
+    if (!selectedOrder) return;
+    try {
+      await apiService.changeOrderStatus(selectedOrder.id, "En préparation");
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.id === selectedOrder.id
             ? {
                 ...order,
                 status: "En préparation",
-                statusColor: "bg-blue-100 text-blue-800",
               }
             : order
         )
       );
       setSelectedOrder((prev) =>
-        prev.id === selectedOrder.id
+        prev && prev.id === selectedOrder.id
           ? {
               ...prev,
               status: "En préparation",
-              statusColor: "bg-blue-100 text-blue-800",
             }
           : prev
       );
@@ -217,142 +132,104 @@ const Orders = () => {
       toast.success(
         "Ordonnance validée avec succès et passée en En préparation"
       );
+    } catch (error) {
+      toast.error(
+        error.message || "Échec de la mise à jour du statut de la commande"
+      );
     }
   };
 
-  const handlePrepare = () => {
+  const handlePrepare = async () => {
+    if (!selectedOrder) return;
+    setIsPrepModalOpen(false);
+    setIsDeliveryModalOpen(true);
+  };
+
+  const handleDelivery = async () => {
+    await apiService.changeOrderStatus(selectedOrder.id, "Prêt à collecter");
     setOrders((prevOrders) =>
       prevOrders.map((order) =>
         order.id === selectedOrder.id
           ? {
               ...order,
               status: "Prêt à collecter",
-              statusColor: "bg-green-100 text-green-800",
             }
           : order
       )
     );
     setSelectedOrder((prev) =>
-      prev.id === selectedOrder.id
+      prev && prev.id === selectedOrder.id
         ? {
             ...prev,
             status: "Prêt à collecter",
-            statusColor: "bg-green-100 text-green-800",
           }
         : prev
     );
-    setIsPrepModalOpen(false);
-    setIsDeliveryModalOpen(true);
-    // toast.success("Ordonnance marquée comme Prêt à collecter avec succès");
-  };
-
-  const handleDelivery = () => {
-    console.log("Delivery details saved:", deliveryDetails);
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === selectedOrder.id
-          ? {
-              ...order,
-              delivery: {
-                type: deliveryDetails.type,
-                note: deliveryDetails.note,
-                date: new Date().toLocaleString("fr-FR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                }),
-              },
-            }
-          : order
-      )
-    );
-    setSelectedOrder((prev) => ({
-      ...prev,
-      delivery: {
-        type: deliveryDetails.type,
-        note: deliveryDetails.note,
-        date: new Date().toLocaleString("fr-FR", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }),
-      },
-    }));
     setIsDeliveryModalOpen(false);
     toast.success("Détails de livraison ajoutés avec succès");
   };
 
-  const handleCancel = () => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === selectedOrder.id
+  const handleWithdraw = async () => {
+    if (!selectedOrder) return;
+    try {
+      await apiService.changeOrderStatus(selectedOrder.id, "Finalisé");
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === selectedOrder.id
+            ? {
+                ...order,
+                status: "Finalisé",
+              }
+            : order
+        )
+      );
+      setSelectedOrder((prev) =>
+        prev && prev.id === selectedOrder.id
           ? {
-              ...order,
+              ...prev,
+              status: "Finalisé",
+            }
+          : prev
+      );
+      setIsWithdrawModalOpen(false);
+      toast.success("Ordonnance retirée avec succès et marquée comme Finalisé");
+    } catch (error) {
+      toast.error(
+        error.message || "Échec de la mise à jour du statut de la commande"
+      );
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!selectedOrder) return;
+    try {
+      await apiService.changeOrderStatus(selectedOrder.id, "À valider");
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === selectedOrder.id
+            ? {
+                ...order,
+                status: "À valider",
+                statusColor: "bg-[#FEEEB8] text-[#8C8469]",
+              }
+            : order
+        )
+      );
+      setSelectedOrder((prev) =>
+        prev && prev.id === selectedOrder.id
+          ? {
+              ...prev,
               status: "À valider",
               statusColor: "bg-[#FEEEB8] text-[#8C8469]",
             }
-          : order
-      )
-    );
-    setSelectedOrder((prev) =>
-      prev.id === selectedOrder.id
-        ? {
-            ...prev,
-            status: "À valider",
-            statusColor: "bg-[#FEEEB8] text-[#8C8469]",
-          }
-        : prev
-    );
-    toast.success("Ordonnance annulée avec succès et revenue à À valider");
-  };
-
-  const handleWithdraw = () => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === selectedOrder.id
-          ? {
-              ...order,
-              status: "Finalisé",
-              statusColor: "bg-gray-100 text-gray-800",
-              withdrawalCode: Math.floor(10000 + Math.random() * 90000),
-              withdrawalDate: new Date().toLocaleString("fr-FR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              }),
-            }
-          : order
-      )
-    );
-    setSelectedOrder((prev) =>
-      prev.id === selectedOrder.id
-        ? {
-            ...prev,
-            status: "Finalisé",
-            statusColor: "bg-gray-100 text-gray-800",
-            withdrawalCode: Math.floor(10000 + Math.random() * 90000),
-            withdrawalDate: new Date().toLocaleString("fr-FR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            }),
-          }
-        : prev
-    );
-    setIsWithdrawModalOpen(false);
-    toast.success("Ordonnance retirée avec succès et marquée comme Finalisé");
+          : prev
+      );
+      toast.success("Ordonnance annulée avec succès et revenue à À valider");
+    } catch (error) {
+      toast.error(
+        error.message || "Échec de la mise à jour du statut de la commande"
+      );
+    }
   };
 
   return (
@@ -437,14 +314,13 @@ const Orders = () => {
         </div>
       )}
       <div className="hidden lg:flex flex-1">
-        <div className=" w-[60%]">
+        <div className="w-[60%]">
           <OrderDocumentViewer
             selectedOrder={selectedOrder}
             activeDocumentTab={activeDocumentTab}
             setActiveDocumentTab={setActiveDocumentTab}
           />
         </div>
-
         <div className="w-[40%]">
           <OrderDetailsSidebar
             selectedOrder={selectedOrder}
@@ -487,13 +363,13 @@ const Orders = () => {
             </div>
             <div className="mt-6 flex flex-col items-center justify-center gap-3">
               <button
-                onClick={() => handleValidate("2025-06-27", "30 jours")}
+                onClick={handleValidate}
                 className="px-4 py-2 w-[14rem] bg-[#069AA2] hover:bg-[#05828A] text-white rounded-lg transition text-sm"
               >
                 Oui
               </button>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={handleCancel}
                 className="px-4 py-2 w-[14rem] text-gray-700 border bg-[#E9486C] border-gray-300 hover:bg-[#D1365A] rounded-lg transition text-sm"
               >
                 Non
