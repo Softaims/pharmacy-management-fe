@@ -74,7 +74,7 @@ const OrderDetailsSidebar = ({
 
   return (
     <div className="bg-white flex flex-col overflow-y-auto h-full">
-      <div className="border-b border-gray-200">
+      <div className="mx-2">
         <nav className="flex flex-row justify-between gap-2 px-4 pt-4 overflow-x-auto">
           {detailsTabs.map((tab) => (
             <button

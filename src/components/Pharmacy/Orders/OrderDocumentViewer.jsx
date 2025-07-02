@@ -68,7 +68,7 @@ const OrderDocumentViewer = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b border-gray-200">
+      <div className="">
         <nav className="flex space-x-8 px-6 pt-4">
           {documentTabs.map((tab) => (
             <button
