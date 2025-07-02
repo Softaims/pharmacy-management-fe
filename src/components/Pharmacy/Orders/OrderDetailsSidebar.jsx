@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  FaMapMarkerAlt,
-  FaPhoneAlt,
-  FaEnvelope,
-  FaCircle,
-  FaRegCircle,
-} from "react-icons/fa";
+import { FaCircle, FaRegCircle } from "react-icons/fa";
 
 const OrderDetailsSidebar = ({
   selectedOrder,
@@ -16,7 +10,6 @@ const OrderDetailsSidebar = ({
   setIsWithdrawModalOpen,
 }) => {
   console.log("🚀 ~ selectedOrder:", selectedOrder);
-
   const detailsTabs = [
     { id: "details", label: "Détails ordonnance" },
     { id: "history", label: "Historique" },
@@ -30,6 +23,8 @@ const OrderDetailsSidebar = ({
         return "bg-[#E7D5AA] text-black border-2 border-[#FAA010]";
       case "Prêt à collecter":
         return "bg-[#B8F0F2] text-black border-2 border-[#12CDD4]";
+      case "Prêt à livrer":
+        return "bg-[#DEDAFF] text-black border-2 border-[#6631D7]"; // New styling
       case "Finalisé":
         return "bg-[#DEF1CB] text-black border-2 border-[#8FD14F]";
       default:
@@ -39,15 +34,26 @@ const OrderDetailsSidebar = ({
 
   const statusOrder = [
     "À valider",
+    "Refusé",
     "En préparation",
     "Prêt à collecter",
+    "Prêt à livrer",
     "Finalisé",
   ];
+
   const normalizedStatus =
     selectedOrder?.status === "PENDING" ? "À valider" : selectedOrder?.status;
-  const filledCount = selectedOrder
-    ? statusOrder.indexOf(normalizedStatus) + 1
-    : 0;
+
+  // Handling "Refusé" and "En préparation" with 2 filled circles
+  const filledCount =
+    normalizedStatus === "Refusé" || normalizedStatus === "En préparation"
+      ? 2
+      : normalizedStatus === "Prêt à collecter" ||
+        normalizedStatus === "Prêt à livrer"
+      ? 3 // Set Prêt à livrer to 3 filled circles
+      : normalizedStatus === "Finalisé"
+      ? 4
+      : statusOrder.indexOf(normalizedStatus) + 1;
   const statusIcons = Array(4)
     .fill()
     .map((_, index) =>
@@ -103,6 +109,7 @@ const OrderDetailsSidebar = ({
                           person?.lastName || ""
                         }`.trim()}
                       </li>
+                      <li className="text-sm">{person?.dateOfBirth || "—"}</li>
                       <li className="text-sm">
                         {person?.dateOfBirth
                           ? new Date(person.dateOfBirth).toLocaleDateString(
@@ -112,7 +119,9 @@ const OrderDetailsSidebar = ({
                       </li>
 
                       <li className="text-sm">{person?.phoneNumber || "—"}</li>
-                      <li className="text-sm">{person?.email || "—"}</li>
+                      {person?.email && (
+                        <li className="text-sm">{person?.email || "—"}</li>
+                      )}
                       <li className="text-sm">{person?.address || "—"}</li>
                       {isFamilyOrder && person?.relationship && (
                         <li className="italic text-gray-500 text-sm">
@@ -131,16 +140,20 @@ const OrderDetailsSidebar = ({
                         <span className="text-[#E9486C] font-normal text-sm">
                           {selectedOrder?.orderType === "delivery"
                             ? "Livraison à domicile"
-                            : "Retrait en pharmacie"}
+                            : selectedOrder?.orderType === "pickup"
+                            ? "Retrait en pharmacie"
+                            : "Non spécifié"}
                         </span>
                       </div>
                       <div className="flex flex-row flex-wrap items-baseline gap-x-2 gap-y-1 text-base">
                         <span className="font-bold text-black">Id ordo :</span>
                         <span className="text-black font-normal">
-                          {selectedOrder?.id || "1234567890"}
+                          {selectedOrder?.id
+                            ? selectedOrder.id.slice(0, 6)
+                            : "1234"}
                         </span>
                       </div>
-                      <div className="flex flex-row flex-wrap text-sm items-baseline gap-x-2 gap-y-1 text-base">
+                      <div className="flex flex-row flex-wrap text-sm items-baseline gap-x-2 gap-y-1 ">
                         <span className="font-bold text-black">
                           Numéro de commande :
                         </span>
@@ -171,16 +184,19 @@ const OrderDetailsSidebar = ({
             </div>
 
             <div className="mt-8">
-              {normalizedStatus !== "Finalisé" && (
-                <h3 className="text-base sm:text-md font-medium text-gray-900 mb-4">
-                  Ordonnance à
-                  {normalizedStatus === "En préparation"
-                    ? " préparer"
-                    : normalizedStatus === "Prêt à collecter"
-                    ? " retirer"
-                    : " valider"}
-                </h3>
-              )}
+              {normalizedStatus !== "Finalisé" &&
+                normalizedStatus !== "Refusé" && (
+                  <h3 className="text-base sm:text-md font-medium text-gray-900 mb-4">
+                    Ordonnance à
+                    {normalizedStatus === "En préparation"
+                      ? " préparer"
+                      : normalizedStatus === "Prêt à collecter"
+                      ? " retirer"
+                      : normalizedStatus === "Prêt à livrer"
+                      ? " livrer"
+                      : " valider"}
+                  </h3>
+                )}
 
               {normalizedStatus === "À valider" && (
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
@@ -216,22 +232,23 @@ const OrderDetailsSidebar = ({
                 </div>
               )}
 
-              {normalizedStatus === "Prêt à collecter" && (
-                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-                  <button
-                    onClick={() => console.log("Order canceled directly")}
-                    className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={() => setIsWithdrawModalOpen(true)}
-                    className="w-full sm:w-auto flex-1 bg-teal-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-teal-600 transition-colors"
-                  >
-                    Retirer
-                  </button>
-                </div>
-              )}
+              {normalizedStatus === "Prêt à collecter" ||
+                (normalizedStatus === "Prêt à livrer" && (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                    <button
+                      onClick={() => console.log("Order canceled directly")}
+                      className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={() => setIsWithdrawModalOpen(true)}
+                      className="w-full sm:w-auto flex-1 bg-teal-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-teal-600 transition-colors"
+                    >
+                      Retirer
+                    </button>
+                  </div>
+                ))}
             </div>
           </div>
         ) : (

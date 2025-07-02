@@ -81,10 +81,13 @@ const Orders = () => {
               "PENDING",
               "En préparation",
               "Prêt à collecter",
+              "Prêt à livrer",
             ].includes(order.status)
           );
         case "past":
-          return orders.filter((order) => order.status === "Finalisé");
+          return orders.filter(
+            (order) => order.status === "Finalisé" || order.status === "Refusé"
+          );
         default:
           return orders;
       }
@@ -146,27 +149,42 @@ const Orders = () => {
   };
 
   const handleDelivery = async () => {
-    await apiService.changeOrderStatus(selectedOrder.id, "Prêt à collecter");
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === selectedOrder.id
+    if (!selectedOrder) return;
+
+    // Decide the new status based on the order type
+    let newStatus = "Prêt à collecter"; // Default for pickup orders
+    if (selectedOrder.orderType === "delivery") {
+      newStatus = "Prêt à livrer"; // For delivery orders, set status to "Ready to deliver"
+    }
+
+    // Update the order status to the new status (either "Prêt à collecter" or "Prêt à livrer")
+    try {
+      await apiService.changeOrderStatus(selectedOrder.id, newStatus);
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === selectedOrder.id
+            ? {
+                ...order,
+                status: newStatus,
+              }
+            : order
+        )
+      );
+      setSelectedOrder((prev) =>
+        prev && prev.id === selectedOrder.id
           ? {
-              ...order,
-              status: "Prêt à collecter",
+              ...prev,
+              status: newStatus,
             }
-          : order
-      )
-    );
-    setSelectedOrder((prev) =>
-      prev && prev.id === selectedOrder.id
-        ? {
-            ...prev,
-            status: "Prêt à collecter",
-          }
-        : prev
-    );
-    setIsDeliveryModalOpen(false);
-    toast.success("Détails de livraison ajoutés avec succès");
+          : prev
+      );
+      setIsDeliveryModalOpen(false); // Close the delivery details modal
+      toast.success("Détails de livraison ajoutés avec succès");
+    } catch (error) {
+      toast.error(
+        error.message || "Échec de la mise à jour du statut de la commande"
+      );
+    }
   };
 
   const handleWithdraw = async () => {
@@ -203,14 +221,13 @@ const Orders = () => {
   const handleCancel = async () => {
     if (!selectedOrder) return;
     try {
-      await apiService.changeOrderStatus(selectedOrder.id, "À valider");
+      await apiService.changeOrderStatus(selectedOrder.id, "Refusé");
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.id === selectedOrder.id
             ? {
                 ...order,
-                status: "À valider",
-                statusColor: "bg-[#FEEEB8] text-[#8C8469]",
+                status: "Refusé",
               }
             : order
         )
@@ -309,6 +326,7 @@ const Orders = () => {
               isWithdrawModalOpen={isWithdrawModalOpen}
               setIsWithdrawModalOpen={setIsWithdrawModalOpen}
               handleWithdraw={handleWithdraw}
+              handleCancel={handleCancel}
             />
           )}
         </div>
@@ -340,6 +358,7 @@ const Orders = () => {
             isWithdrawModalOpen={isWithdrawModalOpen}
             setIsWithdrawModalOpen={setIsWithdrawModalOpen}
             handleWithdraw={handleWithdraw}
+            handleCancel={handleCancel}
           />
         </div>
       </div>

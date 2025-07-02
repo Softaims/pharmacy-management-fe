@@ -9,7 +9,6 @@ const OrderSidebar = ({
   setSelectedOrder,
   searchTerm,
   setSearchTerm,
-  getStatusCircles,
   getFilteredOrders,
 }) => {
   const orderTabs = [
@@ -22,25 +21,38 @@ const OrderSidebar = ({
           o.status === "À valider" ||
           o.status === "En préparation" ||
           o.status === "Prêt à collecter" ||
+          o.status === "Prêt à livrer" || // Include Prêt à livrer in preparation tab
           o.status === "PENDING"
       ).length,
     },
     {
       id: "past",
       label: "Passées",
-      count: orders.filter((o) => o.status === "Finalisé").length,
+      count: orders.filter(
+        (o) => o.status === "Finalisé" || o.status === "Refusé"
+      ).length,
     },
   ];
 
   const statusOrder = [
     "À valider",
+    "Refusé",
     "En préparation",
     "Prêt à collecter",
+    "Prêt à livrer",
     "Finalisé",
   ];
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("fr-FR");
+    const date = new Date(dateString);
+    return date.toLocaleDateString("fr-FR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
   };
 
   return (
@@ -90,7 +102,6 @@ const OrderSidebar = ({
         {getFilteredOrders().map((order) => {
           const normalizedStatus =
             order.status === "PENDING" ? "À valider" : order.status;
-
           let statusClass = "";
           if (normalizedStatus === "À valider") {
             statusClass = "bg-[#FEEEB8] text-black border-2 border-[#FAC710]";
@@ -98,13 +109,26 @@ const OrderSidebar = ({
             statusClass = "bg-[#DEF1CB] text-black border-2 border-[#8FD14F]";
           } else if (normalizedStatus === "Prêt à collecter") {
             statusClass = "bg-[#B8F0F2] text-black border-2 border-[#12CDD4]";
+          } else if (normalizedStatus === "Prêt à livrer") {
+            statusClass = "bg-[#DEDAFF] text-black border-2 border-[#6631D7]"; // New styling
           } else if (normalizedStatus === "En préparation") {
             statusClass = "bg-[#E7D5AA] text-black border-2 border-[#FAA010]";
           } else {
             statusClass = "bg-gray-100 text-black border border-gray-300";
           }
 
-          const filledCount = statusOrder.indexOf(normalizedStatus) + 1;
+          // Status-specific circle filling logic
+          const filledCount =
+            normalizedStatus === "Refusé" ||
+            normalizedStatus === "En préparation"
+              ? 2
+              : normalizedStatus === "Prêt à collecter" ||
+                normalizedStatus === "Prêt à livrer"
+              ? 3 // Set Prêt à livrer to 3 filled circles
+              : normalizedStatus === "Finalisé"
+              ? 4
+              : statusOrder.indexOf(normalizedStatus) + 1;
+
           const statusIcons = Array(4)
             .fill()
             .map((_, index) =>
@@ -130,7 +154,7 @@ const OrderSidebar = ({
               onClick={() => setSelectedOrder(order)}
               className={`p-4 border-b border-gray-100 cursor-pointer ${
                 selectedOrder?.id === order.id
-                  ? "bg-[#DFEBEC] border-l-4 border-l-[#89d5dc]"
+                  ? "bg-[#DFEBEC] "
                   : "hover:bg-gray-50"
               }`}
             >
