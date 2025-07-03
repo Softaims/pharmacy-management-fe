@@ -89,7 +89,10 @@ const Orders = () => {
           );
         case "past":
           return orders.filter(
-            (order) => order.status === "Finalisé" || order.status === "Refusé"
+            (order) =>
+              order.status === "Finalisé" ||
+              order.status === "Refusé" ||
+              order.status === "Annulée"
           );
         default:
           return orders;
@@ -268,7 +271,7 @@ const Orders = () => {
         prev && prev.id === selectedOrder.id
           ? {
               ...prev,
-              status: "Refusé",
+              status: "Annulée",
             }
           : prev
       );
@@ -367,6 +370,7 @@ const Orders = () => {
               setIsWithdrawModalOpen={setIsWithdrawModalOpen}
               handleWithdraw={handleWithdraw}
               handleRefuse={handleRefuse}
+              handleCancel={handleCancel}
             />
           )}
         </div>
@@ -399,6 +403,7 @@ const Orders = () => {
             setIsWithdrawModalOpen={setIsWithdrawModalOpen}
             handleWithdraw={handleWithdraw}
             handleRefuse={handleRefuse}
+            handleCancel={handleCancel}
           />
         </div>
       </div>

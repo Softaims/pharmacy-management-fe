@@ -29,7 +29,10 @@ const OrderSidebar = ({
       id: "past",
       label: "Passées",
       count: orders.filter(
-        (o) => o.status === "Finalisé" || o.status === "Refusé"
+        (o) =>
+          o.status === "Finalisé" ||
+          o.status === "Refusé" ||
+          o.status === "Annulée"
       ).length,
     },
   ];
@@ -37,6 +40,7 @@ const OrderSidebar = ({
   const statusOrder = [
     "À valider",
     "Refusé",
+    "Annulée",
     "En préparation",
     "Prêt à collecter",
     "Prêt à livrer",
@@ -114,13 +118,14 @@ const OrderSidebar = ({
           } else if (normalizedStatus === "En préparation") {
             statusClass = "bg-[#E7D5AA] text-black border-2 border-[#FAA010]";
           } else {
-            statusClass = "bg-gray-100 text-black border border-gray-300";
+            statusClass = "bg-gray-100 text-black border-2 border-gray-300";
           }
 
           // Status-specific circle filling logic
           const filledCount =
             normalizedStatus === "Refusé" ||
-            normalizedStatus === "En préparation"
+            normalizedStatus === "En préparation" ||
+            normalizedStatus === "Annulée"
               ? 2
               : normalizedStatus === "Prêt à collecter" ||
                 normalizedStatus === "Prêt à livrer"
