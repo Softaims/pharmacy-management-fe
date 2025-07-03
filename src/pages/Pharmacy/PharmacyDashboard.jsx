@@ -12,7 +12,7 @@ export default function PharmacyDashboard() {
       <div className="w-16">
         <Sidebar />
       </div>
-      <div className="flex-1   overflow-y-auto">
+      <div className="flex-1">
         {/* Add margin-left for sidebar */}
         <Routes>
           <Route
