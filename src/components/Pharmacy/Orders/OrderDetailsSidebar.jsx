@@ -9,6 +9,7 @@ const OrderDetailsSidebar = ({
   setIsPrepModalOpen,
   setIsWithdrawModalOpen,
   handleRefuse,
+  handleCancel,
 }) => {
   console.log("🚀 ~ selectedOrder:", selectedOrder);
   const detailsTabs = [
@@ -41,13 +42,42 @@ const OrderDetailsSidebar = ({
     "Prêt à livrer",
     "Finalisé",
   ];
+  // Dummy data for delivery history
+  const deliveryHistory = [
+    {
+      date: "20/05/2025",
+      status: "Délivrance complète",
+      note: "Boîte de 90 pour l’amlodipine et metformine",
+      addedBy: "votre pharmacie",
+    },
+    {
+      date: "15/04/2025",
+      status: "Délivrance partielle",
+      note: "Tout sauf hydrocortancyl car rupture",
+      addedBy: "Pharmacie de la gare, 13 rue Victor Hugo, 93200 Saint Denis",
+    },
+    {
+      date: "10/03/2025",
+      status: "Délivrance complète",
+      note: "Renouvellement de paracétamol",
+      addedBy: "Pharmacie centrale, 5 avenue des Champs-Élysées, 75008 Paris",
+    },
+    {
+      date: "05/02/2025",
+      status: "Délivrance partielle",
+      note: "Manque d’ibuprofène en stock",
+      addedBy: "votre pharmacie",
+    },
+  ];
 
   const normalizedStatus =
     selectedOrder?.status === "PENDING" ? "À valider" : selectedOrder?.status;
 
   // Handling "Refusé" and "En préparation" with 2 filled circles
   const filledCount =
-    normalizedStatus === "Refusé" || normalizedStatus === "En préparation"
+    normalizedStatus === "Refusé" ||
+    normalizedStatus === "En préparation" ||
+    normalizedStatus === "Annulée"
       ? 2
       : normalizedStatus === "Prêt à collecter" ||
         normalizedStatus === "Prêt à livrer"
@@ -110,7 +140,6 @@ const OrderDetailsSidebar = ({
                           person?.lastName || ""
                         }`.trim()}
                       </li>
-                      <li className="text-sm">{person?.dateOfBirth || "—"}</li>
                       <li className="text-sm">
                         {person?.dateOfBirth
                           ? new Date(person.dateOfBirth).toLocaleDateString(
@@ -186,7 +215,8 @@ const OrderDetailsSidebar = ({
 
             <div className="mt-8">
               {normalizedStatus !== "Finalisé" &&
-                normalizedStatus !== "Refusé" && (
+                normalizedStatus !== "Refusé" &&
+                normalizedStatus !== "Annulée" && (
                   <h3 className="text-base sm:text-md font-medium text-gray-900 mb-4">
                     Ordonnance à
                     {normalizedStatus === "En préparation"
@@ -219,7 +249,8 @@ const OrderDetailsSidebar = ({
               {normalizedStatus === "En préparation" && (
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <button
-                    onClick={() => console.log("Order canceled directly")}
+                    // onClick={() => console.log("Order canceled directly")}
+                    onClick={handleCancel}
                     className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
                   >
                     Annuler
@@ -237,7 +268,8 @@ const OrderDetailsSidebar = ({
                 (normalizedStatus === "Prêt à livrer" && (
                   <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                     <button
-                      onClick={() => console.log("Order canceled directly")}
+                      // onClick={() => console.log("Order canceled directly")}
+                      onClick={handleCancel}
                       className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
                     >
                       Annuler
@@ -253,11 +285,65 @@ const OrderDetailsSidebar = ({
             </div>
           </div>
         ) : (
-          <div className="text-center text-gray-500 text-base sm:text-lg">
-            <p>
-              Historique des commandes pour l'ordonnance{" "}
-              {selectedOrder?.id || "—"}
-            </p>
+          <div className="max-w-md mx-auto bg-transparent py-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-6">
+              Historique de délivrance
+            </h3>
+
+            <div className="space-y-6">
+              {deliveryHistory.map((entry, index) => (
+                <div key={index}>
+                  <div className="flex items-center mb-4">
+                    <div className="flex-1 h-px bg-gray-300"></div>
+                    <div className="px-4 text-sm text-gray-600 font-medium">
+                      {entry.date}
+                    </div>
+                    <div className="flex-1 h-px bg-gray-300"></div>
+                  </div>
+
+                  <div className=" bg-transparent rounded-lg py-4 px-2 border border-gray-200">
+                    <div className="flex items-start">
+                      <div className="flex-1">
+                        <span
+                          className={`inline-block px-3 py-1 rounded-full text-sm font-normal ${
+                            entry.status === "Délivrance complète"
+                              ? "bg-[#D1E8DA] text-[##606161]"
+                              : "bg-[#FEECCF] text-[#AEA596]"
+                          }`}
+                        >
+                          {entry.status}
+                        </span>
+
+                        <p className="text-sm text-gray-600 mt-3 mb-2">
+                          <span className="font-medium">Note :</span>
+                        </p>
+                        <p className="text-sm text-gray-700 mb-3">
+                          {entry.note}
+                        </p>
+
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm   text-gray-600">
+                            <span>Ajouté par </span>
+                            <span
+                              className={
+                                entry.addedBy.includes("Pharmacie")
+                                  ? "text-[#63AAAE]"
+                                  : "text-[#63AAAE]"
+                              }
+                            >
+                              {entry.addedBy}
+                            </span>
+                          </p>
+                          <button className="bg-[#FBDAE2] text-[#5A5A5A] px-3 py-1 rounded-full text-sm font-normal hover:bg-pink-200 transition-colors ml-4 border border-pink-200">
+                            Modifier
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
