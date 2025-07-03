@@ -4,7 +4,6 @@ import OrderSidebar from "./Orders/OrderSidebar.jsx";
 import OrderDocumentViewer from "./Orders/OrderDocumentViewer.jsx";
 import OrderDetailsSidebar from "./Orders/OrderDetailsSidebar.jsx";
 import apiService from "../../api/apiService.js";
-
 const Orders = () => {
   const [activeOrderTab, setActiveOrderTab] = useState("all");
   const [activeDocumentTab, setActiveDocumentTab] = useState("prescription");
@@ -15,6 +14,7 @@ const Orders = () => {
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeMobileTab, setActiveMobileTab] = useState("documents");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLargeScreen, setIsLargeScreen] = useState(false);
@@ -33,17 +33,20 @@ const Orders = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   useEffect(() => {
     const fetchOrders = async () => {
+      setIsLoading(true); // ⬅️ Start loading
       try {
         const response = await apiService.getOrders();
         setOrders(response.data);
+
         if (window.innerWidth >= 1024 && response.data.length > 0) {
           setSelectedOrder(response.data[0]);
         }
       } catch (err) {
         toast.error("Erreur lors de la récupération des ordonnances");
+      } finally {
+        setIsLoading(false); // ⬅️ Stop loading
       }
     };
 
@@ -218,7 +221,7 @@ const Orders = () => {
     }
   };
 
-  const handleCancel = async () => {
+  const handleRefuse = async () => {
     if (!selectedOrder) return;
     try {
       await apiService.changeOrderStatus(selectedOrder.id, "Refusé");
@@ -236,8 +239,7 @@ const Orders = () => {
         prev && prev.id === selectedOrder.id
           ? {
               ...prev,
-              status: "À valider",
-              statusColor: "bg-[#FEEEB8] text-[#8C8469]",
+              status: "Refusé",
             }
           : prev
       );
@@ -248,6 +250,44 @@ const Orders = () => {
       );
     }
   };
+  const handleCancel = async () => {
+    if (!selectedOrder) return;
+    try {
+      await apiService.changeOrderStatus(selectedOrder.id, "Annulée");
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === selectedOrder.id
+            ? {
+                ...order,
+                status: "Annulée",
+              }
+            : order
+        )
+      );
+      setSelectedOrder((prev) =>
+        prev && prev.id === selectedOrder.id
+          ? {
+              ...prev,
+              status: "Refusé",
+            }
+          : prev
+      );
+      toast.success("Ordonnance annulée avec succès et revenue à À valider");
+    } catch (error) {
+      toast.error(
+        error.message || "Échec de la mise à jour du statut de la commande"
+      );
+    }
+  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#069AA2]"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full bg-gray-50 overflow-y-hidden">
@@ -326,7 +366,7 @@ const Orders = () => {
               isWithdrawModalOpen={isWithdrawModalOpen}
               setIsWithdrawModalOpen={setIsWithdrawModalOpen}
               handleWithdraw={handleWithdraw}
-              handleCancel={handleCancel}
+              handleRefuse={handleRefuse}
             />
           )}
         </div>
@@ -358,7 +398,7 @@ const Orders = () => {
             isWithdrawModalOpen={isWithdrawModalOpen}
             setIsWithdrawModalOpen={setIsWithdrawModalOpen}
             handleWithdraw={handleWithdraw}
-            handleCancel={handleCancel}
+            handleRefuse={handleRefuse}
           />
         </div>
       </div>
@@ -388,7 +428,7 @@ const Orders = () => {
                 Oui
               </button>
               <button
-                onClick={handleCancel}
+                onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 w-[14rem] text-gray-700 border bg-[#E9486C] border-gray-300 hover:bg-[#D1365A] rounded-lg transition text-sm"
               >
                 Non

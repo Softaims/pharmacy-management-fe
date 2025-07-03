@@ -8,6 +8,7 @@ const OrderDetailsSidebar = ({
   setIsModalOpen,
   setIsPrepModalOpen,
   setIsWithdrawModalOpen,
+  handleRefuse,
 }) => {
   console.log("🚀 ~ selectedOrder:", selectedOrder);
   const detailsTabs = [
@@ -202,7 +203,7 @@ const OrderDetailsSidebar = ({
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <button
                     className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
-                    onClick={() => console.log("Order refused")}
+                    onClick={handleRefuse}
                   >
                     Refuser
                   </button>
