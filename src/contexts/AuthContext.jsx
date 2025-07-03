@@ -66,24 +66,22 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       const accessToken = Cookies.get("accessToken");
-      const userRole = Cookies.get("userRole");
+      // const userRole = Cookies.get("userRole");
       if (accessToken) {
         try {
           // Verify token and get user data
           const userData = await apiService.getCurrentUser();
+          const rawRole = userData.data.role;
+
           dispatch({
             type: actionTypes.SET_USER,
             payload: {
               user: userData.data,
-              role: userRole || "admin",
+              role: rawRole.toLowerCase() === "admin" ? "admin" : "pharmacy",
             },
           });
         } catch (error) {
           console.log("🚀 ~ initializeAuth ~ error:", error);
-          // Token is invalid, clear cookies
-          // Cookies.remove("accessToken");
-          // Cookies.remove("refreshToken");
-          // Cookies.remove("userRole");
           dispatch({ type: actionTypes.LOGOUT });
         }
       } else {

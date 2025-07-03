@@ -94,21 +94,11 @@ const apiService = {
   },
 
   // Logout
-  // logout: async () => {
-  //   try {
-  //     const response = await axios.post("/auth/logout");
-  //     return response.data;
-  //   } catch (error) {
-  //     console.log("🚀 ~ logout: ~ error:", error.response?.data || error);
-  //     // Don't throw error for logout, just log it
-  //     return null;
-  //   } finally {
-  //     // Always clear cookies on logout
-  //     Cookies.remove("accessToken");
-  //     Cookies.remove("refreshToken");
-  //     Cookies.remove("userRole");
-  //   }
-  // },
+  logout: () => {
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    Cookies.remove("userRole");
+  },
 
   // Admin specific APIs
   getPharmacies: async () => {
