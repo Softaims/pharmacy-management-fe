@@ -4,6 +4,7 @@ import OrderSidebar from "./Orders/OrderSidebar.jsx";
 import OrderDocumentViewer from "./Orders/OrderDocumentViewer.jsx";
 import OrderDetailsSidebar from "./Orders/OrderDetailsSidebar.jsx";
 import apiService from "../../api/apiService.js";
+
 const Orders = () => {
   const [activeOrderTab, setActiveOrderTab] = useState("all");
   const [activeDocumentTab, setActiveDocumentTab] = useState("prescription");
@@ -18,6 +19,7 @@ const Orders = () => {
   const [activeMobileTab, setActiveMobileTab] = useState("documents");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLargeScreen, setIsLargeScreen] = useState(false);
+  const [isButtonLoading, setIsButtonLoading] = useState(false);
 
   const [deliveryDetails, setDeliveryDetails] = useState({
     type: "complete",
@@ -33,9 +35,10 @@ const Orders = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
   useEffect(() => {
     const fetchOrders = async () => {
-      setIsLoading(true); // ⬅️ Start loading
+      setIsLoading(true);
       try {
         const response = await apiService.getOrders();
         setOrders(response.data);
@@ -46,7 +49,7 @@ const Orders = () => {
       } catch (err) {
         toast.error("Erreur lors de la récupération des ordonnances");
       } finally {
-        setIsLoading(false); // ⬅️ Stop loading
+        setIsLoading(false);
       }
     };
 
@@ -117,6 +120,7 @@ const Orders = () => {
 
   const handleValidate = async () => {
     if (!selectedOrder) return;
+    setIsButtonLoading(true);
     try {
       await apiService.changeOrderStatus(selectedOrder.id, "En préparation");
       setOrders((prevOrders) =>
@@ -145,33 +149,42 @@ const Orders = () => {
       toast.error(
         error.message || "Échec de la mise à jour du statut de la commande"
       );
+    } finally {
+      setIsButtonLoading(false);
     }
   };
 
   const handlePrepare = async () => {
     if (!selectedOrder) return;
     setIsPrepModalOpen(false);
+    setDeliveryDetails({ type: "complete", note: "" }); // Reset deliveryDetails when opening delivery modal
     setIsDeliveryModalOpen(true);
   };
 
   const handleDelivery = async () => {
     if (!selectedOrder) return;
-
-    // Decide the new status based on the order type
-    let newStatus = "Prêt à collecter"; // Default for pickup orders
-    if (selectedOrder.orderType === "delivery") {
-      newStatus = "Prêt à livrer"; // For delivery orders, set status to "Ready to deliver"
+    if (!deliveryDetails.note.trim()) {
+      toast.error("Veuillez entrer une note avant de soumettre");
+      return;
     }
-
-    // Update the order status to the new status (either "Prêt à collecter" or "Prêt à livrer")
+    setIsButtonLoading(true);
+    let newStatus = "Prêt à collecter";
+    if (selectedOrder.orderType === "delivery") {
+      newStatus = "Prêt à livrer";
+    }
     try {
-      await apiService.changeOrderStatus(selectedOrder.id, newStatus);
+      const updatedOrder = await apiService.changeOrderStatusWithDetails(
+        selectedOrder.id,
+        newStatus,
+        deliveryDetails
+      );
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.id === selectedOrder.id
             ? {
                 ...order,
                 status: newStatus,
+                deliveryDetails: updatedOrder.deliveryDetails,
               }
             : order
         )
@@ -181,20 +194,24 @@ const Orders = () => {
           ? {
               ...prev,
               status: newStatus,
+              deliveryDetails: updatedOrder.deliveryDetails,
             }
           : prev
       );
-      setIsDeliveryModalOpen(false); // Close the delivery details modal
+      setIsDeliveryModalOpen(false);
       toast.success("Détails de livraison ajoutés avec succès");
     } catch (error) {
       toast.error(
         error.message || "Échec de la mise à jour du statut de la commande"
       );
+    } finally {
+      setIsButtonLoading(false);
     }
   };
 
   const handleWithdraw = async () => {
     if (!selectedOrder) return;
+    setIsButtonLoading(true);
     try {
       await apiService.changeOrderStatus(selectedOrder.id, "Finalisé");
       setOrders((prevOrders) =>
@@ -221,11 +238,14 @@ const Orders = () => {
       toast.error(
         error.message || "Échec de la mise à jour du statut de la commande"
       );
+    } finally {
+      setIsButtonLoading(false);
     }
   };
 
   const handleRefuse = async () => {
     if (!selectedOrder) return;
+    setIsButtonLoading(true);
     try {
       await apiService.changeOrderStatus(selectedOrder.id, "Refusé");
       setOrders((prevOrders) =>
@@ -251,10 +271,14 @@ const Orders = () => {
       toast.error(
         error.message || "Échec de la mise à jour du statut de la commande"
       );
+    } finally {
+      setIsButtonLoading(false);
     }
   };
+
   const handleCancel = async () => {
     if (!selectedOrder) return;
+    setIsButtonLoading(true);
     try {
       await apiService.changeOrderStatus(selectedOrder.id, "Annulée");
       setOrders((prevOrders) =>
@@ -280,8 +304,17 @@ const Orders = () => {
       toast.error(
         error.message || "Échec de la mise à jour du statut de la commande"
       );
+    } finally {
+      setIsButtonLoading(false);
     }
   };
+
+  // Reset deliveryDetails when closing delivery modal
+  const handleCloseDeliveryModal = () => {
+    setIsDeliveryModalOpen(false);
+    setDeliveryDetails({ type: "complete", note: "" });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -428,9 +461,14 @@ const Orders = () => {
             <div className="mt-6 flex flex-col items-center justify-center gap-3">
               <button
                 onClick={handleValidate}
-                className="px-4 py-2 w-[14rem] bg-[#069AA2] hover:bg-[#05828A] text-white rounded-lg transition text-sm"
+                disabled={isButtonLoading}
+                className={`px-4 py-2 w-[14rem] ${
+                  isButtonLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#069AA2] hover:bg-[#05828A]"
+                } text-white rounded-lg transition text-sm`}
               >
-                Oui
+                {isButtonLoading ? "Validation..." : "Oui"}
               </button>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -463,9 +501,14 @@ const Orders = () => {
             <div className="mt-6 flex flex-col items-center justify-center gap-3">
               <button
                 onClick={handlePrepare}
-                className="px-4 py-2 w-[14rem] bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition text-sm"
+                disabled={isButtonLoading}
+                className={`px-4 py-2 w-[14rem] ${
+                  isButtonLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-teal-500 hover:bg-teal-600"
+                } text-white rounded-lg transition text-sm`}
               >
-                Prête
+                {isButtonLoading ? "Préparation..." : "Prête"}
               </button>
               <button
                 onClick={() => setIsPrepModalOpen(false)}
@@ -482,7 +525,7 @@ const Orders = () => {
       {isDeliveryModalOpen && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-          onClick={() => setIsDeliveryModalOpen(false)}
+          onClick={handleCloseDeliveryModal}
           aria-modal="true"
           role="dialog"
         >
@@ -547,9 +590,14 @@ const Orders = () => {
             <div className="mt-6 flex justify-end">
               <button
                 onClick={handleDelivery}
-                className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition text-sm"
+                disabled={isButtonLoading || !deliveryDetails.note.trim()}
+                className={`px-4 py-2 ${
+                  isButtonLoading || !deliveryDetails.note.trim()
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-teal-500 hover:bg-teal-600"
+                } text-white rounded-lg transition text-sm`}
               >
-                Ajouter
+                {isButtonLoading ? "Ajout en cours..." : "Ajouter"}
               </button>
             </div>
           </div>
@@ -576,9 +624,14 @@ const Orders = () => {
             <div className="mt-6 flex flex-col items-center justify-center gap-3">
               <button
                 onClick={handleWithdraw}
-                className="px-4 py-2 w-[14rem] bg-[#069AA2] hover:bg-[#05828A] text-white rounded-lg transition text-sm"
+                disabled={isButtonLoading}
+                className={`px-4 py-2 w-[14rem] ${
+                  isButtonLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#069AA2] hover:bg-[#05828A]"
+                } text-white rounded-lg transition text-sm`}
               >
-                Oui
+                {isButtonLoading ? "Retrait..." : "Oui"}
               </button>
               <button
                 onClick={() => setIsWithdrawModalOpen(false)}

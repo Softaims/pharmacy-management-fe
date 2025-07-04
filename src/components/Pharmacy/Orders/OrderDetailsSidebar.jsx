@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaCircle, FaRegCircle } from "react-icons/fa";
+import { toast } from "react-toastify";
+import apiService from "../../../api/apiService";
 
 const OrderDetailsSidebar = ({
   selectedOrder,
@@ -11,11 +13,38 @@ const OrderDetailsSidebar = ({
   handleRefuse,
   handleCancel,
 }) => {
-  console.log("🚀 ~ selectedOrder:", selectedOrder);
+  const [orderHistory, setOrderHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditHistoryModalOpen, setIsEditHistoryModalOpen] = useState(false);
+  const [isButtonLoading, setIsButtonLoading] = useState(false);
+  const [selectedHistoryEntry, setSelectedHistoryEntry] = useState(null);
+  const [editHistoryDetails, setEditHistoryDetails] = useState({
+    completionStatus: "FULLY_COMPLETED",
+    pharmacyNote: "",
+  });
+
   const detailsTabs = [
     { id: "details", label: "Détails ordonnance" },
     { id: "history", label: "Historique" },
   ];
+
+  useEffect(() => {
+    if (activeDetailsTab === "history" && selectedOrder?.id) {
+      setIsLoading(true);
+      apiService
+        .getOrderHistory(selectedOrder.id)
+        .then((response) => {
+          setOrderHistory(response.data || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching order history:", error);
+          setOrderHistory([]);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [activeDetailsTab, selectedOrder?.id]);
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -26,7 +55,7 @@ const OrderDetailsSidebar = ({
       case "Prêt à collecter":
         return "bg-[#B8F0F2] text-black border-2 border-[#12CDD4]";
       case "Prêt à livrer":
-        return "bg-[#DEDAFF] text-black border-2 border-[#6631D7]"; // New styling
+        return "bg-[#DEDAFF] text-black border-2 border-[#6631D grop";
       case "Finalisé":
         return "bg-[#DEF1CB] text-black border-2 border-[#8FD14F]";
       default:
@@ -39,41 +68,13 @@ const OrderDetailsSidebar = ({
     "Refusé",
     "En préparation",
     "Prêt à collecter",
-    "Prêt à livrer",
+    "Prêt àLivrer",
     "Finalisé",
-  ];
-  // Dummy data for delivery history
-  const deliveryHistory = [
-    {
-      date: "20/05/2025",
-      status: "Délivrance complète",
-      note: "Boîte de 90 pour l’amlodipine et metformine",
-      addedBy: "votre pharmacie",
-    },
-    {
-      date: "15/04/2025",
-      status: "Délivrance partielle",
-      note: "Tout sauf hydrocortancyl car rupture",
-      addedBy: "Pharmacie de la gare, 13 rue Victor Hugo, 93200 Saint Denis",
-    },
-    {
-      date: "10/03/2025",
-      status: "Délivrance complète",
-      note: "Renouvellement de paracétamol",
-      addedBy: "Pharmacie centrale, 5 avenue des Champs-Élysées, 75008 Paris",
-    },
-    {
-      date: "05/02/2025",
-      status: "Délivrance partielle",
-      note: "Manque d’ibuprofène en stock",
-      addedBy: "votre pharmacie",
-    },
   ];
 
   const normalizedStatus =
     selectedOrder?.status === "PENDING" ? "À valider" : selectedOrder?.status;
 
-  // Handling "Refusé" and "En préparation" with 2 filled circles
   const filledCount =
     normalizedStatus === "Refusé" ||
     normalizedStatus === "En préparation" ||
@@ -81,7 +82,7 @@ const OrderDetailsSidebar = ({
       ? 2
       : normalizedStatus === "Prêt à collecter" ||
         normalizedStatus === "Prêt à livrer"
-      ? 3 // Set Prêt à livrer to 3 filled circles
+      ? 3
       : normalizedStatus === "Finalisé"
       ? 4
       : statusOrder.indexOf(normalizedStatus) + 1;
@@ -102,6 +103,55 @@ const OrderDetailsSidebar = ({
   const person = isFamilyOrder
     ? selectedOrder?.familyMember
     : selectedOrder?.patient;
+
+  const handleOpenEditHistoryModal = (entry) => {
+    setSelectedHistoryEntry(entry);
+    setEditHistoryDetails({
+      completionStatus: entry.completionStatus,
+      pharmacyNote: entry.pharmacyNote || "",
+    });
+    setIsEditHistoryModalOpen(true);
+  };
+
+  const handleCloseEditHistoryModal = () => {
+    setIsEditHistoryModalOpen(false);
+    setEditHistoryDetails({
+      completionStatus: "FULLY_COMPLETED",
+      pharmacyNote: "",
+    });
+  };
+
+  const handleUpdateHistory = async () => {
+    if (!selectedHistoryEntry || !editHistoryDetails.pharmacyNote.trim()) {
+      toast.error("Veuillez entrer une note avant de soumettre");
+      return;
+    }
+    setIsButtonLoading(true);
+    try {
+      const response = await apiService.updateOrderHistory(
+        selectedHistoryEntry.id,
+        editHistoryDetails
+      );
+      // Merge the updated fields with the existing entry
+      setOrderHistory((prevHistory) =>
+        prevHistory.map((entry) =>
+          entry.id === selectedHistoryEntry.id
+            ? { ...entry, ...editHistoryDetails }
+            : entry
+        )
+      );
+      setIsEditHistoryModalOpen(false);
+      toast.success("Historique mis à jour avec succès");
+    } catch (error) {
+      toast.error(error.message || "Échec de la mise à jour de l'historique");
+    } finally {
+      setIsButtonLoading(false);
+      setEditHistoryDetails({
+        completionStatus: "FULLY_COMPLETED",
+        pharmacyNote: "",
+      });
+    }
+  };
 
   return (
     <div className="bg-white flex flex-col overflow-y-auto h-full">
@@ -147,7 +197,6 @@ const OrderDetailsSidebar = ({
                             )
                           : "—"}
                       </li>
-
                       <li className="text-sm">{person?.phoneNumber || "—"}</li>
                       {person?.email && (
                         <li className="text-sm">{person?.email || "—"}</li>
@@ -249,7 +298,6 @@ const OrderDetailsSidebar = ({
               {normalizedStatus === "En préparation" && (
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <button
-                    // onClick={() => console.log("Order canceled directly")}
                     onClick={handleCancel}
                     className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
                   >
@@ -264,24 +312,23 @@ const OrderDetailsSidebar = ({
                 </div>
               )}
 
-              {normalizedStatus === "Prêt à collecter" ||
-                (normalizedStatus === "Prêt à livrer" && (
-                  <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-                    <button
-                      // onClick={() => console.log("Order canceled directly")}
-                      onClick={handleCancel}
-                      className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
-                    >
-                      Annuler
-                    </button>
-                    <button
-                      onClick={() => setIsWithdrawModalOpen(true)}
-                      className="w-full sm:w-auto flex-1 bg-teal-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-teal-600 transition-colors"
-                    >
-                      Retirer
-                    </button>
-                  </div>
-                ))}
+              {(normalizedStatus === "Prêt à collecter" ||
+                normalizedStatus === "Prêt à livrer") && (
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                  <button
+                    onClick={handleCancel}
+                    className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={() => setIsWithdrawModalOpen(true)}
+                    className="w-full sm:w-auto flex-1 bg-teal-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-teal-600 transition-colors"
+                  >
+                    Retirer
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -290,63 +337,181 @@ const OrderDetailsSidebar = ({
               Historique de délivrance
             </h3>
 
-            <div className="space-y-6">
-              {deliveryHistory.map((entry, index) => (
-                <div key={index}>
-                  <div className="flex items-center mb-4">
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                    <div className="px-4 text-sm text-gray-600 font-medium">
-                      {entry.date}
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+              </div>
+            ) : orderHistory.length === 0 ? (
+              <p className="text-gray-600 text-sm">
+                Aucun historique disponible
+              </p>
+            ) : (
+              <div className="space-y-6">
+                {orderHistory.map((entry, index) => (
+                  <div key={index}>
+                    <div className="flex items-center mb-4">
+                      <div className="flex-1 h-px bg-gray-300"></div>
+                      <div className="px-4 text-sm text-gray-600 font-medium">
+                        {entry.createdAt
+                          ? new Date(entry.createdAt).toLocaleDateString(
+                              "fr-FR"
+                            )
+                          : "—"}
+                      </div>
+                      <div className="flex-1 h-px bg-gray-300"></div>
                     </div>
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                  </div>
 
-                  <div className=" bg-transparent rounded-lg py-4 px-2 border border-gray-200">
-                    <div className="flex items-start">
-                      <div className="flex-1">
-                        <span
-                          className={`inline-block px-3 py-1 rounded-full text-sm font-normal ${
-                            entry.status === "Délivrance complète"
-                              ? "bg-[#D1E8DA] text-[##606161]"
-                              : "bg-[#FEECCF] text-[#AEA596]"
-                          }`}
-                        >
-                          {entry.status}
-                        </span>
+                    <div className="bg-transparent rounded-lg py-4 px-2 border border-gray-200">
+                      <div className="flex items-start">
+                        <div className="flex-1">
+                          <span
+                            className={`inline-block px-3 py-1 rounded-full text-sm font-normal ${
+                              entry.completionStatus === "FULLY_COMPLETED"
+                                ? "bg-[#D1E8DA] text-[#606161]"
+                                : entry.completionStatus ===
+                                  "PARTIALLY_COMPLETED"
+                                ? "bg-[#FEECCF] text-[#AEA596]"
+                                : ""
+                            }`}
+                          >
+                            {entry.completionStatus === "FULLY_COMPLETED"
+                              ? "Délivrance complète"
+                              : entry.completionStatus === "PARTIALLY_COMPLETED"
+                              ? "Délivrance partielle"
+                              : entry.completionStatus}
+                          </span>
 
-                        <p className="text-sm text-gray-600 mt-3 mb-2">
-                          <span className="font-medium">Note :</span>
-                        </p>
-                        <p className="text-sm text-gray-700 mb-3">
-                          {entry.note}
-                        </p>
-
-                        <div className="flex justify-between items-center">
-                          <p className="text-sm   text-gray-600">
-                            <span>Ajouté par </span>
-                            <span
-                              className={
-                                entry.addedBy.includes("Pharmacie")
-                                  ? "text-[#63AAAE]"
-                                  : "text-[#63AAAE]"
-                              }
-                            >
-                              {entry.addedBy}
-                            </span>
+                          <p className="text-sm text-gray-600 mt-3 mb-2">
+                            <span className="font-medium">Note :</span>
                           </p>
-                          <button className="bg-[#FBDAE2] text-[#5A5A5A] px-3 py-1 rounded-full text-sm font-normal hover:bg-pink-200 transition-colors ml-4 border border-pink-200">
-                            Modifier
-                          </button>
+                          <p className="text-sm text-gray-700 mb-3">
+                            {entry.pharmacyNote}
+                          </p>
+
+                          <div className="flex justify-between items-center">
+                            <p className="text-sm text-gray-600">
+                              <span>Ajouté par </span>
+                              <span className={"text-[#63AAAE]"}>
+                                {entry?.pharmacy?.name}
+                              </span>
+                            </p>
+                            {entry.isItsOwnPharmacy && (
+                              <button
+                                onClick={() =>
+                                  handleOpenEditHistoryModal(entry)
+                                }
+                                className="bg-[#FBDAE2] text-[#5A5A5A] px-3 py-1 rounded-full text-sm font-normal hover:bg-pink-200 transition-colors ml-4 border border-pink-200"
+                              >
+                                Modifier
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* Modal for Editing History Entry */}
+      {isEditHistoryModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={handleCloseEditHistoryModal}
+          aria-modal="true"
+          role="dialog"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white w-full max-w-[27rem] rounded-xl shadow-xl max-h-[90vh] overflow-y-auto animate-fadeIn scale-95 transition-transform p-6"
+          >
+            <div className="pb-4 mb-4">
+              <h3 className="text-center text-gray-900 font-medium">
+                Modifier les détails de l'historique
+              </h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="complete"
+                  name="completionStatus"
+                  checked={
+                    editHistoryDetails.completionStatus === "FULLY_COMPLETED"
+                  }
+                  onChange={() =>
+                    setEditHistoryDetails({
+                      ...editHistoryDetails,
+                      completionStatus: "FULLY_COMPLETED",
+                    })
+                  }
+                  className="h-4 w-4 text-teal-600 focus:ring-teal-500"
+                />
+                <label htmlFor="complete" className="text-sm text-gray-700">
+                  Délivrance complète
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="partial"
+                  name="completionStatus"
+                  checked={
+                    editHistoryDetails.completionStatus ===
+                    "PARTIALLY_COMPLETED"
+                  }
+                  onChange={() =>
+                    setEditHistoryDetails({
+                      ...editHistoryDetails,
+                      completionStatus: "PARTIALLY_COMPLETED",
+                    })
+                  }
+                  className="h-4 w-4 text-teal-600 focus:ring-teal-500"
+                />
+                <label htmlFor="partial" className="text-sm text-gray-700">
+                  Délivrance partielle
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">
+                  Note :
+                </label>
+                <textarea
+                  value={editHistoryDetails.pharmacyNote}
+                  onChange={(e) =>
+                    setEditHistoryDetails({
+                      ...editHistoryDetails,
+                      pharmacyNote: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                  rows="3"
+                  placeholder="Entrez une note..."
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={handleUpdateHistory}
+                disabled={
+                  isButtonLoading || !editHistoryDetails.pharmacyNote.trim()
+                }
+                className={`px-4 py-2 ${
+                  isButtonLoading || !editHistoryDetails.pharmacyNote.trim()
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-teal-500 hover:bg-teal-600"
+                } text-white rounded-lg transition text-sm`}
+              >
+                {isButtonLoading ? "Mise à jour..." : "Mettre à jour"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

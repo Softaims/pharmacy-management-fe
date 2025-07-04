@@ -185,12 +185,96 @@ const apiService = {
       );
     }
   },
-  getOrders: async () => {
+  changeOrderStatusWithDetails: async (orderId, newStatus, deliveryDetails) => {
+    console.log(
+      "🚀 ~ changeOrderStatusWithDetails: ~ orderId, newStatus, deliveryDetails:",
+      orderId,
+      newStatus,
+      deliveryDetails
+    );
+
+    // Determine completionStatus based on deliveryDetails.type
+    const completionStatus =
+      deliveryDetails.type === "complete"
+        ? "fully"
+        : deliveryDetails.type === "partial"
+        ? "partially"
+        : "";
+
+    const payload = {
+      notes: deliveryDetails.note,
+      completionStatus: completionStatus, // Set based on type (complete or partial)
+      nextStatus: newStatus,
+    };
+
     try {
-      const response = await axios.get("/pharmacy/orders");
+      const response = await axios.patch(
+        `/pharmacy/orders/completion-status/${orderId}`,
+        payload
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error?.response?.data?.message ||
+          "Error updating order status with details."
+      );
+    }
+  },
+
+  getOrders: async (page = 1, limit = 100) => {
+    try {
+      // Sending pagination parameters with the request
+      const response = await axios.get("/pharmacy/orders", {
+        params: {
+          page, // The current page number (default is 1)
+          limit, // The number of items per page (default is 100)
+        },
+      });
+
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: "Failed to get orders" };
+    }
+  },
+  getOrderHistory: async (orderId) => {
+    try {
+      const response = await axios.get(`pharmacy/orders/history/${orderId}`);
+      console.log("🚀 ~ getOrderHistory: ~ response:", response);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: "Failed to get order history" };
+    }
+  },
+  updateOrderHistory: async (id, editHistoryDetails) => {
+    console.log(
+      "🚀 ~ updateOrderHistory: ~ orderId, historyId, payload:",
+      id,
+      editHistoryDetails
+    );
+
+    // Dynamically set the completionStatus
+    const completionStatus =
+      editHistoryDetails.completionStatus === "FULLY_COMPLETED"
+        ? "fully"
+        : "partially";
+
+    // Update the payload with the correct completionStatus
+    const payload = {
+      notes: editHistoryDetails.pharmacyNote,
+      completionStatus: completionStatus,
+    };
+
+    try {
+      const response = await axios.patch(
+        `/pharmacy/orders/completion-status/${id}`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      throw (
+        error.response?.data || { message: "Failed to update order history" }
+      );
     }
   },
 };

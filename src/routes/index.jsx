@@ -1,6 +1,4 @@
-// routes/AppRoutes.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
-import HomePage from "../pages/HomePage.jsx";
 import LoginPage from "../pages/Admin/LoginPage.jsx";
 import DashboardPage from "../pages/Admin/DashboardPage.jsx";
 import PharmacyDashboard from "../pages/Pharmacy/PharmacyDashboard.jsx";
@@ -10,15 +8,13 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function AppRoutes() {
   const { isAuthenticated, role, isLoading } = useAuth();
+
   // if (isLoading) {
   //   return <div>Loading...</div>; // Or a proper loading component
   // }
 
   return (
     <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<HomePage />} />
-
       {/* Login Route - Redirect if already authenticated */}
       <Route
         path="/login"
@@ -54,12 +50,14 @@ export default function AppRoutes() {
                 ? role === "admin"
                   ? "/admin"
                   : "/pharmacy"
-                : "/"
+                : "/login"
             }
             replace
           />
         }
       />
+
+      {/* Protected Pharmacy Routes */}
       <Route
         path="/pharmacy/*"
         element={
