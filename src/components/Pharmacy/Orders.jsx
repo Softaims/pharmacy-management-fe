@@ -338,7 +338,7 @@ const Orders = () => {
     }
   };
 
-  // Reset deliveryDetails when closing delivery modal
+  // Reset deliveryDetails when closing delivery modals
   const handleCloseDeliveryModal = () => {
     setIsDeliveryModalOpen(false);
     setDeliveryDetails({ type: "complete", note: "" });
