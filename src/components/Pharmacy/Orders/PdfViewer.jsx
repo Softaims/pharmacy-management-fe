@@ -14,7 +14,7 @@ const PdfViewer = () => {
     const updatePageWidth = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-        setZoomLevel(Math.min(zoomLevel, containerWidth / 580)); // Ensure zoom doesn't go beyond container width
+        setZoomLevel(zoomLevel); // Ensure zoom doesn't go beyond container width
       }
     };
 
@@ -83,7 +83,7 @@ const PdfViewer = () => {
         {Array.from({ length: numPages }, (_, i) => i + 1).map((page) => (
           <Page
             key={page}
-            width={600 * zoomLevel} // Adjust width based on zoom level
+            width={500 * zoomLevel} // Adjust width based on zoom level
             pageNumber={page}
             renderTextLayer={false}
             renderAnnotationLayer={false}
