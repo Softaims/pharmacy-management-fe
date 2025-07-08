@@ -1,0 +1,43 @@
+name: Node.js Package
+
+on:
+  push:
+    branches:
+      - main  # Trigger when code is pushed to the main branch
+  pull_request:
+    branches:
+      - main  # Trigger when a pull request is created/updated targeting the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+
+      # Create .npmrc file for authentication with GitHub Packages
+      - name: Create .npmrc for Authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+          echo "registry=https://npm.pkg.github.com/" >> ~/.npmrc
+
+      - run: npm ci
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
