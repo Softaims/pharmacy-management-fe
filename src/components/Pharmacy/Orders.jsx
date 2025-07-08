@@ -371,35 +371,6 @@ const Orders = () => {
         hasMore={hasMore}
         isLoadingMore={isLoadingMore}
         edOrder={selectedOrder}
-        setSelectedOrder={setSelectedOrder}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        getStatusCircles={getStatusCircles}
-        getFilteredOrders={getFilteredOrders}
-        // Pagination props
-        loadMoreOrders={loadMoreOrders}
-        hasMore={hasMore}
-        isLoadingMore={isLoadingMore}
-        edOrder={selectedOrder}
-        setSelectedOrder={setSelectedOrder}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        getStatusCircles={getStatusCircles}
-        getFilteredOrders={getFilteredOrders}
-        // Pagination props
-        loadMoreOrders={loadMoreOrders}
-        hasMore={hasMore}
-        isLoadingMore={isLoadingMore}
-        edOrder={selectedOrder}
-        setSelectedOrder={setSelectedOrder}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        getStatusCircles={getStatusCircles}
-        getFilteredOrders={getFilteredOrders}
-        // Pagination props
-        loadMoreOrders={loadMoreOrders}
-        hasMore={hasMore}
-        isLoadingMore={isLoadingMore}
       />
       {selectedOrder && (
         <div className="lg:hidden w-full flex flex-col">

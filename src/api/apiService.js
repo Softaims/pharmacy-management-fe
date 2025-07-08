@@ -48,13 +48,12 @@ const apiService = {
 
       // Store tokens in cookies
       const { accessToken, refreshToken, user } = response.data.data;
+      const staticExpiryDate = new Date();
+      staticExpiryDate.setDate(staticExpiryDate.getDate() + 7);
 
       Cookies.set("accessToken", accessToken, {
-        expires: 1,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        expires: staticExpiryDate,
       });
-
       Cookies.set("refreshToken", refreshToken, {
         expires: 7,
         secure: process.env.NODE_ENV === "production",
