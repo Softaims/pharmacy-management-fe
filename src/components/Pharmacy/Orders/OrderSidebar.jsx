@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { FaCircle, FaRegCircle } from "react-icons/fa";
 
 const OrderSidebar = ({
@@ -10,7 +10,14 @@ const OrderSidebar = ({
   searchTerm,
   setSearchTerm,
   getFilteredOrders,
+  // Infinite scrolling props
+  loadMoreOrders,
+  hasMore,
+  isLoadingMore,
 }) => {
+  const scrollContainerRef = useRef(null);
+  const loadingTriggerRef = useRef(null);
+
   const orderTabs = [
     { id: "all", label: "Toutes", count: orders.length },
     {
@@ -21,7 +28,7 @@ const OrderSidebar = ({
           o.status === "À valider" ||
           o.status === "En préparation" ||
           o.status === "Prêt à collecter" ||
-          o.status === "Prêt à livrer" || // Include Prêt à livrer in preparation tab
+          o.status === "Prêt à livrer" ||
           o.status === "PENDING"
       ).length,
     },
@@ -58,6 +65,57 @@ const OrderSidebar = ({
       hour12: false,
     });
   };
+
+  // Intersection Observer for infinite scrolling
+  const handleIntersection = useCallback(
+    (entries) => {
+      const target = entries[0];
+      if (target.isIntersecting && hasMore && !isLoadingMore && !searchTerm) {
+        loadMoreOrders();
+      }
+    },
+    [hasMore, isLoadingMore, loadMoreOrders, searchTerm]
+  );
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(handleIntersection, {
+      root: scrollContainerRef.current,
+      rootMargin: "100px", // Trigger 100px before reaching the bottom
+      threshold: 0.1,
+    });
+
+    if (loadingTriggerRef.current) {
+      observer.observe(loadingTriggerRef.current);
+    }
+
+    return () => {
+      if (loadingTriggerRef.current) {
+        observer.unobserve(loadingTriggerRef.current);
+      }
+    };
+  }, [handleIntersection]);
+
+  // Handle manual scroll-based loading as fallback
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container || searchTerm) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+
+    // Trigger loading when 90% scrolled
+    if (scrollPercentage > 0.9 && hasMore && !isLoadingMore) {
+      loadMoreOrders();
+    }
+  }, [hasMore, isLoadingMore, loadMoreOrders, searchTerm]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, [handleScroll]);
 
   return (
     <div
@@ -102,7 +160,14 @@ const OrderSidebar = ({
       </div>
 
       {/* Orders List */}
-      <div className="flex-1 overflow-y-auto">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto"
+        style={{
+          scrollBehavior: "smooth",
+          overscrollBehavior: "contain",
+        }}
+      >
         {getFilteredOrders().map((order) => {
           const normalizedStatus =
             order.status === "PENDING" ? "À valider" : order.status;
@@ -114,7 +179,7 @@ const OrderSidebar = ({
           } else if (normalizedStatus === "Prêt à collecter") {
             statusClass = "bg-[#B8F0F2] text-black border-2 border-[#12CDD4]";
           } else if (normalizedStatus === "Prêt à livrer") {
-            statusClass = "bg-[#DEDAFF] text-black border-2 border-[#6631D7]"; // New styling
+            statusClass = "bg-[#DEDAFF] text-black border-2 border-[#6631D7]";
           } else if (normalizedStatus === "En préparation") {
             statusClass = "bg-[#E7D5AA] text-black border-2 border-[#FAA010]";
           } else {
@@ -129,7 +194,7 @@ const OrderSidebar = ({
               ? 2
               : normalizedStatus === "Prêt à collecter" ||
                 normalizedStatus === "Prêt à livrer"
-              ? 3 // Set Prêt à livrer to 3 filled circles
+              ? 3
               : normalizedStatus === "Finalisé"
               ? 4
               : statusOrder.indexOf(normalizedStatus) + 1;
@@ -184,6 +249,42 @@ const OrderSidebar = ({
             </div>
           );
         })}
+
+        {/* Loading Trigger Element (for Intersection Observer) */}
+        {hasMore && !searchTerm && (
+          <div
+            ref={loadingTriggerRef}
+            className="h-20 flex items-center justify-center"
+          >
+            {isLoadingMore && (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#069AA2]"></div>
+                <span className="text-sm text-gray-500">
+                  Chargement des ordonnances...
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* End of Results Message */}
+        {!hasMore && orders.length > 0 && !searchTerm && (
+          <div className="p-4 text-center text-gray-500 text-sm border-t border-gray-100">
+            Toutes les ordonnances ont été chargées
+          </div>
+        )}
+
+        {/* No Results Message */}
+        {getFilteredOrders().length === 0 && (
+          <div className="p-8 text-center text-gray-500">
+            <div className="text-lg mb-2">📋</div>
+            <p className="text-sm">
+              {searchTerm
+                ? "Aucune ordonnance trouvée pour cette recherche"
+                : "Aucune ordonnance disponible"}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

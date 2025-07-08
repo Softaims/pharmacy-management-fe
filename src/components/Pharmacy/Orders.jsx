@@ -4,7 +4,6 @@ import OrderSidebar from "./Orders/OrderSidebar.jsx";
 import OrderDocumentViewer from "./Orders/OrderDocumentViewer.jsx";
 import OrderDetailsSidebar from "./Orders/OrderDetailsSidebar.jsx";
 import apiService from "../../api/apiService.js";
-
 const Orders = () => {
   const [activeOrderTab, setActiveOrderTab] = useState("all");
   const [activeDocumentTab, setActiveDocumentTab] = useState("prescription");
@@ -20,6 +19,12 @@ const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [isButtonLoading, setIsButtonLoading] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const ITEMS_PER_PAGE = 10;
 
   const [deliveryDetails, setDeliveryDetails] = useState({
     type: "complete",
@@ -40,8 +45,10 @@ const Orders = () => {
     const fetchOrders = async () => {
       setIsLoading(true);
       try {
-        const response = await apiService.getOrders();
+        const response = await apiService.getOrders(1, ITEMS_PER_PAGE);
         setOrders(response.data);
+        setCurrentPage(1);
+        setHasMore(response.data.length === ITEMS_PER_PAGE);
 
         if (window.innerWidth >= 1024 && response.data.length > 0) {
           setSelectedOrder(response.data[0]);
@@ -55,6 +62,28 @@ const Orders = () => {
 
     fetchOrders();
   }, []);
+
+  const loadMoreOrders = async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const nextPage = currentPage + 1;
+      const response = await apiService.getOrders(nextPage, ITEMS_PER_PAGE);
+
+      if (response.data.length > 0) {
+        setOrders((prevOrders) => [...prevOrders, ...response.data]);
+        setCurrentPage(nextPage);
+        setHasMore(response.data.length === ITEMS_PER_PAGE);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      toast.error("Erreur lors du chargement des ordonnances supplémentaires");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (isLargeScreen && !selectedOrder && orders.length > 0) {
@@ -337,6 +366,40 @@ const Orders = () => {
         setSearchTerm={setSearchTerm}
         getStatusCircles={getStatusCircles}
         getFilteredOrders={getFilteredOrders}
+        // Pagination props
+        loadMoreOrders={loadMoreOrders}
+        hasMore={hasMore}
+        isLoadingMore={isLoadingMore}
+        edOrder={selectedOrder}
+        setSelectedOrder={setSelectedOrder}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        getStatusCircles={getStatusCircles}
+        getFilteredOrders={getFilteredOrders}
+        // Pagination props
+        loadMoreOrders={loadMoreOrders}
+        hasMore={hasMore}
+        isLoadingMore={isLoadingMore}
+        edOrder={selectedOrder}
+        setSelectedOrder={setSelectedOrder}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        getStatusCircles={getStatusCircles}
+        getFilteredOrders={getFilteredOrders}
+        // Pagination props
+        loadMoreOrders={loadMoreOrders}
+        hasMore={hasMore}
+        isLoadingMore={isLoadingMore}
+        edOrder={selectedOrder}
+        setSelectedOrder={setSelectedOrder}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        getStatusCircles={getStatusCircles}
+        getFilteredOrders={getFilteredOrders}
+        // Pagination props
+        loadMoreOrders={loadMoreOrders}
+        hasMore={hasMore}
+        isLoadingMore={isLoadingMore}
       />
       {selectedOrder && (
         <div className="lg:hidden w-full flex flex-col">
