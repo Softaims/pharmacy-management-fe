@@ -6,10 +6,10 @@ name: Node.js Package
 on:
   push:
     branches:
-      - main  # Trigger when code is pushed to the main branch
+      - main # Trigger when code is pushed to the main branch
   pull_request:
     branches:
-      - main  # Trigger when a pull request is created/updated targeting the main branch
+      - main # Trigger when a pull request is created/updated targeting the main branch
 
 jobs:
   build:
@@ -20,7 +20,6 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-  
 
   publish-gpr:
     needs: build
