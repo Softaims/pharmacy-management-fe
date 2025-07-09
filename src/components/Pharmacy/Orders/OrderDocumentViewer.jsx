@@ -12,17 +12,28 @@ const OrderDocumentViewer = ({
     { id: "vitalCard", label: "Mutuelle" },
   ];
 
-  // Map tab IDs to their respective PDF URLs from selectedOrder
+  // Function to get document URL, with a fallback to static URL
   const getDocumentUrl = (tabId) => {
+    if (!selectedOrder)
+      return "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
     switch (tabId) {
       case "prescription":
-        return selectedOrder?.prescriptionUrl || null;
+        return (
+          selectedOrder.prescriptionUrl ||
+          "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
+        );
       case "mutualCard":
-        return selectedOrder?.mutualCardUrl || null;
+        return (
+          selectedOrder.mutualCardUrl ||
+          "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
+        );
       case "vitalCard":
-        return selectedOrder?.vitalCardUrl || null;
+        return (
+          selectedOrder.vitalCardUrl ||
+          "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
+        );
       default:
-        return null;
+        return "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
     }
   };
 
@@ -46,13 +57,7 @@ const OrderDocumentViewer = ({
         </nav>
       </div>
       <div className="flex-1 overflow-hidden p-6 relative">
-        {getDocumentUrl(activeDocumentTab) ? (
-          <PdfViewer fileUrl={getDocumentUrl(activeDocumentTab)} />
-        ) : (
-          <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
-            <p className="text-sm text-gray-500">No document available</p>
-          </div>
-        )}
+        <PdfViewer fileUrl={getDocumentUrl(activeDocumentTab)} />
       </div>
     </div>
   );

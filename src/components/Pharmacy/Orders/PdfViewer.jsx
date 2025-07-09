@@ -4,7 +4,7 @@ import { FaSearchPlus, FaSearchMinus, FaExpand } from "react-icons/fa";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
 
-const PdfViewer = ({ file }) => {
+const PdfViewer = ({ fileUrl }) => {
   const containerRef = useRef(null);
   const [numPages, setNumPages] = useState(null);
   const [pageWidth, setPageWidth] = useState(600);
@@ -75,9 +75,7 @@ const PdfViewer = ({ file }) => {
       }}
     >
       <Document
-        file={
-          "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
-        }
+        file={fileUrl}
         onLoadSuccess={onDocumentLoadSuccess}
         loading="Loading PDF..."
         error="Failed to load PDF file."
