@@ -53,7 +53,7 @@ const OrderDocumentViewer = ({
           ))}
         </nav>
       </div>
-      <div className="flex-1 overflow-hidden p-6 relative">
+      <div className="flex-1 overflow-hidden py-6 relative">
         <PdfViewer fileUrl={getDocumentUrl(activeDocumentTab)} />
       </div>
     </div>
