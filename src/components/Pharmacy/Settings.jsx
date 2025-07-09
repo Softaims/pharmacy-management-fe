@@ -20,6 +20,8 @@ const Settings = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [signedUrl, setSignedUrl] = useState(null);
+  const [imageKey, setImageKey] = useState(null);
+
   const [uploadedImageUrl, setUploadedImageUrl] = useState(
     user?.pharmacy.image || ""
   );
@@ -137,6 +139,7 @@ const Settings = () => {
       );
       console.log("🚀 ~ getSignedUrl ~ response:", response.data);
       setSignedUrl(response.data.signedUrl);
+      setImageKey(response.data.key);
       return response.data.signedUrl;
     } catch (error) {
       console.log("🚀 ~ getSignedUrl ~ error:", error);
@@ -157,16 +160,18 @@ const Settings = () => {
       return;
     }
     try {
-      await axios.put(url, file, {
+      const response = await axios.put(url, file, {
         headers: { "Content-Type": "image/*" },
       });
-      toast.success("Image téléchargée avec succès");
+      console.log("🚀 ~ uploadImage ~ response:", response);
+      // toast.success("Image téléchargée avec succès");
 
       // const newImageUrl = await axiosInstance
       //   .get(`/api/pharmacy/${user?.pharmacy._id}`)
       //   .then((res) => res.data.pharmacy.image);
       // setUploadedImageUrl(newImageUrl);
     } catch (error) {
+      setImageKey(null);
       console.error("Error uploading image:,,,,,,,,,,,,,,,,,,", error);
       setSignedUrl(null);
       toast.error("Erreur lors du téléchargement de l'image");
@@ -199,7 +204,7 @@ const Settings = () => {
       isActive: isActive,
       canDeliver: canDeliver,
       schedules: { ...schedule },
-      image: uploadedImageUrl,
+      imageUrl: imageKey,
     };
 
     for (const day in payload.schedules) {
