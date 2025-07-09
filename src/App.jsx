@@ -3,7 +3,7 @@ import AppRoutes from "./routes/index.jsx";
 import { Bounce, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
-import ErrorBoundary from "./components/ErrorBoundary.jsx"; // Import the ErrorBoundary
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
 function App() {
   return (

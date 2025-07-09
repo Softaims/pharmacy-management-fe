@@ -47,7 +47,7 @@ const OrderDocumentViewer = ({
       </div>
       <div className="flex-1 overflow-hidden p-6 relative">
         {getDocumentUrl(activeDocumentTab) ? (
-          <PdfViewer />
+          <PdfViewer fileUrl={getDocumentUrl(activeDocumentTab)} />
         ) : (
           <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
             <p className="text-sm text-gray-500">No document available</p>

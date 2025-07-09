@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { FaSearchPlus, FaSearchMinus, FaExpand } from "react-icons/fa";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
 
-const PdfViewer = () => {
+const PdfViewer = ({ file }) => {
   const containerRef = useRef(null);
   const [numPages, setNumPages] = useState(null);
+  const [pageWidth, setPageWidth] = useState(600);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
@@ -14,7 +15,8 @@ const PdfViewer = () => {
     const updatePageWidth = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-        setZoomLevel(zoomLevel); // Ensure zoom doesn't go beyond container width
+        // Limit the maximum width to container's width
+        setPageWidth(Math.min(containerWidth * zoomLevel, containerWidth));
       }
     };
 
@@ -31,7 +33,6 @@ const PdfViewer = () => {
       const isCurrentlyFullScreen = !!document.fullscreenElement;
       setIsFullScreen(isCurrentlyFullScreen);
       if (!isCurrentlyFullScreen) {
-        // Reset to default state when exiting full screen
         setZoomLevel(1);
       }
     };
@@ -47,11 +48,11 @@ const PdfViewer = () => {
   };
 
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.1, 2)); // Set max zoom at 2x
+    setZoomLevel((prev) => Math.min(prev + 0.1, 2));
   };
 
   const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 0.1, 0.5)); // Set min zoom at 0.5x
+    setZoomLevel((prev) => Math.max(prev - 0.1, 0.5));
   };
 
   const toggleFullScreen = () => {
@@ -69,13 +70,14 @@ const PdfViewer = () => {
         width: "100%",
         height: isFullScreen ? "100vh" : "100%",
         position: "relative",
-        overflowX: "auto", // Add horizontal scroll when zooming
-        overflowY: "auto",
-        padding: "20px", // To give some space from the container's edges
+        overflow: "auto", // Enable scrolling for zoomed content
+        maxWidth: "100%", // Ensure it doesn't exceed parent width
       }}
     >
       <Document
-        file="https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
+        file={
+          "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
+        }
         onLoadSuccess={onDocumentLoadSuccess}
         loading="Loading PDF..."
         error="Failed to load PDF file."
@@ -83,7 +85,7 @@ const PdfViewer = () => {
         {Array.from({ length: numPages }, (_, i) => i + 1).map((page) => (
           <Page
             key={page}
-            width={500 * zoomLevel} // Adjust width based on zoom level
+            width={pageWidth}
             pageNumber={page}
             renderTextLayer={false}
             renderAnnotationLayer={false}
