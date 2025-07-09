@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { FaSearchPlus, FaSearchMinus, FaExpand } from "react-icons/fa";
 
-// pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`; // Use the local worker script if available copy it from node_modules
+// Ensure you have the worker script in your public folder or adjust the path accordingly
+// Alternatively, you can use a CDN for the worker script
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`; // Use the CDN for the worker script
 const PdfViewer = ({ fileUrl }) => {
   console.log("🚀 ~ PdfViewer ~ fileUrl,,,,,,,,,,,,,,,,,,:", fileUrl);
   const containerRef = useRef(null);
