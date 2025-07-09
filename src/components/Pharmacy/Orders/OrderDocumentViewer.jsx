@@ -18,10 +18,7 @@ const OrderDocumentViewer = ({
       return "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
     switch (tabId) {
       case "prescription":
-        return (
-          selectedOrder.prescriptionUrl ||
-          "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
-        );
+        return "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
       case "mutualCard":
         return (
           selectedOrder.mutualCardUrl ||
