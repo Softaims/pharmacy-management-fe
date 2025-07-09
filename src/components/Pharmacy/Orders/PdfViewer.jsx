@@ -234,7 +234,6 @@ const PdfViewer = ({ fileUrl }) => {
               background: "none",
               border: "none",
               color: "white",
-              cursor: "pointer",
               fontSize: "20px",
               cursor: "pointer",
               display: "flex",
