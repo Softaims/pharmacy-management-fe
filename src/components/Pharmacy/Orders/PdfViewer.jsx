@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { FaSearchPlus, FaSearchMinus, FaExpand } from "react-icons/fa";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
-
+// pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 const PdfViewer = ({ fileUrl }) => {
   console.log("🚀 ~ PdfViewer ~ fileUrl,,,,,,,,,,,,,,,,,,:", fileUrl);
   const containerRef = useRef(null);
