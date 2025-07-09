@@ -170,7 +170,7 @@ const Settings = () => {
   const getSignedUrl = async () => {
     try {
       const response = await axiosInstance.get(
-        `/family/signed-url?contentType=image/png&uploadType=card`
+        `/family/signed-url?contentType=image/png&uploadType=profile-image`
       );
       setSignedUrl(response.data.signedUrl);
       setImageKey(response.data.key);

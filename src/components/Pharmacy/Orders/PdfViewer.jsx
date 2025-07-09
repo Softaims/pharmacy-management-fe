@@ -5,6 +5,7 @@ import { FaSearchPlus, FaSearchMinus, FaExpand } from "react-icons/fa";
 pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
 
 const PdfViewer = ({ fileUrl }) => {
+  console.log("🚀 ~ PdfViewer ~ fileUrl,,,,,,,,,,,,,,,,,,:", fileUrl);
   const containerRef = useRef(null);
   const [numPages, setNumPages] = useState(null);
   const [pageWidth, setPageWidth] = useState(600);
