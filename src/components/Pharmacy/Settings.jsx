@@ -7,31 +7,30 @@ import axios from "axios";
 
 const Settings = () => {
   const { user, logout } = useAuth();
-  console.log("🚀 ~ Paramètres ~ utilisateur :", user);
 
-  const [pharmacyName, setPharmacyName] = useState(
-    user?.pharmacy.name || "Pharmacie de la gare de Saint-Denis"
+  // Initialize state based on API response
+  const [pharmacyName, setPharmacyName] = useState(user?.pharmacy?.name || "");
+  const [address, setAddress] = useState(user?.pharmacy?.address || "");
+  const [isActive, setIsActive] = useState(user?.pharmacy?.isActive || false);
+  const [canDeliver, setCanDeliver] = useState(
+    user?.pharmacy?.canDeliver || false
   );
-  const [address, setAddress] = useState(
-    user?.pharmacy.address || "13 avenue Victor Hugo, 93200 Saint-Denis"
+  const [deliveryPrice, setDeliveryPrice] = useState(
+    user?.pharmacy?.deliveryPrice || 1
   );
-  const [isActive, setIsActive] = useState(true);
-  const [canDeliver, setCanDeliver] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
   const [imageFile, setImageFile] = useState(null);
   const [signedUrl, setSignedUrl] = useState(null);
   const [imageKey, setImageKey] = useState(null);
-
   const [uploadedImageUrl, setUploadedImageUrl] = useState(
-    user?.pharmacy.image || ""
+    user?.pharmacy?.image || ""
   );
 
+  // Initialize schedule state based on API response
   const [schedule, setSchedule] = useState({
     monday: { isOpen: false, timeSlots: [] },
-    tuesday: {
-      isOpen: true,
-      timeSlots: [{ openTime: "9:00", closeTime: "12:00" }],
-    },
+    tuesday: { isOpen: false, timeSlots: [] },
     wednesday: { isOpen: false, timeSlots: [] },
     thursday: { isOpen: false, timeSlots: [] },
     friday: { isOpen: false, timeSlots: [] },
@@ -40,11 +39,40 @@ const Settings = () => {
   });
 
   useEffect(() => {
-    if (user?.pharmacy?.schedules) {
-      setSchedule((prev) => ({ ...prev, ...user.pharmacy.schedules }));
-    }
-    if (user?.pharmacy?.image) {
-      setUploadedImageUrl(user.pharmacy.image);
+    if (user?.pharmacy) {
+      // Update pharmacy details
+      setPharmacyName(user.pharmacy.name || "");
+      setAddress(user.pharmacy.address || "");
+      setIsActive(user.pharmacy.isActive || false);
+      setCanDeliver(user.pharmacy.canDeliver || false);
+      setDeliveryPrice(user.pharmacy.deliveryPrice || 1);
+      setUploadedImageUrl(user.pharmacy.image || "");
+
+      // Transform API schedules to match component's schedule format
+      if (user.pharmacy.schedules) {
+        const formattedSchedule = {
+          monday: { isOpen: false, timeSlots: [] },
+          tuesday: { isOpen: false, timeSlots: [] },
+          wednesday: { isOpen: false, timeSlots: [] },
+          thursday: { isOpen: false, timeSlots: [] },
+          friday: { isOpen: false, timeSlots: [] },
+          saturday: { isOpen: false, timeSlots: [] },
+          sunday: { isOpen: false, timeSlots: [] },
+        };
+
+        user.pharmacy.schedules.forEach(({ schedule }) => {
+          const dayKey = schedule.dayOfWeek.toLowerCase();
+          formattedSchedule[dayKey] = {
+            isOpen: schedule.isOpen,
+            timeSlots: schedule.timeSlots.map((slot) => ({
+              openTime: slot.openTime,
+              closeTime: slot.closeTime,
+            })),
+          };
+        });
+
+        setSchedule(formattedSchedule);
+      }
     }
   }, [user]);
 
@@ -93,6 +121,13 @@ const Settings = () => {
     setCanDeliver((prev) => !prev);
   };
 
+  const handleDeliveryPriceChange = (increment) => {
+    setDeliveryPrice((prev) => {
+      const newPrice = prev + (increment ? 1 : -1);
+      return newPrice >= 1 ? newPrice : 1;
+    });
+  };
+
   const addTimeSlot = (day) => {
     setSchedule((prevSchedule) => {
       const currentDay = prevSchedule[day] || { isOpen: false, timeSlots: [] };
@@ -137,7 +172,6 @@ const Settings = () => {
       const response = await axiosInstance.get(
         `/family/signed-url?contentType=image/png&uploadType=card`
       );
-      console.log("🚀 ~ getSignedUrl ~ response:", response.data);
       setSignedUrl(response.data.signedUrl);
       setImageKey(response.data.key);
       return response.data.signedUrl;
@@ -152,10 +186,8 @@ const Settings = () => {
     let url = signedUrl;
     if (!url) {
       url = await getSignedUrl();
-      console.log("🚀 ~ uploadImage ~ url:", url);
     }
     if (!url) {
-      console.log("no url found");
       setSignedUrl(null);
       return;
     }
@@ -163,13 +195,6 @@ const Settings = () => {
       const response = await axios.put(url, file, {
         headers: { "Content-Type": "image/*" },
       });
-      console.log("🚀 ~ uploadImage ~ response:", response);
-      // toast.success("Image téléchargée avec succès");
-
-      // const newImageUrl = await axiosInstance
-      //   .get(`/api/pharmacy/${user?.pharmacy._id}`)
-      //   .then((res) => res.data.pharmacy.image);
-      // setUploadedImageUrl(newImageUrl);
     } catch (error) {
       setImageKey(null);
       console.error("Error uploading image:,,,,,,,,,,,,,,,,,,", error);
@@ -182,39 +207,38 @@ const Settings = () => {
     const file = e.target.files[0];
     if (file && file.type === "image/png") {
       setImageFile(file);
-      console.log("🚀 ~ handleImageChange ~ imageFile:", file);
-
-      // Create a preview URL
       const previewUrl = URL.createObjectURL(file);
       setUploadedImageUrl(previewUrl);
-
-      // Upload the image
       await uploadImage(file);
-    } else {
-      // toast.error("Veuillez sélectionner un fichier PNG");
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-
     const payload = {
       name: pharmacyName,
       address: address,
       isActive: isActive,
       canDeliver: canDeliver,
-      schedules: { ...schedule },
-      imageUrl: imageKey,
+      deliveryPrice: deliveryPrice,
+      schedules: {},
     };
 
-    for (const day in payload.schedules) {
-      payload.schedules[day].timeSlots = payload.schedules[
-        day
-      ].timeSlots.filter((slot) => {
-        const openIndex = timeOptions.indexOf(slot.openTime);
-        const closeIndex = timeOptions.indexOf(slot.closeTime);
-        return closeIndex > openIndex;
-      });
+    if (imageKey) {
+      payload.imageUrl = imageKey;
+    }
+
+    for (const day in schedule) {
+      if (schedule[day].isOpen && schedule[day].timeSlots.length > 0) {
+        payload.schedules[day] = {
+          isOpen: schedule[day].isOpen,
+          timeSlots: schedule[day].timeSlots.filter((slot) => {
+            const openIndex = timeOptions.indexOf(slot.openTime);
+            const closeIndex = timeOptions.indexOf(slot.closeTime);
+            return closeIndex > openIndex;
+          }),
+        };
+      }
     }
 
     try {
@@ -252,10 +276,9 @@ const Settings = () => {
           </label>
           <div className="w-full">
             <div className="flex items-center space-x-4">
-              {/* Image Preview */}
               <div
                 className="w-32 h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-pointer"
-                onClick={() => document.getElementById("imageUpload").click()} // Trigger file input click on image preview click
+                onClick={() => document.getElementById("imageUpload").click()}
               >
                 {uploadedImageUrl ? (
                   <img
@@ -271,8 +294,6 @@ const Settings = () => {
                   />
                 )}
               </div>
-
-              {/* Hidden file input */}
               <input
                 type="file"
                 accept="image/png"
@@ -388,38 +409,66 @@ const Settings = () => {
           </div>
         </div>
 
-        <div className="mb-6 flex items-center gap-4 border-b border-gray-300 pb-8">
-          <label className="w-[30%] text-sm font-medium text-gray-700">
-            Livraison à domicile :
-          </label>
-          <div
-            className="flex bg-gray-200 w-[10rem] h-[2rem] rounded-full cursor-pointer"
-            onClick={handleHomeDeliveryToggle}
-          >
+        <div className="border-b border-gray-300 pb-8 mb-6">
+          <div className=" flex items-center gap-4 ">
+            <label className="w-[30%] text-sm font-medium text-gray-700">
+              Livraison à domicile :
+            </label>
             <div
-              className={`flex-1 text-center font-medium ${
-                canDeliver
-                  ? "text-transparent bg-transparent"
-                  : "text-white bg-[#E9486C]"
-              } rounded-full transition-colors`}
+              className="flex bg-gray-200 w-[10rem] h-[2rem] rounded-full cursor-pointer"
+              onClick={handleHomeDeliveryToggle}
             >
-              Désactivé
-            </div>
-            <div
-              className={`flex-1 text-center font-medium ${
-                canDeliver
-                  ? "text-white bg-[#069AA2]"
-                  : "text-transparent bg-transparent"
-              } rounded-full transition-colors`}
-            >
-              Actif
+              <div
+                className={`flex-1 text-center font-medium ${
+                  canDeliver
+                    ? "text-transparent bg-transparent"
+                    : "text-white bg-[#E9486C]"
+                } rounded-full transition-colors`}
+              >
+                Désactivé
+              </div>
+              <div
+                className={`flex-1 text-center font-medium ${
+                  canDeliver
+                    ? "text-white bg-[#069AA2]"
+                    : "text-transparent bg-transparent"
+                } rounded-full transition-colors`}
+              >
+                Actif
+              </div>
             </div>
           </div>
+          {canDeliver && (
+            <div className="flex items-center gap-6 mt-6 mx-8">
+              <label className="text-sm w-[30%] font-medium text-gray-700">
+                Prix d'une livraison :
+              </label>
+              <div className="flex items-center gap-2 bg-gray-300 rounded-2xl">
+                <button
+                  className="px-2 text-lg font-bold rounded hover:text-gray-400"
+                  onClick={() => handleDeliveryPriceChange(false)}
+                >
+                  -
+                </button>
+                <span className="text-gray-700">{deliveryPrice}</span>
+                <button
+                  className="px-2 text-lg font-bold"
+                  onClick={() => handleDeliveryPriceChange(true)}
+                >
+                  +
+                </button>
+              </div>
+              <h4>Euros</h4>
+            </div>
+          )}
         </div>
 
         <button
           className="bg-[#069AA2] hover:bg-teal-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          onClick={handleSave}
+          onClick={() => {
+            console.log("Button clicked");
+            handleSave();
+          }}
           disabled={isSaving}
         >
           {isSaving
