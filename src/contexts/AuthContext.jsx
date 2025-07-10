@@ -66,7 +66,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       const accessToken = Cookies.get("accessToken");
-      // const userRole = Cookies.get("userRole");
       if (accessToken) {
         try {
           // Verify token and get user data

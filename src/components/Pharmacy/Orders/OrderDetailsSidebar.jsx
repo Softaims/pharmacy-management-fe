@@ -202,11 +202,11 @@ const OrderDetailsSidebar = ({
                         <li className="text-sm">{person?.email || "—"}</li>
                       )}
                       <li className="text-sm">{person?.address || "—"}</li>
-                      {isFamilyOrder && person?.relationship && (
+                      {/* {isFamilyOrder && person?.relationship && (
                         <li className="italic text-gray-500 text-sm">
                           Lien : {person.relationship}
                         </li>
-                      )}
+                      )} */}
                     </ul>
                   </div>
 

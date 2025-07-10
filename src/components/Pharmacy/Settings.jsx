@@ -1,29 +1,36 @@
 import { useState, useEffect } from "react";
-import { toast } from "react-toastify"; // Import toast from react-toastify
-import imgicon from "../../assets/ajouter-une-image.png"; // Assuming you have an image icon
+import { toast } from "react-toastify";
+import imgicon from "../../assets/ajouter-une-image.png";
 import { useAuth } from "../../contexts/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
+import axios from "axios";
 
 const Settings = () => {
-  const { user, logout } = useAuth(); // Accéder à l'utilisateur et à la fonction de déconnexion depuis AuthContext
-  console.log("🚀 ~ Paramètres ~ utilisateur :", user);
+  const { user, logout } = useAuth();
 
-  const [pharmacyName, setPharmacyName] = useState(
-    user?.pharmacy.name || "Pharmacie de la gare de Saint-Denis"
+  // Initialize state based on API response
+  const [pharmacyName, setPharmacyName] = useState(user?.pharmacy?.name || "");
+  const [address, setAddress] = useState(user?.pharmacy?.address || "");
+  const [isActive, setIsActive] = useState(user?.pharmacy?.isActive || false);
+  const [canDeliver, setCanDeliver] = useState(
+    user?.pharmacy?.canDeliver || false
   );
-  const [address, setAddress] = useState(
-    user?.pharmacy.address || "13 avenue Victor Hugo, 93200 Saint-Denis"
+  const [deliveryPrice, setDeliveryPrice] = useState(
+    user?.pharmacy?.deliveryPrice || 1
   );
-  const [isActive, setIsActive] = useState(true); // Renommé depuis clickAndCollect
-  const [canDeliver, setCanDeliver] = useState(false); // Renommé depuis homeDelivery
-  const [isSaving, setIsSaving] = useState(false); // State to track save operation
+  const [isSaving, setIsSaving] = useState(false);
 
+  const [imageFile, setImageFile] = useState(null);
+  const [signedUrl, setSignedUrl] = useState(null);
+  const [imageKey, setImageKey] = useState(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState(
+    user?.pharmacy?.image || ""
+  );
+
+  // Initialize schedule state based on API response
   const [schedule, setSchedule] = useState({
     monday: { isOpen: false, timeSlots: [] },
-    tuesday: {
-      isOpen: true,
-      timeSlots: [{ openTime: "9:00", closeTime: "12:00" }],
-    },
+    tuesday: { isOpen: false, timeSlots: [] },
     wednesday: { isOpen: false, timeSlots: [] },
     thursday: { isOpen: false, timeSlots: [] },
     friday: { isOpen: false, timeSlots: [] },
@@ -31,13 +38,41 @@ const Settings = () => {
     sunday: { isOpen: false, timeSlots: [] },
   });
 
-  // Sync schedule with user data if available
   useEffect(() => {
-    if (user?.pharmacy?.schedules) {
-      setSchedule((prev) => ({
-        ...prev,
-        ...user.pharmacy.schedules,
-      }));
+    if (user?.pharmacy) {
+      // Update pharmacy details
+      setPharmacyName(user.pharmacy.name || "");
+      setAddress(user.pharmacy.address || "");
+      setIsActive(user.pharmacy.isActive || false);
+      setCanDeliver(user.pharmacy.canDeliver || false);
+      setDeliveryPrice(user.pharmacy.deliveryPrice || 1);
+      setUploadedImageUrl(user.pharmacy.image || "");
+
+      // Transform API schedules to match component's schedule format
+      if (user.pharmacy.schedules) {
+        const formattedSchedule = {
+          monday: { isOpen: false, timeSlots: [] },
+          tuesday: { isOpen: false, timeSlots: [] },
+          wednesday: { isOpen: false, timeSlots: [] },
+          thursday: { isOpen: false, timeSlots: [] },
+          friday: { isOpen: false, timeSlots: [] },
+          saturday: { isOpen: false, timeSlots: [] },
+          sunday: { isOpen: false, timeSlots: [] },
+        };
+
+        user.pharmacy.schedules.forEach(({ schedule }) => {
+          const dayKey = schedule.dayOfWeek.toLowerCase();
+          formattedSchedule[dayKey] = {
+            isOpen: schedule.isOpen,
+            timeSlots: schedule.timeSlots.map((slot) => ({
+              openTime: slot.openTime,
+              closeTime: slot.closeTime,
+            })),
+          };
+        });
+
+        setSchedule(formattedSchedule);
+      }
     }
   }, [user]);
 
@@ -69,7 +104,6 @@ const Settings = () => {
 
   const handleToggle = (day) => {
     setSchedule((prevSchedule) => {
-      // Ensure the day exists in the schedule, default to a valid structure
       const currentDay = prevSchedule[day] || { isOpen: false, timeSlots: [] };
       const newOpen = !currentDay.isOpen;
       return {
@@ -85,6 +119,13 @@ const Settings = () => {
 
   const handleHomeDeliveryToggle = () => {
     setCanDeliver((prev) => !prev);
+  };
+
+  const handleDeliveryPriceChange = (increment) => {
+    setDeliveryPrice((prev) => {
+      const newPrice = prev + (increment ? 1 : -1);
+      return newPrice >= 1 ? newPrice : 1;
+    });
   };
 
   const addTimeSlot = (day) => {
@@ -110,101 +151,114 @@ const Settings = () => {
     setSchedule((prevSchedule) => {
       const currentDay = prevSchedule[day] || { isOpen: false, timeSlots: [] };
       const newSlots = [...currentDay.timeSlots];
-      newSlots[slotIndex] = {
-        ...newSlots[slotIndex],
-        [timeField]: value,
-      };
-      // Ensure closeTime is after openTime
+      newSlots[slotIndex] = { ...newSlots[slotIndex], [timeField]: value };
       if (timeField === "openTime" && newSlots[slotIndex].closeTime <= value) {
         newSlots[slotIndex].closeTime = getNextTimeOption(value);
       }
       return {
         ...prevSchedule,
-        [day]: {
-          ...currentDay,
-          timeSlots: newSlots,
-        },
+        [day]: { ...currentDay, timeSlots: newSlots },
       };
     });
   };
 
-  // Helper function to get the next available time option
   const getNextTimeOption = (currentTime) => {
     const index = timeOptions.indexOf(currentTime);
-    return timeOptions[index + 1] || timeOptions[index]; // Default to current if no next option
+    return timeOptions[index + 1] || timeOptions[index];
   };
 
-  // Fonction pour gérer l'enregistrement (intégration avec l'API PATCH)
+  const getSignedUrl = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `/family/signed-url?contentType=image/png&uploadType=profile-image`
+      );
+      setSignedUrl(response.data.signedUrl);
+      setImageKey(response.data.key);
+      return response.data.signedUrl;
+    } catch (error) {
+      console.log("🚀 ~ getSignedUrl ~ error:", error);
+      toast.error("Erreur lors de la récupération de l'URL signée");
+      return null;
+    }
+  };
+
+  const uploadImage = async (file) => {
+    let url = signedUrl;
+    if (!url) {
+      url = await getSignedUrl();
+    }
+    if (!url) {
+      setSignedUrl(null);
+      return;
+    }
+    try {
+      const response = await axios.put(url, file, {
+        headers: { "Content-Type": "image/*" },
+      });
+    } catch (error) {
+      setImageKey(null);
+      console.error("Error uploading image:,,,,,,,,,,,,,,,,,,", error);
+      setSignedUrl(null);
+      toast.error("Erreur lors du téléchargement de l'image");
+    }
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === "image/png") {
+      setImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setUploadedImageUrl(previewUrl);
+      await uploadImage(file);
+    }
+  };
+
   const handleSave = async () => {
-    setIsSaving(true); // Disable button and change text
+    setIsSaving(true);
     const payload = {
       name: pharmacyName,
       address: address,
       isActive: isActive,
       canDeliver: canDeliver,
-      schedules: {
-        monday: {
-          isOpen: schedule.monday.isOpen,
-          timeSlots: schedule.monday.timeSlots,
-        },
-        tuesday: {
-          isOpen: schedule.tuesday.isOpen,
-          timeSlots: schedule.tuesday.timeSlots,
-        },
-        wednesday: {
-          isOpen: schedule.wednesday.isOpen,
-          timeSlots: schedule.wednesday.timeSlots,
-        },
-        thursday: {
-          isOpen: schedule.thursday.isOpen,
-          timeSlots: schedule.thursday.timeSlots,
-        },
-        friday: {
-          isOpen: schedule.friday.isOpen,
-          timeSlots: schedule.friday.timeSlots,
-        },
-        saturday: {
-          isOpen: schedule.saturday.isOpen,
-          timeSlots: schedule.saturday.timeSlots,
-        },
-        sunday: {
-          isOpen: schedule.sunday.isOpen,
-          timeSlots: schedule.sunday.timeSlots,
-        },
-      },
+      deliveryPrice: deliveryPrice,
+      schedules: {},
     };
 
-    // Validate payload before sending
-    for (const day in payload.schedules) {
-      payload.schedules[day].timeSlots = payload.schedules[
-        day
-      ].timeSlots.filter((slot) => {
-        const openIndex = timeOptions.indexOf(slot.openTime);
-        const closeIndex = timeOptions.indexOf(slot.closeTime);
-        return closeIndex > openIndex; // Remove invalid slots
-      });
+    if (imageKey) {
+      payload.imageUrl = imageKey;
+    }
+
+    for (const day in schedule) {
+      if (schedule[day].isOpen && schedule[day].timeSlots.length > 0) {
+        payload.schedules[day] = {
+          isOpen: schedule[day].isOpen,
+          timeSlots: schedule[day].timeSlots.filter((slot) => {
+            const openIndex = timeOptions.indexOf(slot.openTime);
+            const closeIndex = timeOptions.indexOf(slot.closeTime);
+            return closeIndex > openIndex;
+          }),
+        };
+      }
     }
 
     try {
-      console.log("🚀 ~ handleSave ~ payload:", payload);
       await axiosInstance.patch(`/pharmacy/update`, payload);
-      toast.success("Paramètres mis à jour avec succès"); // Success notification
+      toast.success("Paramètres mis à jour avec succès");
     } catch (error) {
       console.error("Erreur lors de la mise à jour des paramètres :", error);
-      toast.error("Erreur lors de la mise à jour des paramètres"); // Error notification
+      toast.error("Erreur lors de la mise à jour des paramètres");
     } finally {
-      setIsSaving(false); // Re-enable button and revert text
+      setIsSaving(false);
     }
   };
 
   return (
     <div className="mx-auto py-6 px-12 bg-white">
       <h1 className="text-2xl font-semibold mb-8 text-gray-800">Paramètres</h1>
-      {/* Profil de la pharmacie - Nom et Adresse */}
       <div className="w-[60%]">
         {/* Nom de la pharmacie */}
-        <div className="mb-6 flex items-center border-b-1 border-gray-300 pb-4">
-          <label className="w-[30%] text-sm font-medium text-gray-700 mb-2 mr-4">
+        <div className="mb-6 flex items-center border-b border-gray-300 pb-4">
+          <label className="w-[30%] text-sm font-medium text-gray-700 mr-4">
             Nom de la pharmacie :
           </label>
           <input
@@ -215,21 +269,45 @@ const Settings = () => {
           />
         </div>
 
-        {/* Téléchargement d'image */}
-        <div className="mb-6 flex items-center border-b-1 border-gray-300 pb-4">
-          <label className="w-[30%] text-sm font-medium text-gray-700 mb-2 mr-4">
+        {/* Image Upload Section */}
+        <div className="mb-6 flex items-center border-b border-gray-300 pb-4">
+          <label className="w-[30%] text-sm font-medium text-gray-700 mr-4">
             Image :
           </label>
           <div className="w-full">
-            <div className="w-50 h-32 bg-[#F1F1F3] border-2 border-dashed border-gray-300 rounded-[2rem] flex items-center justify-center cursor-pointer hover:bg-gray-50">
-              <img src={imgicon} className="w-[3rem] h-[3rem]" alt="" />
+            <div className="flex items-center space-x-4">
+              <div
+                className="w-32 h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-pointer"
+                onClick={() => document.getElementById("imageUpload").click()}
+              >
+                {uploadedImageUrl ? (
+                  <img
+                    src={uploadedImageUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={imgicon}
+                    alt="Upload Icon"
+                    className="w-16 h-16 mx-auto mt-4"
+                  />
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/png"
+                onChange={handleImageChange}
+                className="hidden"
+                id="imageUpload"
+              />
             </div>
           </div>
         </div>
 
         {/* Adresse */}
-        <div className="mb-6 flex items-center border-b-1 border-gray-300 pb-4">
-          <label className="w-[30%] text-sm font-medium text-gray-700 mb-2 mr-4">
+        <div className="mb-6 flex items-center border-b border-gray-300 pb-4">
+          <label className="w-[30%] text-sm font-medium text-gray-700 mr-4">
             Adresse :
           </label>
           <input
@@ -239,22 +317,20 @@ const Settings = () => {
             className="w-full px-3 py-2 rounded-full bg-[#F6F6F6] text-gray-700"
           />
         </div>
+
         {/* Horaires d'ouverture */}
-        <div className="mb-8 border-b-1 border-gray-300 pb-4">
+        <div className="mb-8 border-b border-gray-300 pb-4">
           <label className="block text-sm font-medium text-gray-700 mb-4">
             Horaires :
           </label>
-
           <div className="space-y-3">
             {days.map(({ key, label }) => (
               <div key={key} className="flex items-center gap-4">
                 <div className="w-20 text-sm text-gray-700">{label}</div>
-
-                {/* Interrupteur de bascule */}
                 <label className="inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={schedule[key]?.isOpen ?? false} // Guard against undefined
+                    checked={schedule[key]?.isOpen ?? false}
                     onChange={() => handleToggle(key)}
                     className="sr-only peer"
                   />
@@ -263,8 +339,6 @@ const Settings = () => {
                     {schedule[key]?.isOpen ? "Ouvert" : "Fermé"}
                   </span>
                 </label>
-
-                {/* Sélecteurs de temps */}
                 {schedule[key]?.isOpen && (
                   <div className="flex items-center gap-2 flex-wrap">
                     {schedule[key].timeSlots.map((slot, index) => (
@@ -322,7 +396,8 @@ const Settings = () => {
             ))}
           </div>
         </div>
-        <div className="mb-6 flex items-center gap-4 border-b-1 border-gray-300 pb-8">
+
+        <div className="mb-6 flex items-center gap-4 border-b border-gray-300 pb-8">
           <label className="w-[30%] text-sm font-medium text-gray-700">
             Click and Collect :
           </label>
@@ -334,39 +409,66 @@ const Settings = () => {
           </div>
         </div>
 
-        <div className="mb-6 flex items-center gap-4 border-b-1 border-gray-300 pb-8">
-          <label className="w-[30%] text-sm font-medium text-gray-700">
-            Livraison à domicile :
-          </label>
-          <div
-            className="flex bg-gray-200 w-[10rem] h-[2rem] rounded-full cursor-pointer"
-            onClick={handleHomeDeliveryToggle}
-          >
+        <div className="border-b border-gray-300 pb-8 mb-6">
+          <div className=" flex items-center gap-4 ">
+            <label className="w-[30%] text-sm font-medium text-gray-700">
+              Livraison à domicile :
+            </label>
             <div
-              className={`flex-1 text-center font-medium ${
-                canDeliver
-                  ? "text-transparent bg-transparent"
-                  : "text-white bg-[#E9486C]"
-              } rounded-full transition-colors`}
+              className="flex bg-gray-200 w-[10rem] h-[2rem] rounded-full cursor-pointer"
+              onClick={handleHomeDeliveryToggle}
             >
-              Désactivé
-            </div>
-            <div
-              className={`flex-1 text-center font-medium ${
-                canDeliver
-                  ? "text-white bg-[#069AA2]"
-                  : "text-transparent bg-transparent"
-              } rounded-full transition-colors`}
-            >
-              Actif
+              <div
+                className={`flex-1 text-center font-medium ${
+                  canDeliver
+                    ? "text-transparent bg-transparent"
+                    : "text-white bg-[#E9486C]"
+                } rounded-full transition-colors`}
+              >
+                Désactivé
+              </div>
+              <div
+                className={`flex-1 text-center font-medium ${
+                  canDeliver
+                    ? "text-white bg-[#069AA2]"
+                    : "text-transparent bg-transparent"
+                } rounded-full transition-colors`}
+              >
+                Actif
+              </div>
             </div>
           </div>
+          {canDeliver && (
+            <div className="flex items-center gap-6 mt-6 mx-8">
+              <label className="text-sm w-[30%] font-medium text-gray-700">
+                Prix d'une livraison :
+              </label>
+              <div className="flex items-center gap-2 bg-gray-300 rounded-2xl">
+                <button
+                  className="px-2 text-lg font-bold rounded hover:text-gray-400"
+                  onClick={() => handleDeliveryPriceChange(false)}
+                >
+                  -
+                </button>
+                <span className="text-gray-700">{deliveryPrice}</span>
+                <button
+                  className="px-2 text-lg font-bold"
+                  onClick={() => handleDeliveryPriceChange(true)}
+                >
+                  +
+                </button>
+              </div>
+              <h4>Euros</h4>
+            </div>
+          )}
         </div>
 
-        {/* Bouton Enregistrer */}
         <button
           className="bg-[#069AA2] hover:bg-teal-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          onClick={handleSave}
+          onClick={() => {
+            console.log("Button clicked");
+            handleSave();
+          }}
           disabled={isSaving}
         >
           {isSaving

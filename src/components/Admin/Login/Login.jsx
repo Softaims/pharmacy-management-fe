@@ -55,7 +55,7 @@ const Login = () => {
         theme: "dark",
       });
     } finally {
-      setLoading(false); // Reset local loading state
+      setLoading(false);
     }
   };
 

@@ -1,8 +1,15 @@
 {
-  "name": "@hamza-maqbl/pharmacy-management-fe",
+  "name": "@softaims/pharmacy-management-fe",
   "private": false,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Softaims/pharmacy-management-fe.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
