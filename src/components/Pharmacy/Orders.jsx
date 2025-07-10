@@ -4,7 +4,9 @@ import OrderSidebar from "./Orders/OrderSidebar.jsx";
 import OrderDocumentViewer from "./Orders/OrderDocumentViewer.jsx";
 import OrderDetailsSidebar from "./Orders/OrderDetailsSidebar.jsx";
 import apiService from "../../api/apiService.js";
+import { pdfjs } from "react-pdf";
 
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 const Orders = () => {
   const [activeOrderTab, setActiveOrderTab] = useState("all");
   const [activeDocumentTab, setActiveDocumentTab] = useState("prescription");
@@ -48,6 +50,8 @@ const Orders = () => {
       try {
         const response = await apiService.getOrders(1, ITEMS_PER_PAGE);
         setOrders(response.data);
+        setCurrentPage(1);
+        setHasMore(response.data.length === ITEMS_PER_PAGE);
         setCurrentPage(1);
         setHasMore(response.data.length === ITEMS_PER_PAGE);
 
@@ -371,7 +375,6 @@ const Orders = () => {
         loadMoreOrders={loadMoreOrders}
         hasMore={hasMore}
         isLoadingMore={isLoadingMore}
-        edOrder={selectedOrder}
       />
       {selectedOrder && (
         <div className="lg:hidden w-full flex flex-col">

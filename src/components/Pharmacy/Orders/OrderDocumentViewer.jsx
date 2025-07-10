@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import PdfViewer from "./PdfViewer"; // Adjust the import path as needed
 
 const OrderDocumentViewer = ({
@@ -6,37 +6,30 @@ const OrderDocumentViewer = ({
   activeDocumentTab,
   setActiveDocumentTab,
 }) => {
+  // Document tab configuration for scalability
   const documentTabs = [
-    { id: "prescription", label: "Ordonnance" },
-    { id: "mutualCard", label: "Carte vitale" },
-    { id: "vitalCard", label: "Mutuelle" },
+    { id: "prescription", label: "Ordonnance", urlKey: "prescriptionUrl" },
+    { id: "mutualCard", label: "Carte Vitale", urlKey: "mutualCardUrl" },
+    { id: "vitalCard", label: "Mutuelle", urlKey: "vitalCardUrl" },
   ];
 
-  // Function to get document URL, with a fallback to static URL
-  const getDocumentUrl = (tabId) => {
-    if (!selectedOrder)
-      return "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
-    switch (tabId) {
-      case "prescription":
-        return "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
-      case "mutualCard":
-        return (
-          selectedOrder.mutualCardUrl ||
-          "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
-        );
-      case "vitalCard":
-        return (
-          selectedOrder.vitalCardUrl ||
-          "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
-        );
-      default:
-        return "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
-    }
+  // Static fallback URL in case the backend doesn't provide a URL
+  const fallbackUrl =
+    "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
+
+  // Get the URL for the active document tab
+  const getDocumentUrl = () => {
+    const activeTab = documentTabs.find((tab) => tab.id === activeDocumentTab);
+    // Check if there's a valid URL from the selected order, otherwise fall back to the static URL
+    return selectedOrder?.[activeTab.urlKey] || fallbackUrl;
   };
+
+  const documentUrl = getDocumentUrl();
 
   return (
     <div className="flex flex-col h-full">
-      <div className="">
+      {/* Document Tabs */}
+      <div className="border-b border-gray-200">
         <nav className="flex space-x-8 px-6 pt-4">
           {documentTabs.map((tab) => (
             <button
@@ -53,8 +46,16 @@ const OrderDocumentViewer = ({
           ))}
         </nav>
       </div>
-      <div className="flex-1 overflow-hidden py-6 relative">
-        <PdfViewer fileUrl={getDocumentUrl(activeDocumentTab)} />
+
+      {/* Document Viewer */}
+      <div className="flex-1 overflow-auto p-6">
+        {documentUrl ? (
+          <PdfViewer file={documentUrl} />
+        ) : (
+          <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
+            <p className="text-sm text-gray-500">No document available</p>
+          </div>
+        )}
       </div>
     </div>
   );

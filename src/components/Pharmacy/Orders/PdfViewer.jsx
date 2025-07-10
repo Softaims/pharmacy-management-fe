@@ -1,251 +1,125 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
+import React from "react";
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+import { zoomPlugin } from "@react-pdf-viewer/zoom";
 import {
-  FaSearchPlus,
-  FaSearchMinus,
-  FaExpand,
-  FaArrowAltCircleUp,
-} from "react-icons/fa";
+  fullScreenPlugin,
+  FullScreenIcon,
+} from "@react-pdf-viewer/full-screen";
+import { printPlugin } from "@react-pdf-viewer/print";
+import { LuDownload } from "react-icons/lu";
+import { MdZoomOut, MdZoomIn } from "react-icons/md";
+import { IoIosPrint } from "react-icons/io";
 
-// Use CDN for the worker script
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import "@react-pdf-viewer/zoom/lib/styles/index.css";
+import "@react-pdf-viewer/full-screen/lib/styles/index.css";
+import "@react-pdf-viewer/print/lib/styles/index.css";
 
-const PdfViewer = ({ fileUrl }) => {
-  const containerRef = useRef(null);
-  const [numPages, setNumPages] = useState(null);
-  const [pageWidth, setPageWidth] = useState(600); // Default page width
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [isFullScreen, setIsFullScreen] = useState(false);
+const PdfViewer = ({ file }) => {
+  const pdfUrl =
+    "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
 
-  // Calculate page width based on container and zoom
-  const calculatePageWidth = (containerWidth, zoom, isFullscreenMode) => {
-    if (isFullscreenMode) {
-      // In fullscreen, allow wider pages and proper zoom scaling
-      return Math.min(800 * zoom, 1200 * zoom);
-    } else {
-      // In normal mode, respect the original layout
-      return Math.min(600 * zoom, containerWidth * 0.9); // Leave some margin
-    }
-  };
+  const zoomPluginInstance = zoomPlugin();
+  const { ZoomOut, ZoomIn, CurrentScale } = zoomPluginInstance;
 
-  useEffect(() => {
-    const updatePageWidth = () => {
-      if (containerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth;
-        const newPageWidth = calculatePageWidth(
-          containerWidth,
-          zoomLevel,
-          isFullScreen
-        );
-        setPageWidth(newPageWidth);
-      }
-    };
+  const fullScreenPluginInstance = fullScreenPlugin();
+  const { EnterFullScreen } = fullScreenPluginInstance;
 
-    window.addEventListener("resize", updatePageWidth);
-    updatePageWidth();
+  const printPluginInstance = printPlugin();
+  const { Print } = printPluginInstance;
 
-    return () => {
-      window.removeEventListener("resize", updatePageWidth);
-    };
-  }, [zoomLevel, isFullScreen]);
-
-  useEffect(() => {
-    const handleFullScreenChange = () => {
-      const isCurrentlyFullScreen = !!document.fullscreenElement;
-      setIsFullScreen(isCurrentlyFullScreen);
-
-      if (!isCurrentlyFullScreen) {
-        // When exiting fullscreen, reset to default width and layout
-        setZoomLevel(1); // Reset zoom to 100%
-        if (containerRef.current) {
-          containerRef.current.style.padding = "20px 0"; // Reset padding after exiting fullscreen
-          const containerWidth = containerRef.current.offsetWidth;
-          setPageWidth(Math.min(600, containerWidth)); // Reset to default page width
-        }
-      }
-    };
-
-    document.addEventListener("fullscreenchange", handleFullScreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullScreenChange);
-    };
-  }, []);
-
-  const onDocumentLoadSuccess = ({ numPages }) => {
-    setNumPages(numPages);
-  };
-
-  const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.1, 1.5)); // Limit zoom to 150%
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 0.1, 0.5)); // Zoom out but not below 0.5x
-  };
-
-  const toggleFullScreen = () => {
-    if (!isFullScreen) {
-      containerRef.current.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.download = "sample-local-pdf.pdf"; // You can customize the filename
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: "100%",
-        height: isFullScreen ? "100vh" : "100%",
-        position: "relative",
-        overflow: "auto", // Enable scrolling in full-screen mode
-        maxWidth: "100%",
-        backgroundColor: isFullScreen ? "#f8f9fa" : "transparent",
-        padding: isFullScreen ? "0" : "20px 0", // Reset padding after exiting fullscreen
-      }}
-    >
+    <div className="relative flex-1 min-h-0">
+      {/* PDF Viewer */}
       <div
-        style={{
-          width: "100%",
-          minHeight: "100%",
-          display: "flex",
-          justifyContent: "center",
-          padding: "20px 0",
-        }}
+        className="border border-gray-300 rounded-lg overflow-auto"
+        style={{ minHeight: 0 }}
       >
-        <Document
-          file={fileUrl}
-          onLoadSuccess={onDocumentLoadSuccess}
-          loading="Loading PDF..."
-          error="Failed to load PDF file."
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "10px",
-              minWidth: `${pageWidth}px`, // Ensure minimum width for scrolling
-            }}
-          >
-            {Array.from({ length: numPages }, (_, i) => i + 1).map((page) => (
-              <Page
-                key={page}
-                width={pageWidth}
-                pageNumber={page}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-                style={{
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  border: "1px solid #e1e5e9",
-                }}
-              />
-            ))}
-          </div>
-        </Document>
+        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+          <Viewer
+            fileUrl={pdfUrl} // Use pdfUrl instead of hardcoded URL
+            plugins={[
+              zoomPluginInstance,
+              fullScreenPluginInstance,
+              printPluginInstance,
+            ]}
+          />
+        </Worker>
       </div>
 
-      <div
-        style={{
-          position: "fixed",
-          bottom: "20px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 1000,
-          backgroundColor: "rgba(0, 0, 0, 0.8)",
-          borderRadius: "8px",
-          padding: "10px",
-          display: "flex",
-          gap: "10px",
-          alignItems: "center",
-        }}
-      >
-        {isFullScreen && (
-          <>
+      {/* Fixed Toolbar */}
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-gray-700 text-white rounded-lg p-2 flex items-center justify-center gap-3 shadow-lg">
+        {/* Page indicator placeholder */}
+        <div className="text-sm text-gray-300 min-w-[40px]">1/2</div>
+
+        <ZoomOut>
+          {(props) => (
             <button
-              onClick={handleZoomOut}
-              style={{
-                background: "none",
-                border: "none",
-                color: "white",
-                cursor: "pointer",
-                padding: "8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              onClick={props.onClick}
+              className="p-2 rounded hover:bg-gray-600 transition-colors"
               title="Zoom Out"
             >
-              <FaSearchMinus size={20} />
+              <MdZoomOut size={20} />
             </button>
+          )}
+        </ZoomOut>
+
+        <ZoomIn>
+          {(props) => (
             <button
-              onClick={handleZoomIn}
-              style={{
-                background: "none",
-                border: "none",
-                color: "white",
-                cursor: "pointer",
-                padding: "8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              onClick={props.onClick}
+              className="p-2 rounded hover:bg-gray-600 transition-colors"
               title="Zoom In"
             >
-              <FaSearchPlus size={20} />
+              <MdZoomIn size={20} />
             </button>
-          </>
-        )}
+          )}
+        </ZoomIn>
+
+        <Print>
+          {(props) => (
+            <button
+              onClick={props.onClick}
+              className="p-2 rounded hover:bg-gray-600 transition-colors"
+              title="Print"
+            >
+              <IoIosPrint size={20} />
+            </button>
+          )}
+        </Print>
+
         <button
-          onClick={toggleFullScreen}
+          onClick={handleDownload}
           style={{
-            background: "none",
-            border: "none",
-            color: "white",
-            cursor: "pointer",
             padding: "8px",
-            display: "flex",
-            alignItems: "center",
             justifyContent: "center",
           }}
-          title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
         >
-          <FaExpand size={20} />
+          <LuDownload size={24} />
         </button>
-        <span style={{ color: "white", fontSize: "14px" }}>
-          Page 1 of {numPages} | Zoom: {Math.round(zoomLevel * 100)}%
-        </span>
-      </div>
 
-      {/* Exit full-screen button at the top, only visible in full-screen mode */}
-      {isFullScreen && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 1100,
-          }}
-        >
-          <button
-            onClick={() => document.exitFullscreen()}
-            style={{
-              background: "none",
-              border: "none",
-              color: "white",
-              fontSize: "20px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            title="Exit Full Screen"
-          >
-            <FaArrowAltCircleUp size={24} />
-          </button>
-        </div>
-      )}
+        <EnterFullScreen>
+          {(props) => (
+            <button
+              onClick={props.onClick}
+              className="p-2 rounded hover:bg-gray-600 transition-colors"
+              title="Full Screen"
+            >
+              <FullScreenIcon />
+            </button>
+          )}
+        </EnterFullScreen>
+      </div>
     </div>
   );
 };
