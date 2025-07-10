@@ -29,12 +29,6 @@ const Orders = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const ITEMS_PER_PAGE = 10;
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const ITEMS_PER_PAGE = 10;
-
   const [deliveryDetails, setDeliveryDetails] = useState({
     type: "complete",
     note: "",
@@ -55,7 +49,6 @@ const Orders = () => {
       setIsLoading(true);
       try {
         const response = await apiService.getOrders(1, ITEMS_PER_PAGE);
-        const response = await apiService.getOrders(1, ITEMS_PER_PAGE);
         setOrders(response.data);
         setCurrentPage(1);
         setHasMore(response.data.length === ITEMS_PER_PAGE);
@@ -74,28 +67,6 @@ const Orders = () => {
 
     fetchOrders();
   }, []);
-
-  const loadMoreOrders = async () => {
-    if (isLoadingMore || !hasMore) return;
-
-    setIsLoadingMore(true);
-    try {
-      const nextPage = currentPage + 1;
-      const response = await apiService.getOrders(nextPage, ITEMS_PER_PAGE);
-
-      if (response.data.length > 0) {
-        setOrders((prevOrders) => [...prevOrders, ...response.data]);
-        setCurrentPage(nextPage);
-        setHasMore(response.data.length === ITEMS_PER_PAGE);
-      } else {
-        setHasMore(false);
-      }
-    } catch (err) {
-      toast.error("Erreur lors du chargement des ordonnances supplémentaires");
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
 
   const loadMoreOrders = async () => {
     if (isLoadingMore || !hasMore) return;
