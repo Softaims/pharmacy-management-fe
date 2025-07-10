@@ -1,152 +1,124 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
-import { FaSearchPlus, FaSearchMinus, FaExpand } from "react-icons/fa";
+import React from "react";
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+import { zoomPlugin } from "@react-pdf-viewer/zoom";
+import {
+  fullScreenPlugin,
+  FullScreenIcon,
+} from "@react-pdf-viewer/full-screen";
+import { printPlugin } from "@react-pdf-viewer/print";
+import { LuDownload } from "react-icons/lu";
+import { MdZoomOut, MdZoomIn } from "react-icons/md";
+import { IoIosPrint } from "react-icons/io";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import "@react-pdf-viewer/zoom/lib/styles/index.css";
+import "@react-pdf-viewer/full-screen/lib/styles/index.css";
+import "@react-pdf-viewer/print/lib/styles/index.css";
 
-const PdfViewer = () => {
-  const containerRef = useRef(null);
-  const [numPages, setNumPages] = useState(null);
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [isFullScreen, setIsFullScreen] = useState(false);
+const PdfViewer = ({ file }) => {
+  const pdfUrl =
+    "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
 
-  useEffect(() => {
-    const updatePageWidth = () => {
-      if (containerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth;
-        setZoomLevel(zoomLevel); // Ensure zoom doesn't go beyond container width
-      }
-    };
+  const zoomPluginInstance = zoomPlugin();
+  const { ZoomOut, ZoomIn, CurrentScale } = zoomPluginInstance;
 
-    window.addEventListener("resize", updatePageWidth);
-    updatePageWidth();
+  const fullScreenPluginInstance = fullScreenPlugin();
+  const { EnterFullScreen } = fullScreenPluginInstance;
 
-    return () => {
-      window.removeEventListener("resize", updatePageWidth);
-    };
-  }, [zoomLevel]);
+  const printPluginInstance = printPlugin();
+  const { Print } = printPluginInstance;
 
-  useEffect(() => {
-    const handleFullScreenChange = () => {
-      const isCurrentlyFullScreen = !!document.fullscreenElement;
-      setIsFullScreen(isCurrentlyFullScreen);
-      if (!isCurrentlyFullScreen) {
-        // Reset to default state when exiting full screen
-        setZoomLevel(1);
-      }
-    };
-
-    document.addEventListener("fullscreenchange", handleFullScreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullScreenChange);
-    };
-  }, []);
-
-  const onDocumentLoadSuccess = ({ numPages }) => {
-    setNumPages(numPages);
-  };
-
-  const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.1, 2)); // Set max zoom at 2x
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 0.1, 0.5)); // Set min zoom at 0.5x
-  };
-
-  const toggleFullScreen = () => {
-    if (!isFullScreen) {
-      containerRef.current.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.download = "sample-local-pdf.pdf"; // You can customize the filename
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: "100%",
-        height: isFullScreen ? "100vh" : "100%",
-        position: "relative",
-        overflowX: "auto", // Add horizontal scroll when zooming
-        overflowY: "auto",
-        padding: "20px", // To give some space from the container's edges
-      }}
-    >
-      <Document
-        file="https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf"
-        onLoadSuccess={onDocumentLoadSuccess}
-        loading="Loading PDF..."
-        error="Failed to load PDF file."
-      >
-        {Array.from({ length: numPages }, (_, i) => i + 1).map((page) => (
-          <Page
-            key={page}
-            width={500 * zoomLevel} // Adjust width based on zoom level
-            pageNumber={page}
-            renderTextLayer={false}
-            renderAnnotationLayer={false}
-          />
-        ))}
-      </Document>
+    <div className="relative flex-1 min-h-0">
+      {/* PDF Viewer */}
       <div
-        style={{
-          position: "fixed",
-          bottom: "20px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 1000,
-          backgroundColor: "rgba(0, 0, 0, 0.8)",
-          borderRadius: "8px",
-          padding: "10px",
-          display: "flex",
-          gap: "10px",
-          alignItems: "center",
-        }}
+        className="border border-gray-300 rounded-lg overflow-auto"
+        style={{ minHeight: 0 }}
       >
+        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+          <Viewer
+            fileUrl={pdfUrl} // Use pdfUrl instead of hardcoded URL
+            plugins={[
+              zoomPluginInstance,
+              fullScreenPluginInstance,
+              printPluginInstance,
+            ]}
+          />
+        </Worker>
+      </div>
+
+      {/* Fixed Toolbar */}
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-gray-700 text-white rounded-lg p-2 flex items-center justify-center gap-3 shadow-lg">
+        {/* Page indicator placeholder */}
+        <div className="text-sm text-gray-300 min-w-[40px]">1/2</div>
+
+        <ZoomOut>
+          {(props) => (
+            <button
+              onClick={props.onClick}
+              className="p-2 rounded hover:bg-gray-600 transition-colors"
+              title="Zoom Out"
+            >
+              <MdZoomOut size={20} />
+            </button>
+          )}
+        </ZoomOut>
+
+        <ZoomIn>
+          {(props) => (
+            <button
+              onClick={props.onClick}
+              className="p-2 rounded hover:bg-gray-600 transition-colors"
+              title="Zoom In"
+            >
+              <MdZoomIn size={20} />
+            </button>
+          )}
+        </ZoomIn>
+
+        <Print>
+          {(props) => (
+            <button
+              onClick={props.onClick}
+              className="p-2 rounded hover:bg-gray-600 transition-colors"
+              title="Print"
+            >
+              <IoIosPrint size={20} />
+            </button>
+          )}
+        </Print>
+
         <button
-          onClick={handleZoomOut}
+          onClick={handleDownload}
           style={{
-            background: "none",
-            border: "none",
-            color: "white",
-            cursor: "pointer",
             padding: "8px",
+            justifyContent: "center",
           }}
-          title="Zoom Out"
         >
-          <FaSearchMinus size={20} />
+          <LuDownload size={24} />
         </button>
-        <button
-          onClick={handleZoomIn}
-          style={{
-            background: "none",
-            border: "none",
-            color: "white",
-            cursor: "pointer",
-            padding: "8px",
-          }}
-          title="Zoom In"
-        >
-          <FaSearchPlus size={20} />
-        </button>
-        <button
-          onClick={toggleFullScreen}
-          style={{
-            background: "none",
-            border: "none",
-            color: "white",
-            cursor: "pointer",
-            padding: "8px",
-          }}
-          title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-        >
-          <FaExpand size={20} />
-        </button>
-        <span style={{ color: "white" }}>
-          Page 1 of {numPages} | Zoom: {Math.round(zoomLevel * 100)}%
-        </span>
+
+        <EnterFullScreen>
+          {(props) => (
+            <button
+              onClick={props.onClick}
+              className="p-2 rounded hover:bg-gray-600 transition-colors"
+              title="Full Screen"
+            >
+              <FullScreenIcon />
+            </button>
+          )}
+        </EnterFullScreen>
       </div>
     </div>
   );

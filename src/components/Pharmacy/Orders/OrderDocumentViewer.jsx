@@ -13,12 +13,15 @@ const OrderDocumentViewer = ({
     { id: "vitalCard", label: "Mutuelle", urlKey: "vitalCardUrl" },
   ];
 
+  // Static fallback URL in case the backend doesn't provide a URL
+  const fallbackUrl =
+    "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
+
   // Get the URL for the active document tab
   const getDocumentUrl = () => {
     const activeTab = documentTabs.find((tab) => tab.id === activeDocumentTab);
-    return activeTab && selectedOrder?.[activeTab.urlKey]
-      ? selectedOrder[activeTab.urlKey]
-      : null;
+    // Check if there's a valid URL from the selected order, otherwise fall back to the static URL
+    return selectedOrder?.[activeTab.urlKey] || fallbackUrl;
   };
 
   const documentUrl = getDocumentUrl();
