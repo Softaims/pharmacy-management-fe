@@ -59,9 +59,6 @@ const PdfViewer = ({ file }) => {
 
       {/* Fixed Toolbar */}
       <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-gray-700 text-white rounded-lg p-2 flex items-center justify-center gap-3 shadow-lg">
-        {/* Page indicator placeholder */}
-        <div className="text-sm text-gray-300 min-w-[40px]">1/2</div>
-
         <ZoomOut>
           {(props) => (
             <button
