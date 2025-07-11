@@ -73,12 +73,25 @@ const AddPharmacyModal = ({
       return;
     }
     // Password validation (minimum 8 characters, only required for add mode)
-    if (!isEditMode && newPharmacy.password.length < 8) {
-      toast.error("Le mot de passe doit contenir au moins 8 caractères", {
-        autoClose: 3000,
-        theme: "dark",
-      });
-      return;
+    if (!isEditMode) {
+      const password = newPharmacy.password;
+
+      const isValidPassword =
+        password.length >= 8 &&
+        /[A-Z]/.test(password) &&
+        /[a-z]/.test(password) &&
+        /\d/.test(password);
+
+      if (!isValidPassword) {
+        toast.error(
+          "Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule et un chiffre.",
+          {
+            autoClose: 3000,
+            theme: "dark",
+          }
+        );
+        return;
+      }
     }
 
     try {
