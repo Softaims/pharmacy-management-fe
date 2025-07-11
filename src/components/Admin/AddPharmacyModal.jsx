@@ -244,7 +244,7 @@ const AddPharmacyModal = ({
               label: "Numéro de téléphone",
               name: "phone",
               type: "tel",
-              placeholder: "Entrez le numéro de téléphone",
+              placeholder: "Entrez le numéro de téléphone ex +33780763734",
             },
             ...(!isEditMode
               ? [
