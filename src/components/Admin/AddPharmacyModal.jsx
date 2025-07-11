@@ -19,11 +19,22 @@ const AddPharmacyModal = ({
     password: "",
     status: "",
   });
+
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [lastMode, setLastMode] = useState(null); // Track the last mode (edit/add)
 
   const isEditMode = !!pharmacyToEdit;
 
   useEffect(() => {
+    const currentMode = isEditMode ? "edit" : "add";
+
+    // If mode changed, reset form
+    if (lastMode !== null && lastMode !== currentMode) {
+      resetForm();
+    }
+
     if (pharmacyToEdit) {
       setNewPharmacy({
         name: pharmacyToEdit.name,
@@ -33,10 +44,13 @@ const AddPharmacyModal = ({
         status: pharmacyToEdit.status,
         password: "",
       });
-    } else {
+    } else if (lastMode !== currentMode) {
+      // Only reset form for add mode if we're switching from edit mode
       resetForm();
     }
-  }, [pharmacyToEdit]);
+
+    setLastMode(currentMode);
+  }, [pharmacyToEdit, showAddModal]); // Added showAddModal to dependency array
 
   const resetForm = () => {
     setNewPharmacy({
@@ -47,51 +61,196 @@ const AddPharmacyModal = ({
       password: "",
       status: "",
     });
+    setErrors({});
+    setTouched({});
     setShowPassword(false);
   };
 
-  const handleSubmit = async () => {
-    // Basic validation
-    if (
-      !newPharmacy.name ||
-      !newPharmacy.email ||
-      (!isEditMode && !newPharmacy.password)
-    ) {
-      toast.error("Veuillez remplir tous les champs obligatoires (*)", {
-        autoClose: 3000,
-        theme: "dark",
-      });
-      return;
+  // Validation functions
+  const validateName = (name) => {
+    if (!name || name.trim() === "") {
+      return "Le nom de la pharmacie est obligatoire";
     }
-    // Email validation
+    if (name.trim().length < 2) {
+      return "Le nom de la pharmacie doit contenir au moins 2 caractères";
+    }
+    if (name.trim().length > 100) {
+      return "Le nom de la pharmacie ne peut pas dépasser 100 caractères";
+    }
+    return "";
+  };
+
+  const validateEmail = (email) => {
+    if (!email || email.trim() === "") {
+      return "L'adresse e-mail est obligatoire";
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newPharmacy.email)) {
-      toast.error("Veuillez entrer une adresse e-mail valide", {
+    if (!emailRegex.test(email)) {
+      return "Veuillez entrer une adresse e-mail valide";
+    }
+    return "";
+  };
+
+  const validatePhone = (phone) => {
+    if (!phone || phone.trim() === "") {
+      return "Le numéro de téléphone est obligatoire";
+    }
+    // French phone number validation (more flexible)
+    const phoneRegex = /^(\+33|0)[1-9](\d{8})$/;
+    const cleanPhone = phone.replace(/\s+/g, "");
+    if (!phoneRegex.test(cleanPhone)) {
+      return "Veuillez entrer un numéro de téléphone valide (ex: +33780763734 ou 0780763734)";
+    }
+    return "";
+  };
+
+  const validateAddress = (address) => {
+    if (!address || address.trim() === "") {
+      return "L'adresse est obligatoire";
+    }
+    if (address.trim().length < 10) {
+      return "L'adresse doit contenir au moins 10 caractères";
+    }
+    if (address.trim().split(" ").length < 2) {
+      return "Veuillez entrer une adresse complète";
+    }
+    return "";
+  };
+
+  const validatePassword = (password) => {
+    if (isEditMode) return ""; // Password not required in edit mode
+
+    if (!password || password.trim() === "") {
+      return "Le mot de passe est obligatoire";
+    }
+    if (password.length < 8) {
+      return "Le mot de passe doit contenir au moins 8 caractères";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Le mot de passe doit contenir au moins une lettre majuscule";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Le mot de passe doit contenir au moins une lettre minuscule";
+    }
+    if (!/\d/.test(password)) {
+      return "Le mot de passe doit contenir au moins un chiffre";
+    }
+
+    return "";
+  };
+
+  // Real-time validation
+  const validateField = (name, value) => {
+    let error = "";
+    switch (name) {
+      case "name":
+        error = validateName(value);
+        break;
+      case "email":
+        error = validateEmail(value);
+        break;
+      case "phone":
+        error = validatePhone(value);
+        break;
+      case "address":
+        error = validateAddress(value);
+        break;
+      case "password":
+        error = validatePassword(value);
+        break;
+      default:
+        break;
+    }
+    return error;
+  };
+
+  // Handle input change with validation
+  const handleInputChange = (name, value) => {
+    setNewPharmacy({
+      ...newPharmacy,
+      [name]: value,
+    });
+
+    // Validate field if it has been touched
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setErrors({
+        ...errors,
+        [name]: error,
+      });
+    }
+  };
+
+  // Handle field blur (when user leaves the field)
+  const handleBlur = (name) => {
+    setTouched({
+      ...touched,
+      [name]: true,
+    });
+
+    const error = validateField(name, newPharmacy[name]);
+    setErrors({
+      ...errors,
+      [name]: error,
+    });
+  };
+
+  // Check if form has changes in edit mode
+  const hasChanges = () => {
+    if (!isEditMode || !pharmacyToEdit) return true; // Always enabled in add mode
+
+    return (
+      newPharmacy.name !== pharmacyToEdit.name ||
+      newPharmacy.email !== pharmacyToEdit.email ||
+      newPharmacy.phone !== pharmacyToEdit.phone ||
+      newPharmacy.address !== pharmacyToEdit.address
+    );
+  };
+
+  // Validate all fields before submit
+  const validateAllFields = () => {
+    const newErrors = {};
+    const fieldsToValidate = ["name", "email", "phone", "address"];
+
+    if (!isEditMode) {
+      fieldsToValidate.push("password");
+    }
+
+    fieldsToValidate.forEach((field) => {
+      const error = validateField(field, newPharmacy[field]);
+      if (error) {
+        newErrors[field] = error;
+      }
+    });
+
+    setErrors(newErrors);
+    setTouched(
+      fieldsToValidate.reduce((acc, field) => {
+        acc[field] = true;
+        return acc;
+      }, {})
+    );
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    // Check if there are changes in edit mode
+    if (isEditMode && !hasChanges()) {
+      toast.info("Aucune modification détectée", {
         autoClose: 3000,
         theme: "dark",
       });
       return;
     }
-    // Password validation (minimum 8 characters, only required for add mode)
-    if (!isEditMode) {
-      const password = newPharmacy.password;
 
-      const isValidPassword =
-        password.length >= 8 &&
-        /[A-Z]/.test(password) &&
-        /[a-z]/.test(password) &&
-        /\d/.test(password);
-
-      if (!isValidPassword) {
-        toast.error(
-          "Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule et un chiffre.",
-          {
-            autoClose: 3000,
-            theme: "dark",
-          }
-        );
-        return;
-      }
+    // Validate all fields
+    if (!validateAllFields()) {
+      toast.error("Veuillez corriger les erreurs dans le formulaire", {
+        autoClose: 3000,
+        theme: "dark",
+      });
+      return;
     }
 
     try {
@@ -180,8 +339,16 @@ const AddPharmacyModal = ({
     }
   };
 
+  // Handle cancel button click - resets form and closes modal
   const handleCancel = () => {
     resetForm();
+    setShowAddModal(false);
+  };
+
+  // Handle backdrop click - only reset form if switching between modes
+  const handleBackdropClick = () => {
+    // Don't reset form data on backdrop click - just close modal
+    // This preserves form data if user accidentally clicks outside
     setShowAddModal(false);
   };
 
@@ -190,7 +357,8 @@ const AddPharmacyModal = ({
       document.body.style.overflow = "hidden";
       const handleEscape = (e) => {
         if (e.key === "Escape") {
-          resetForm();
+          // Don't reset form on escape - just close modal
+          // This preserves form data if user accidentally presses escape
           setShowAddModal(false);
         }
       };
@@ -204,10 +372,42 @@ const AddPharmacyModal = ({
 
   if (!showAddModal) return null;
 
+  const formFields = [
+    {
+      label: "Nom de la pharmacie *",
+      name: "name",
+      type: "text",
+      placeholder: "Entrez le nom de la pharmacie",
+    },
+    {
+      label: "Adresse e-mail *",
+      name: "email",
+      type: "email",
+      placeholder: "Entrez l'adresse e-mail",
+    },
+    {
+      label: "Numéro de téléphone *",
+      name: "phone",
+      type: "tel",
+      placeholder: "Entrez le numéro de téléphone (ex: +33780763734)",
+    },
+    ...(!isEditMode
+      ? [
+          {
+            label: "Mot de passe *",
+            name: "password",
+            type: showPassword ? "text" : "password",
+            placeholder: "Entrez un mot de passe sécurisé",
+            isPassword: true,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-      onClick={handleCancel}
+      onClick={handleBackdropClick}
       aria-modal="true"
       role="dialog"
     >
@@ -240,38 +440,7 @@ const AddPharmacyModal = ({
 
         {/* Form */}
         <div className="space-y-4">
-          {[
-            {
-              label: "Nom de la pharmacie *",
-              name: "name",
-              type: "text",
-              placeholder: "Entrez le nom de Apollopharmacy",
-            },
-            {
-              label: "Adresse e-mail *",
-              name: "email",
-              type: "email",
-              placeholder: "Entrez l'adresse e-mail",
-            },
-            {
-              label: "Numéro de téléphone",
-              name: "phone",
-              type: "tel",
-              placeholder: "Entrez le numéro de téléphone ex +33780763734",
-            },
-            ...(!isEditMode
-              ? [
-                  {
-                    label: "Mot de passe *",
-                    name: "password",
-                    type: showPassword ? "text" : "password",
-                    placeholder:
-                      "Entrez un mot de passe (au moins 8 caractères, lettres et chiffres)",
-                    isPassword: true,
-                  },
-                ]
-              : []),
-          ].map((field) => (
+          {formFields.map((field) => (
             <div key={field.name} className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {field.label}
@@ -281,12 +450,14 @@ const AddPharmacyModal = ({
                   type={field.type}
                   value={newPharmacy[field.name]}
                   onChange={(e) =>
-                    setNewPharmacy({
-                      ...newPharmacy,
-                      [field.name]: e.target.value,
-                    })
+                    handleInputChange(field.name, e.target.value)
                   }
-                  className="w-full px-3 py-2 border placeholder:text-[12px] border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10"
+                  onBlur={() => handleBlur(field.name)}
+                  className={`w-full px-3 py-2 border placeholder:text-[12px] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200 ${
+                    errors[field.name] && touched[field.name]
+                      ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 hover:border-gray-400"
+                  }`}
                   placeholder={field.placeholder}
                 />
                 {field.isPassword && (
@@ -308,22 +479,37 @@ const AddPharmacyModal = ({
                   </button>
                 )}
               </div>
+              {errors[field.name] && touched[field.name] && (
+                <p className="text-red-500 text-xs mt-1 flex items-center">
+                  <span className="mr-1">⚠</span>
+                  {errors[field.name]}
+                </p>
+              )}
             </div>
           ))}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Adresse
+              Adresse *
             </label>
             <textarea
               value={newPharmacy.address}
-              onChange={(e) =>
-                setNewPharmacy({ ...newPharmacy, address: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+              onChange={(e) => handleInputChange("address", e.target.value)}
+              onBlur={() => handleBlur("address")}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-colors duration-200 ${
+                errors.address && touched.address
+                  ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500"
+                  : "border-gray-300 hover:border-gray-400"
+              }`}
               rows="3"
-              placeholder="Entrez l'adresse complète"
+              placeholder="Entrez l'adresse complète de la pharmacie"
             />
+            {errors.address && touched.address && (
+              <p className="text-red-500 text-xs mt-1 flex items-center">
+                <span className="mr-1">⚠</span>
+                {errors.address}
+              </p>
+            )}
           </div>
         </div>
 
@@ -337,7 +523,12 @@ const AddPharmacyModal = ({
           </button>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 bg-[#069AA2] hover:bg-[#05828A] text-white rounded-lg transition text-sm"
+            disabled={isEditMode && !hasChanges()}
+            className={`px-4 py-2 rounded-lg transition text-sm ${
+              isEditMode && !hasChanges()
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-[#069AA2] hover:bg-[#05828A] text-white"
+            }`}
           >
             {isEditMode ? "Mettre à jour la pharmacie" : "Ajouter la pharmacie"}
           </button>
