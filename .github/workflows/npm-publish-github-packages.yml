@@ -25,8 +25,8 @@ jobs:
 
       - name: Update code on EC2 by pulling from master
         run: |
-          sudo ssh -v -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /pharmacy-management-fe && git pull origin main"
+          sudo ssh -v -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && git pull origin main"
 
       - name: Restart PM2 server
         run: |
-          sudo ssh -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /pharmacy-management-fe && npm run build"
+          sudo ssh -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && npm run build"
