@@ -252,7 +252,8 @@ const AddPharmacyModal = ({
                     label: "Mot de passe *",
                     name: "password",
                     type: showPassword ? "text" : "password",
-                    placeholder: "Entrez le mot de passe",
+                    placeholder:
+                      "Entrez un mot de passe (au moins 8 caractères, lettres et chiffres)",
                     isPassword: true,
                   },
                 ]
@@ -272,7 +273,7 @@ const AddPharmacyModal = ({
                       [field.name]: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10"
+                  className="w-full px-3 py-2 border placeholder:text-[12px] border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10"
                   placeholder={field.placeholder}
                 />
                 {field.isPassword && (
