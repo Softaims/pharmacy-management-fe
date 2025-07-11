@@ -131,17 +131,6 @@ const DashboardPage = () => {
                 </p>
               </div>
             </div>
-
-            {/* {activeTab === "users" && (
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="bg-[#069AA2] hover:bg-[#05828A] text-white px-3 lg:px-4 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200 text-sm lg:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:block">Ajouter une pharmacie</span>
-                <span className="sm:hidden">Ajouter</span>
-              </button>
-            )} */}
           </div>
         </header>
         {/* Content Area */}
