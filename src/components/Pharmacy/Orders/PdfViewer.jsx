@@ -31,7 +31,7 @@ const PdfViewer = ({ file }) => {
   const handleDownload = () => {
     const link = document.createElement("a");
     link.href = pdfUrl;
-    link.download = "sample-local-pdf.pdf"; // You can customize the filename
+    link.download = "sample-local-pdf.pdf";
     link.target = "_blank";
     document.body.appendChild(link);
     link.click();
@@ -40,14 +40,19 @@ const PdfViewer = ({ file }) => {
 
   return (
     <div className="relative flex-1 min-h-0">
-      {/* PDF Viewer */}
+      {/* PDF Viewer Container with fixed height and visible scrollbars */}
       <div
-        className="border border-gray-300 rounded-lg overflow-auto"
-        style={{ minHeight: 0 }}
+        className="border border-gray-300 rounded-lg bg-gray-50"
+        style={{
+          height: "calc(100vh - 120px)", // Fixed height
+          // overflow: "auto", // Enable scrollbars
+          // overflow: "hidden",
+          position: "relative",
+        }}
       >
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
           <Viewer
-            fileUrl={pdfUrl} // Use pdfUrl instead of hardcoded URL
+            fileUrl={pdfUrl}
             plugins={[
               zoomPluginInstance,
               fullScreenPluginInstance,
@@ -97,12 +102,10 @@ const PdfViewer = ({ file }) => {
 
         <button
           onClick={handleDownload}
-          style={{
-            padding: "8px",
-            justifyContent: "center",
-          }}
+          className="p-2 rounded hover:bg-gray-600 transition-colors"
+          title="Download"
         >
-          <LuDownload size={24} />
+          <LuDownload size={20} />
         </button>
 
         <EnterFullScreen>
@@ -117,6 +120,51 @@ const PdfViewer = ({ file }) => {
           )}
         </EnterFullScreen>
       </div>
+
+      {/* Custom CSS for better scrollbar visibility */}
+      <style jsx>{`
+        /* Make scrollbars always visible and better styled */
+        .border.border-gray-300 {
+          scrollbar-width: thin;
+          scrollbar-color: #6b7280 #f3f4f6;
+        }
+
+        .border.border-gray-300::-webkit-scrollbar {
+          width: 12px;
+          height: 12px;
+        }
+
+        .border.border-gray-300::-webkit-scrollbar-track {
+          background: #f3f4f6;
+          border-radius: 6px;
+        }
+
+        .border.border-gray-300::-webkit-scrollbar-thumb {
+          background: #6b7280;
+          border-radius: 6px;
+          border: 2px solid #f3f4f6;
+        }
+
+        .border.border-gray-300::-webkit-scrollbar-thumb:hover {
+          background: #4b5563;
+        }
+
+        .border.border-gray-300::-webkit-scrollbar-corner {
+          background: #f3f4f6;
+        }
+
+        /* Ensure scrollbars are always visible */
+        .border.border-gray-300 {
+          overflow: auto !important;
+          scrollbar-width: auto !important;
+        }
+
+        /* Make sure the PDF viewer content can scroll properly */
+        .rpv-core__viewer {
+          min-width: 100%;
+          min-height: 100%;
+        }
+      `}</style>
     </div>
   );
 };
