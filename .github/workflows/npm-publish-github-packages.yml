@@ -1,39 +1,32 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-
-name: Node.js Package
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main # Trigger when code is pushed to the main branch
-  pull_request:
-    branches:
-      - main # Trigger when a pull request is created/updated targeting the main branch
+      - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
 
-  publish-gpr:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://npm.pkg.github.com/
-      - run: npm ci
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup SSH
+        run: |
+          sudo mkdir -p /root/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | sudo tee /root/.ssh/id_rsa > /dev/null
+          sudo chmod 600 /root/.ssh/id_rsa
+          sudo ssh-keyscan -H 13.49.41.220 | sudo tee -a /root/.ssh/known_hosts
+
+      - name: Update code on EC2 by pulling from master
+        run: |
+          sudo ssh -v -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && git pull origin main"
+
+      - name: Restart PM2 server
+        run: |
+          sudo ssh -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && npm run build"
