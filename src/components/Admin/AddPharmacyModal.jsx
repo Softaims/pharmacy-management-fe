@@ -99,7 +99,7 @@ const AddPharmacyModal = ({
     const phoneRegex = /^(\+33|0)[1-9](\d{8})$/;
     const cleanPhone = phone.replace(/\s+/g, "");
     if (!phoneRegex.test(cleanPhone)) {
-      return "Veuillez entrer un numéro de téléphone valide (ex: +33780763734 ou 0780763734)";
+      return "Veuillez entrer un numéro de téléphone valide (ex: +33780763734)";
     }
     return "";
   };
