@@ -9,7 +9,8 @@ const Sidebar = ({
   sidebarOpen,
   setSidebarOpen,
 }) => {
-  const { user, logout } = useAuth(); // Access user and logout function from AuthContext
+  const { user, logout, isLoading } = useAuth(); // Access user and logout function from AuthContext
+  console.log("🚀 ~ user:,,,,,,,,,,,,,,,,,,,,,,,", user, isLoading);
 
   const sidebarItems = [
     { id: "users", label: "Gestion des pharmacies", icon: Users },
@@ -95,7 +96,9 @@ const Sidebar = ({
               <p className="text-sm font-medium text-gray-900 truncate">
                 Administrateur
               </p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              <p className="text-xs text-gray-500 truncate">
+                {user?.admin?.email || user?.email}
+              </p>
             </div>
           </div>
 
