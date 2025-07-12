@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 const DeleteConfirmationModal = ({
   isOpen,
   onClose,
+  loading,
   onConfirm,
   pharmacyName,
 }) => {
@@ -70,9 +71,14 @@ const DeleteConfirmationModal = ({
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            disabled={loading}
+            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              loading
+                ? "bg-red-400 cursor-not-allowed "
+                : "bg-red-600 hover:bg-red-700 focus:ring-red-500"
+            }`}
           >
-            Delete
+            {loading ? "Deleting..." : "Delete"}
           </button>
         </div>
       </div>

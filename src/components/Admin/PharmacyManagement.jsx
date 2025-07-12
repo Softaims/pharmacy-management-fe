@@ -30,7 +30,7 @@ const PharmacyManagement = ({
   const [pharmacyToEdit, setPharmacyToEdit] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusPharmacy, setStatusPharmacy] = useState(null);
-
+  const [loading, setLoading] = useState(false);
   const filteredPharmacies = pharmacies.filter(
     (pharmacy) =>
       pharmacy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -39,6 +39,7 @@ const PharmacyManagement = ({
   );
 
   const handleDeletePharmacy = async (id) => {
+    setLoading(true);
     try {
       await apiService.deletePharmacy(id); // Appel de l'API pour supprimer la pharmacie
       setPharmacies(pharmacies.filter((pharmacy) => pharmacy.id !== id)); // Mise à jour de l'état local
@@ -51,6 +52,8 @@ const PharmacyManagement = ({
         error.message ||
           "Échec de la suppression de la pharmacie. Veuillez réessayer biotechnology."
       ); // Toast d'erreur
+    } finally {
+      setLoading(false);
     }
   };
   const openDeleteModal = (pharmacy) => {
@@ -169,7 +172,7 @@ const PharmacyManagement = ({
               placeholder="Rechercher des pharmacies..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm lg:text-base placeholder:text-black"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm lg:text-base"
             />
           </div>
           {/* <button className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-sm lg:text-base">
@@ -363,6 +366,7 @@ const PharmacyManagement = ({
         }}
         onConfirm={() => handleDeletePharmacy(selectedPharmacy.id)}
         pharmacyName={selectedPharmacy?.name || ""}
+        loading={loading}
       />
       <StatusConfirmationModal
         isOpen={showStatusModal}
@@ -373,6 +377,7 @@ const PharmacyManagement = ({
         onConfirm={confirmStatusToggle}
         pharmacyName={statusPharmacy?.name}
         currentStatus={statusPharmacy?.status}
+        loading={loading}
       />
     </div>
   );
