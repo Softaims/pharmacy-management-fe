@@ -24,7 +24,7 @@ const AddPharmacyModal = ({
   const [touched, setTouched] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [lastMode, setLastMode] = useState(null); // Track the last mode (edit/add)
-
+  const [loading, setLoading] = useState(false);
   const isEditMode = !!pharmacyToEdit;
 
   useEffect(() => {
@@ -252,7 +252,7 @@ const AddPharmacyModal = ({
       });
       return;
     }
-
+    setLoading(true);
     try {
       let result;
       if (isEditMode) {
@@ -336,6 +336,8 @@ const AddPharmacyModal = ({
           isEditMode ? "la mise à jour" : "l'ajout"
         } de la pharmacie : ${error.message}`
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -453,9 +455,9 @@ const AddPharmacyModal = ({
                     handleInputChange(field.name, e.target.value)
                   }
                   onBlur={() => handleBlur(field.name)}
-                  className={`w-full px-3 py-2 border placeholder:text-[12px] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200 ${
+                  className={`w-full px-3 py-2 border placeholder:text-[12px] placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200 ${
                     errors[field.name] && touched[field.name]
-                      ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500"
+                      ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500 "
                       : "border-gray-300 hover:border-gray-400"
                   }`}
                   placeholder={field.placeholder}
@@ -496,7 +498,7 @@ const AddPharmacyModal = ({
               value={newPharmacy.address}
               onChange={(e) => handleInputChange("address", e.target.value)}
               onBlur={() => handleBlur("address")}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-colors duration-200 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 placeholder:text-gray-300 text-black focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-colors duration-200 ${
                 errors.address && touched.address
                   ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500"
                   : "border-gray-300 hover:border-gray-400"
@@ -523,14 +525,20 @@ const AddPharmacyModal = ({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isEditMode && !hasChanges()}
+            disabled={loading || (isEditMode && !hasChanges())}
             className={`px-4 py-2 rounded-lg transition text-sm ${
-              isEditMode && !hasChanges()
+              loading
+                ? "bg-gray-300 text-gray-500 cursor-wait"
+                : isEditMode && !hasChanges()
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-[#069AA2] hover:bg-[#05828A] text-white"
             }`}
           >
-            {isEditMode ? "Mettre à jour la pharmacie" : "Ajouter la pharmacie"}
+            {loading
+              ? "Veuillez patienter..."
+              : isEditMode
+              ? "Mettre à jour la pharmacie"
+              : "Ajouter la pharmacie"}
           </button>
         </div>
       </div>

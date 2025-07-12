@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import { toast } from "react-toastify"; // Step 1: import toast
 
 const StatusConfirmationModal = ({
   isOpen,
