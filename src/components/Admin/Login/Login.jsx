@@ -3,17 +3,18 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../contexts/AuthContext";
 import logo from "../../../assets/logo.png";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("admin");
-  const [loading, setLoading] = useState(false); // Local loading state for button
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading } = useAuth();
 
-  // Get the intended destination or default to role-based route
   const from =
     location.state?.from?.pathname ||
     (role === "admin" ? "/admin" : "/pharmacy");
@@ -21,7 +22,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!email || !password || !role) {
       toast.error("Veuillez remplir tous les champs", {
         autoClose: 3000,
@@ -60,7 +60,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br bg from-indigo-50 via-white to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex flex-col items-center">
           <img
@@ -68,23 +68,27 @@ const Login = () => {
             src={logo}
             alt="Logo MédocPro"
           />
-          <h2 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+          <h2 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 ">
             MédocPro
           </h2>
-          <p className="mt-2 text-center text-base text-gray-500 dark:text-gray-400">
+          <p className="mt-2 text-center text-base text-gray-500 0">
             Une plateforme conçue pour simplifier la gestion des ordonnances
           </p>
         </div>
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white dark:bg-gray-800 py-10 px-6 shadow-2xl sm:rounded-2xl sm:px-12 transform transition-all duration-500 ease-in-out hover:-translate-y-1">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="bg-white py-10 px-6 shadow-2xl sm:rounded-2xl sm:px-12 transform transition-all duration-500 ease-in-out hover:-translate-y-1">
+          <form
+            className="space-y-6"
+            onSubmit={handleSubmit}
+            noValidate={false}
+          >
             {/* Email */}
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                className="block text-sm font-semibold text-gray-700 "
               >
                 Adresse e-mail
               </label>
@@ -94,10 +98,10 @@ const Login = () => {
                 placeholder="Entrez votre e-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
+                className=" fragmt-1 w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200"
                 autoComplete="email"
                 required
-                disabled={isLoading || loading} // Use both states for input
+                disabled={isLoading || loading}
               />
             </div>
 
@@ -105,30 +109,40 @@ const Login = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+                className="block text-sm font-semibold text-gray-700 "
               >
                 Mot de passe
               </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="Entrez votre mot de passe"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200"
-                autoComplete="current-password"
-                required
-                disabled={isLoading || loading} // Use both states for input
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Entrez votre mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200"
+                  autoComplete="current-password"
+                  required
+                  disabled={isLoading || loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  disabled={isLoading || loading}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </div>
 
             {/* Role Selection */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Sélectionnez votre rôle
               </label>
               <div
-                className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1"
+                className="flex bg-gray-100 rounded-lg p-1"
                 role="radiogroup"
                 aria-labelledby="role-label"
               >
@@ -140,11 +154,11 @@ const Login = () => {
                     key={option.value}
                     type="button"
                     onClick={() => setRole(option.value)}
-                    disabled={isLoading || loading} // Use both states for role buttons
+                    disabled={isLoading || loading}
                     className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 ${
                       role === option.value
-                        ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-500"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:bg-gray-200 "
                     } ${
                       isLoading || loading
                         ? "opacity-50 cursor-not-allowed"
@@ -164,10 +178,10 @@ const Login = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading || !email || !password} // Use local loading for button
+                disabled={loading}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-[#069AA2] hover:bg-[#05828A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#069AA2] transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                {loading ? ( // Use local loading for spinner
+                {loading ? (
                   <span className="flex items-center">
                     <svg
                       className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
