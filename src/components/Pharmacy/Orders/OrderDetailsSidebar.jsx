@@ -488,7 +488,7 @@ const OrderDetailsSidebar = ({
                       pharmacyNote: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-400 text-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                   rows="3"
                   placeholder="Entrez une note..."
                 />
