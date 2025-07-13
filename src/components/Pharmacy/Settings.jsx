@@ -334,8 +334,8 @@ const Settings = () => {
                     onChange={() => handleToggle(key)}
                     className="sr-only peer"
                   />
-                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
-                  <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all  peer-checked:bg-blue-600 "></div>
+                  <span className="ms-3 text-sm font-medium text-gray-900 ">
                     {schedule[key]?.isOpen ? "Ouvert" : "Fermé"}
                   </span>
                 </label>
@@ -344,7 +344,7 @@ const Settings = () => {
                     {schedule[key].timeSlots.map((slot, index) => (
                       <div key={index} className="flex items-center gap-2 mb-2">
                         <select
-                          className="px-2 py-1 border border-gray-300 rounded text-sm bg-white"
+                          className="px-2 py-1 border border-gray-300 rounded text-sm text-black bg-white"
                           value={slot.openTime || "9:00"}
                           onChange={(e) =>
                             handleTimeChange(
@@ -363,7 +363,7 @@ const Settings = () => {
                         </select>
                         <span className="text-gray-500">-</span>
                         <select
-                          className="px-2 py-1 border border-gray-300 rounded text-sm bg-white"
+                          className="px-2 py-1 border border-gray-300 rounded text-sm text-black bg-white"
                           value={slot.closeTime || "12:00"}
                           onChange={(e) =>
                             handleTimeChange(
@@ -445,14 +445,14 @@ const Settings = () => {
               </label>
               <div className="flex items-center gap-2 bg-gray-300 rounded-2xl">
                 <button
-                  className="px-2 text-lg font-bold rounded hover:text-gray-400"
+                  className="px-2 text-lg font-bold rounded text-gray-400 hover:text-gray-900"
                   onClick={() => handleDeliveryPriceChange(false)}
                 >
                   -
                 </button>
                 <span className="text-gray-700">{deliveryPrice}</span>
                 <button
-                  className="px-2 text-lg font-bold"
+                  className="px-2 text-lg font-bold text-gray-400 hover:text-gray-900"
                   onClick={() => handleDeliveryPriceChange(true)}
                 >
                   +
