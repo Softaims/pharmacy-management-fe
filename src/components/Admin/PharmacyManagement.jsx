@@ -33,9 +33,8 @@ const PharmacyManagement = ({
   const [loading, setLoading] = useState(false);
   const filteredPharmacies = pharmacies.filter(
     (pharmacy) =>
-      pharmacy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pharmacy.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pharmacy.email.toLowerCase().includes(searchTerm.toLowerCase())
+      (pharmacy?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (pharmacy?.email || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDeletePharmacy = async (id) => {
@@ -221,9 +220,9 @@ const PharmacyManagement = ({
                       <div className="font-medium text-gray-900">
                         {pharmacy.name}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      {/* <div className="text-sm text-gray-500">
                         {pharmacy.owner}
-                      </div>
+                      </div> */}
                       <div className="flex items-center mt-1 text-xs text-gray-400">
                         <Calendar className="w-3 h-3 mr-1" />
                         Joined {pharmacy.joinedDate}
