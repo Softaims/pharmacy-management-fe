@@ -16,18 +16,17 @@ const menuItems = [
     path: "/pharmacy/Statistiques",
     tooltip: "Statistiques",
   },
-
-  {
-    id: "profile",
-    icon: userIcon,
-    path: "/pharmacy/profile",
-    tooltip: "Mon compte",
-  },
   {
     id: "settings",
     icon: settingIcon,
     path: "/pharmacy/settings",
     tooltip: "Paramètres",
+  },
+  {
+    id: "profile",
+    icon: userIcon,
+    path: "/pharmacy/profile",
+    tooltip: "Mon compte",
   },
 ];
 
