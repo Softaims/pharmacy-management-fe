@@ -232,14 +232,6 @@ const OrderDetailsSidebar = ({
                             : "1234"}
                         </span>
                       </div>
-                      <div className="flex flex-row flex-wrap text-sm items-baseline gap-x-2 gap-y-1 ">
-                        <span className="font-bold text-black">
-                          Numéro de commande :
-                        </span>
-                        <span className="text-black font-normal">
-                          {selectedOrder?.orderNumber || "00000000"}
-                        </span>
-                      </div>
                     </div>
                   </div>
 
