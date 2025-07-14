@@ -8,7 +8,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("pharmacy");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -69,7 +69,7 @@ const Login = () => {
             alt="Logo MédocPro"
           />
           <h2 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 ">
-            MédocPro
+            Mézordo Pro
           </h2>
           <p className="mt-2 text-center text-base text-gray-500 0">
             Une plateforme conçue pour simplifier la gestion des ordonnances
@@ -147,8 +147,8 @@ const Login = () => {
                 aria-labelledby="role-label"
               >
                 {[
-                  { value: "admin", label: "Admin" },
                   { value: "pharmacy", label: "Pharmacie" },
+                  { value: "admin", label: "Admin" },
                 ].map((option) => (
                   <button
                     key={option.value}
