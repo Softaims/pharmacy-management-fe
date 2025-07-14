@@ -24,8 +24,9 @@ const Settings = () => {
   const [signedUrl, setSignedUrl] = useState(null);
   const [imageKey, setImageKey] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState(
-    user?.pharmacy?.image || ""
+    user?.pharmacy?.imageUrl || ""
   );
+  console.log("🚀 ~ Settings ~ uploadedImageUrl:", uploadedImageUrl);
 
   // Initialize schedule state based on API response
   const [schedule, setSchedule] = useState({
