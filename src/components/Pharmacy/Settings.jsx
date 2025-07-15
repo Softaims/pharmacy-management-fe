@@ -87,11 +87,19 @@ const Settings = () => {
     { key: "wednesday", label: "Mercredi" },
     { key: "thursday", label: "Jeudi" },
     { key: "friday", label: "Vendredi" },
-    { key: "samedi", label: "Samedi" },
+    { key: "saturday", label: "Samedi" },
     { key: "sunday", label: "Dimanche" },
   ];
 
   const timeOptions = [
+    "1:00",
+    "2:00",
+    "3:00",
+    "4:00",
+    "5:00",
+    "6:00",
+    "7:00",
+    "8:00",
     "9:00",
     "10:00",
     "11:00",
@@ -105,6 +113,9 @@ const Settings = () => {
     "19:00",
     "20:00",
     "21:00",
+    "22:00",
+    "23:00",
+    "24:00",
   ];
 
   const handleToggle = (day) => {
@@ -218,8 +229,127 @@ const Settings = () => {
       await uploadImage(file);
     }
   };
+  const hasChanges = () => {
+    let changesDetected = false;
+
+    // Check pharmacy name
+    if (pharmacyName !== user?.pharmacy?.name) {
+      console.log("Pharmacy name changed:", pharmacyName);
+      changesDetected = true;
+    }
+
+    // Check address
+    if (address !== user?.pharmacy?.address) {
+      console.log("Address changed:", address);
+      changesDetected = true;
+    }
+
+    // Check active status
+    if (isActive !== user?.pharmacy?.isActive) {
+      console.log("Active status changed:", isActive);
+      changesDetected = true;
+    }
+
+    // Check home delivery status
+    if (canDeliver !== user?.pharmacy?.canDeliver) {
+      console.log("Home delivery changed:", canDeliver);
+      changesDetected = true;
+    }
+
+    // Check delivery price
+    if (deliveryPrice !== user?.pharmacy?.deliveryPrice) {
+      console.log("Delivery price changed:", deliveryPrice);
+      changesDetected = true;
+    }
+
+    // Check if schedule has changed
+    const hasScheduleChanges = !schedulesAreEqual(
+      schedule,
+      user?.pharmacy?.schedules
+    );
+    console.log("🚀 ~ hasChanges ~ hasScheduleChanges:", hasScheduleChanges);
+
+    if (hasScheduleChanges) {
+      console.log("Schedule changed:");
+      console.log("Old Schedule:", user?.pharmacy?.schedules);
+      console.log("New Schedule:", schedule);
+      changesDetected = true;
+    }
+
+    // Check image key
+    if (imageKey !== null) {
+      console.log("Image changed:", imageKey);
+      changesDetected = true;
+    }
+
+    return changesDetected;
+  };
+  const schedulesAreEqual = (a, b) => {
+    // If both schedules are empty or not modified, consider them equal
+    if (JSON.stringify(a) === JSON.stringify(b)) {
+      return true;
+    }
+
+    // Loop through each day of the week
+    for (const day of Object.keys(a)) {
+      const dayA = a[day] || { isOpen: false, timeSlots: [] };
+      const dayB = b[day] || { isOpen: false, timeSlots: [] };
+
+      // Check if 'isOpen' state has changed
+      if (dayA.isOpen !== dayB.isOpen) {
+        return false;
+      }
+
+      // Check if time slots length is different
+      if (dayA.timeSlots.length !== dayB.timeSlots.length) {
+        return false;
+      }
+
+      // Compare each time slot
+      for (let i = 0; i < dayA.timeSlots.length; i++) {
+        const slotA = dayA.timeSlots[i];
+        const slotB = dayB.timeSlots[i];
+
+        // Compare open and close times
+        if (
+          slotA.openTime !== slotB.openTime ||
+          slotA.closeTime !== slotB.closeTime
+        ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  // Deep comparison function for schedules
+  const deepEqual = (a, b) => {
+    console.log("🚀 ~ deepEqual ~ a, b:", a, b);
+    // If both schedules are empty or not modified, consider them equal
+    if (JSON.stringify(a) === JSON.stringify(b)) {
+      return true;
+    }
+
+    // Check if there are any actual schedule changes
+    return JSON.stringify(a) !== JSON.stringify(b);
+  };
 
   const handleSave = async () => {
+    if (!pharmacyName.trim()) {
+      toast.error("Le nom de la pharmacie est obligatoire.");
+      return; // Don't proceed with save if the name is empty
+    }
+
+    if (!address.trim()) {
+      toast.error("L'adresse est obligatoire.");
+      return; // Don't proceed with save if the address is empty
+    }
+    if (!hasChanges()) {
+      toast.info("Aucune modification détectée.");
+      return; // Don't proceed with save if there are no changes
+    }
+
     setIsSaving(true);
     const payload = {
       name: pharmacyName,
@@ -235,7 +365,10 @@ const Settings = () => {
     }
 
     for (const day in schedule) {
-      if (schedule[day].isOpen && schedule[day].timeSlots.length > 0) {
+      if (
+        schedule[day].isOpen !== false || // Only include days where isOpen is true or there are time slots
+        schedule[day].timeSlots.length > 0
+      ) {
         payload.schedules[day] = {
           isOpen: schedule[day].isOpen,
           timeSlots: schedule[day].timeSlots.filter((slot) => {
@@ -263,9 +396,11 @@ const Settings = () => {
   };
 
   return (
-    <div className="mx-auto py-6 px-12 bg-white">
-      <h1 className="text-2xl font-semibold mb-8 text-gray-800">Paramètres</h1>
-      <div className="w-[70%]">
+    <div className="mx-auto py-6 px-12 bg-gray-100">
+      <h1 className="text-2xl font-semibold mb-8 text-gray-800 w-[80%]  mx-auto">
+        Paramètres
+      </h1>
+      <div className="w-[80%] mx-auto bg-white shadow-md rounded-lg p-8 mt-12">
         {/* Nom de la pharmacie */}
         <div className="mb-6 flex items-center border-b border-gray-300 pb-4">
           <label className="w-[25%] text-md font-bold text-gray-700 mr-4">
