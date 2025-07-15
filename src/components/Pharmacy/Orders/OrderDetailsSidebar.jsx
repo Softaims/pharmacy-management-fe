@@ -154,7 +154,7 @@ const OrderDetailsSidebar = ({
   };
 
   return (
-    <div className="bg-white flex flex-col overflow-y-auto h-full">
+    <div className="bg-white flex flex-col overflow-y-auto overflow-x-hidden h-full">
       <div className="mx-2">
         <nav className="flex flex-row justify-between gap-2 px-4 pt-4 overflow-x-auto">
           {detailsTabs.map((tab) => (
@@ -229,7 +229,7 @@ const OrderDetailsSidebar = ({
                         <span className="text-black font-normal">
                           {selectedOrder?.id
                             ? selectedOrder.id.slice(0, 6)
-                            : "1234"}
+                            : "__"}
                         </span>
                       </div>
                     </div>

@@ -251,7 +251,11 @@ const Settings = () => {
       await axiosInstance.patch(`/pharmacy/update`, payload);
       toast.success("Paramètres mis à jour avec succès");
     } catch (error) {
-      console.error("Erreur lors de la mise à jour des paramètres :", error);
+      console.log("🚀 ~ handleSave ~ error:", error);
+      console.error(
+        "Erreur lors de la mise à jour des paramètres :",
+        error.message
+      );
       toast.error("Erreur lors de la mise à jour des paramètres");
     } finally {
       setIsSaving(false);
@@ -270,6 +274,7 @@ const Settings = () => {
           <input
             type="text"
             value={pharmacyName}
+            required
             onChange={(e) => setPharmacyName(e.target.value)}
             className="w-full px-3 py-2 rounded-full bg-[#F6F6F6] text-gray-700"
           />
