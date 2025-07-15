@@ -1,87 +1,85 @@
-// components/Pharmacy/Profile.jsx
-export default function Profile() {
+import { FiLogOut, FiUser, FiMapPin, FiMail, FiPhone } from "react-icons/fi";
+import { useAuth } from "../../contexts/AuthContext";
+
+const Profile = () => {
+  // Get user data from AuthContext
+  const { user, logout } = useAuth();
+  console.log("🚀 ~ Profile ~ user:", user);
+
+  const handleLogout = () => {
+    logout(); // Call the logout function from AuthContext
+  };
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Profile</h1>
-
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center mb-6">
-          <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
-            PH
-          </div>
-          <div className="ml-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              City Pharmacy
-            </h2>
-            <p className="text-gray-600">Licensed Pharmacy</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Pharmacy Name
-            </label>
-            <input
-              type="text"
-              value="City Pharmacy"
-              className="w-full p-3 border border-gray-300 rounded-md"
-              readOnly
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              License Number
-            </label>
-            <input
-              type="text"
-              value="PH-2024-001"
-              className="w-full p-3 border border-gray-300 rounded-md"
-              readOnly
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone
-            </label>
-            <input
-              type="text"
-              value="+1 (555) 123-4567"
-              className="w-full p-3 border border-gray-300 rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value="contact@citypharmacy.com"
-              className="w-full p-3 border border-gray-300 rounded-md"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Address
-            </label>
-            <textarea
-              value="123 Main Street, Downtown, City, State 12345"
-              className="w-full p-3 border border-gray-300 rounded-md"
-              rows="3"
-            />
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
-            Update Profile
+    <div className="min-h-screen bg-gray-50 py-8 px-6">
+      <div className="mx-auto max-w-[80%]">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className=" font-bold text-gray-900">Profile</h1>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg transition-colors duration-200 font-medium shadow-md"
+          >
+            <FiLogOut className="w-5 h-5" />
+            Logout
           </button>
+        </div>
+
+        {/* Profile Fields */}
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="grid grid-cols-1 gap-6">
+            {/* Pharmacy Name */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                <FiUser className="w-4 h-4 text-blue-600" />
+                Pharmacy Name
+              </label>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 font-medium">
+                {user ? user.pharmacy?.name : "Loading..."}{" "}
+                {/* Displaying dynamic data */}
+              </div>
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                <FiMapPin className="w-4 h-4 text-green-600" />
+                Address
+              </label>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 font-medium">
+                {user ? user?.pharmacy.address : "Loading..."}{" "}
+                {/* Displaying dynamic data */}
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                <FiMail className="w-4 h-4 text-purple-600" />
+                Email
+              </label>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 font-medium">
+                {user ? user.email : "Loading..."}{" "}
+                {/* Displaying dynamic data */}
+              </div>
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                <FiPhone className="w-4 h-4 text-orange-600" />
+                Phone Number
+              </label>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 font-medium">
+                {user ? user.phoneNumber : "Loading..."}{" "}
+                {/* Displaying dynamic data */}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Profile;
