@@ -154,9 +154,6 @@ const OrderSidebar = ({
             </button>
           ))}
         </div>
-        <p className="pt-2 font-semibold text-sm text-black">
-          Renouvellements automatiques
-        </p>
       </div>
 
       {/* Orders List */}
