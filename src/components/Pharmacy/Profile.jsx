@@ -15,13 +15,13 @@ const Profile = () => {
       <div className="mx-auto max-w-[80%]">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className=" font-bold text-gray-900">Profile</h1>
+          <h1 className=" font-bold text-gray-900">Profil</h1>
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg transition-colors duration-200 font-medium shadow-md"
           >
             <FiLogOut className="w-5 h-5" />
-            Logout
+            Se déconnecter
           </button>
         </div>
 
@@ -32,10 +32,10 @@ const Profile = () => {
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
                 <FiUser className="w-4 h-4 text-blue-600" />
-                Pharmacy Name
+                Nom de la pharmacie
               </label>
               <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 font-medium">
-                {user ? user.pharmacy?.name : "Loading..."}{" "}
+                {user ? user.pharmacy?.name : "Chargement..."}{" "}
                 {/* Displaying dynamic data */}
               </div>
             </div>
@@ -44,10 +44,10 @@ const Profile = () => {
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
                 <FiMapPin className="w-4 h-4 text-green-600" />
-                Address
+                Adresse
               </label>
               <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 font-medium">
-                {user ? user?.pharmacy.address : "Loading..."}{" "}
+                {user ? user?.pharmacy.address : "Chargement..."}{" "}
                 {/* Displaying dynamic data */}
               </div>
             </div>
@@ -56,10 +56,10 @@ const Profile = () => {
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
                 <FiMail className="w-4 h-4 text-purple-600" />
-                Email
+                E-mail
               </label>
               <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 font-medium">
-                {user ? user.email : "Loading..."}{" "}
+                {user ? user.email : "Chargement..."}{" "}
                 {/* Displaying dynamic data */}
               </div>
             </div>
@@ -68,10 +68,10 @@ const Profile = () => {
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
                 <FiPhone className="w-4 h-4 text-orange-600" />
-                Phone Number
+                Numéro de téléphone
               </label>
               <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-800 font-medium">
-                {user ? user.phoneNumber : "Loading..."}{" "}
+                {user ? user.phoneNumber : "Chargement..."}{" "}
                 {/* Displaying dynamic data */}
               </div>
             </div>

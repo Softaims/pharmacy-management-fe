@@ -87,11 +87,19 @@ const Settings = () => {
     { key: "wednesday", label: "Mercredi" },
     { key: "thursday", label: "Jeudi" },
     { key: "friday", label: "Vendredi" },
-    { key: "samedi", label: "Samedi" },
+    { key: "saturday", label: "Samedi" },
     { key: "sunday", label: "Dimanche" },
   ];
 
   const timeOptions = [
+    "1:00",
+    "2:00",
+    "3:00",
+    "4:00",
+    "5:00",
+    "6:00",
+    "7:00",
+    "8:00",
     "9:00",
     "10:00",
     "11:00",
@@ -105,6 +113,9 @@ const Settings = () => {
     "19:00",
     "20:00",
     "21:00",
+    "22:00",
+    "23:00",
+    "24:00",
   ];
 
   const handleToggle = (day) => {
@@ -137,13 +148,20 @@ const Settings = () => {
     setSchedule((prevSchedule) => {
       const currentDay = prevSchedule[day] || { isOpen: false, timeSlots: [] };
       if (currentDay.timeSlots.length < 2) {
+        const lastSlot = currentDay.timeSlots[currentDay.timeSlots.length - 1];
+        const newOpenTime = lastSlot
+          ? getNextTimeOption(lastSlot.closeTime)
+          : "9:00";
         return {
           ...prevSchedule,
           [day]: {
             ...currentDay,
             timeSlots: [
               ...currentDay.timeSlots,
-              { openTime: "9:00", closeTime: "12:00" },
+              {
+                openTime: newOpenTime,
+                closeTime: getNextTimeOption(newOpenTime),
+              },
             ],
           },
         };
@@ -156,10 +174,57 @@ const Settings = () => {
     setSchedule((prevSchedule) => {
       const currentDay = prevSchedule[day] || { isOpen: false, timeSlots: [] };
       const newSlots = [...currentDay.timeSlots];
-      newSlots[slotIndex] = { ...newSlots[slotIndex], [timeField]: value };
-      if (timeField === "openTime" && newSlots[slotIndex].closeTime <= value) {
-        newSlots[slotIndex].closeTime = getNextTimeOption(value);
+
+      // Prevent selecting 24:00 as openTime
+      if (timeField === "openTime" && value === "24:00") {
+        toast.error("L'heure de début ne peut pas être 24:00");
+        return prevSchedule;
       }
+
+      // For first slot closeTime, ensure it is before second slot openTime if exists
+      if (slotIndex === 0 && timeField === "closeTime" && newSlots.length > 1) {
+        const secondSlotOpenTime = newSlots[1].openTime;
+        const newCloseIndex = timeOptions.indexOf(value);
+        const secondOpenIndex = timeOptions.indexOf(secondSlotOpenTime);
+        if (newCloseIndex >= secondOpenIndex) {
+          toast.error(
+            "L'heure de fin du premier créneau doit être antérieure à l'heure de début du second créneau"
+          );
+          return prevSchedule;
+        }
+      }
+
+      // Convert 24:00 to 23:59 for backend
+      const adjustedValue = value === "24:00" ? "23:59" : value;
+
+      // For second slot, ensure openTime is after previous slot's closeTime
+      if (slotIndex === 1 && timeField === "openTime") {
+        const prevSlotCloseTime = newSlots[0].closeTime;
+        const prevIndex = timeOptions.indexOf(prevSlotCloseTime);
+        const newIndex = timeOptions.indexOf(value);
+
+        if (newIndex <= prevIndex) {
+          toast.error(
+            "L'heure de début doit être postérieure à l'heure de fin du créneau précédent"
+          );
+          return prevSchedule;
+        }
+      }
+
+      newSlots[slotIndex] = {
+        ...newSlots[slotIndex],
+        [timeField]: adjustedValue,
+      };
+
+      // Ensure closeTime is after openTime
+      if (timeField === "openTime") {
+        const openIndex = timeOptions.indexOf(value);
+        const closeIndex = timeOptions.indexOf(newSlots[slotIndex].closeTime);
+        if (closeIndex <= openIndex) {
+          newSlots[slotIndex].closeTime = getNextTimeOption(value);
+        }
+      }
+
       return {
         ...prevSchedule,
         [day]: { ...currentDay, timeSlots: newSlots },
@@ -169,7 +234,9 @@ const Settings = () => {
 
   const getNextTimeOption = (currentTime) => {
     const index = timeOptions.indexOf(currentTime);
-    return timeOptions[index + 1] || timeOptions[index];
+    return index + 1 < timeOptions.length
+      ? timeOptions[index + 1]
+      : timeOptions[index];
   };
 
   const getSignedUrl = async () => {
@@ -198,7 +265,6 @@ const Settings = () => {
     }
     try {
       const response = await axios.put(url, file, {
-        // headers: { "Content-Type": "image/*" },
         headers: { "Content-Type": file.type },
       });
     } catch (error) {
@@ -219,7 +285,111 @@ const Settings = () => {
     }
   };
 
+  const hasChanges = () => {
+    let changesDetected = false;
+
+    if (pharmacyName !== user?.pharmacy?.name) {
+      console.log("Pharmacy name changed:", pharmacyName);
+      changesDetected = true;
+    }
+
+    if (address !== user?.pharmacy?.address) {
+      console.log("Address changed:", address);
+      changesDetected = true;
+    }
+
+    if (isActive !== user?.pharmacy?.isActive) {
+      console.log("Active status changed:", isActive);
+      changesDetected = true;
+    }
+
+    if (canDeliver !== user?.pharmacy?.canDeliver) {
+      console.log("Home delivery changed:", canDeliver);
+      changesDetected = true;
+    }
+
+    if (deliveryPrice !== user?.pharmacy?.deliveryPrice) {
+      console.log("Delivery price changed:", deliveryPrice);
+      changesDetected = true;
+    }
+
+    const hasScheduleChanges = !schedulesAreEqual(
+      schedule,
+      user?.pharmacy?.schedules
+    );
+    console.log("🚀 ~ hasChanges ~ hasScheduleChanges:", hasScheduleChanges);
+
+    if (hasScheduleChanges) {
+      console.log("Schedule changed:");
+      console.log("Old Schedule:", user?.pharmacy?.schedules);
+      console.log("New Schedule:", schedule);
+      changesDetected = true;
+    }
+
+    if (imageKey !== null) {
+      console.log("Image changed:", imageKey);
+      changesDetected = true;
+    }
+
+    return changesDetected;
+  };
+
+  const schedulesAreEqual = (a, b) => {
+    if (JSON.stringify(a) === JSON.stringify(b)) {
+      return true;
+    }
+
+    for (const day of Object.keys(a)) {
+      const dayA = a[day] || { isOpen: false, timeSlots: [] };
+      const dayB = b[day] || { isOpen: false, timeSlots: [] };
+
+      if (dayA.isOpen !== dayB.isOpen) {
+        return false;
+      }
+
+      if (dayA.timeSlots.length !== dayB.timeSlots.length) {
+        return false;
+      }
+
+      for (let i = 0; i < dayA.timeSlots.length; i++) {
+        const slotA = dayA.timeSlots[i];
+        const slotB = dayB.timeSlots[i];
+
+        if (
+          slotA.openTime !== slotB.openTime ||
+          slotA.closeTime !== slotB.closeTime
+        ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  const deepEqual = (a, b) => {
+    console.log("🚀 ~ deepEqual ~ a, b:", a, b);
+    if (JSON.stringify(a) === JSON.stringify(b)) {
+      return true;
+    }
+    return JSON.stringify(a) !== JSON.stringify(b);
+  };
+
   const handleSave = async () => {
+    if (!pharmacyName.trim()) {
+      toast.error("Le nom de la pharmacie est obligatoire.");
+      return;
+    }
+
+    if (!address.trim()) {
+      toast.error("L'adresse est obligatoire.");
+      return;
+    }
+    if (!hasChanges()) {
+      toast.info("Aucune modification détectée.");
+      return;
+    }
+
     setIsSaving(true);
     const payload = {
       name: pharmacyName,
@@ -235,14 +405,30 @@ const Settings = () => {
     }
 
     for (const day in schedule) {
-      if (schedule[day].isOpen && schedule[day].timeSlots.length > 0) {
+      if (
+        schedule[day].isOpen !== false ||
+        schedule[day].timeSlots.length > 0
+      ) {
         payload.schedules[day] = {
           isOpen: schedule[day].isOpen,
-          timeSlots: schedule[day].timeSlots.filter((slot) => {
-            const openIndex = timeOptions.indexOf(slot.openTime);
-            const closeIndex = timeOptions.indexOf(slot.closeTime);
-            return closeIndex > openIndex;
-          }),
+          timeSlots: schedule[day].timeSlots
+            .filter((slot) => {
+              const openTime =
+                slot.openTime === "23:59" ? "24:00" : slot.openTime;
+              const closeTime =
+                slot.closeTime === "23:59" ? "24:00" : slot.closeTime;
+              const openIndex = timeOptions.indexOf(openTime);
+              const closeIndex = timeOptions.indexOf(closeTime);
+              return (
+                closeIndex > openIndex ||
+                (slot.closeTime === "23:59" &&
+                  openIndex < timeOptions.indexOf("24:00"))
+              );
+            })
+            .map((slot) => ({
+              openTime: slot.openTime,
+              closeTime: slot.closeTime === "24:00" ? "23:59" : slot.closeTime,
+            })),
         };
       }
     }
@@ -263,9 +449,11 @@ const Settings = () => {
   };
 
   return (
-    <div className="mx-auto py-6 px-12 bg-white">
-      <h1 className="text-2xl font-semibold mb-8 text-gray-800">Paramètres</h1>
-      <div className="w-[70%]">
+    <div className="mx-auto py-6 px-12 bg-gray-100">
+      <h1 className="text-2xl font-semibold mb-8 text-gray-800 w-[80%]  mx-auto">
+        Paramètres
+      </h1>
+      <div className="w-[80%] mx-auto bg-white shadow-md rounded-lg p-8 mt-12">
         {/* Nom de la pharmacie */}
         <div className="mb-6 flex items-center border-b border-gray-300 pb-4">
           <label className="w-[25%] text-md font-bold text-gray-700 mr-4">
@@ -359,7 +547,9 @@ const Settings = () => {
                       >
                         <select
                           className="px-2 py-1  rounded-2xl text-sm text-black bg-gray-100"
-                          value={slot.openTime || "9:00"}
+                          value={
+                            slot.openTime === "23:59" ? "24:00" : slot.openTime
+                          }
                           onChange={(e) =>
                             handleTimeChange(
                               key,
@@ -369,8 +559,19 @@ const Settings = () => {
                             )
                           }
                         >
-                          {timeOptions.map((time) => (
-                            <option key={time} value={time}>
+                          {timeOptions.map((time, idx) => (
+                            <option
+                              key={time}
+                              value={time}
+                              disabled={
+                                (index === 1 &&
+                                  idx <=
+                                    timeOptions.indexOf(
+                                      schedule[key].timeSlots[0].closeTime
+                                    )) ||
+                                time === "24:00"
+                              }
+                            >
                               {time}
                             </option>
                           ))}
@@ -378,7 +579,11 @@ const Settings = () => {
                         <span className="text-gray-500">-</span>
                         <select
                           className="px-2 py-1 rounded-2xl text-sm text-black bg-gray-100"
-                          value={slot.closeTime || "12:00"}
+                          value={
+                            slot.closeTime === "23:59"
+                              ? "24:00"
+                              : slot.closeTime
+                          }
                           onChange={(e) =>
                             handleTimeChange(
                               key,
@@ -388,24 +593,32 @@ const Settings = () => {
                             )
                           }
                         >
-                          {timeOptions.map((time) => (
-                            <option key={time} value={time}>
+                          {timeOptions.map((time, idx) => (
+                            <option
+                              key={time}
+                              value={time}
+                              disabled={
+                                idx <= timeOptions.indexOf(slot.openTime)
+                              }
+                            >
                               {time}
                             </option>
                           ))}
                         </select>
                       </div>
                     ))}
-                    {schedule[key].timeSlots.length < 2 && (
-                      <button
-                        className="ml-2 w-6 h-6 flex items-center justify-center bg-teal-500 text-white rounded-full hover:bg-teal-600 mx-auto"
-                        onClick={() => addTimeSlot(key)}
-                      >
-                        <span className="flex items-center justify-center">
-                          <IoIosAdd className="text-md" />
-                        </span>
-                      </button>
-                    )}
+                    {schedule[key].timeSlots.length < 2 &&
+                      schedule[key].timeSlots[0]?.closeTime !== "23:00" &&
+                      schedule[key].timeSlots[0]?.closeTime !== "23:59" && (
+                        <button
+                          className="ml-2 w-6 h-6 flex items-center justify-center bg-teal-500 text-white rounded-full hover:bg-teal-600 mx-auto"
+                          onClick={() => addTimeSlot(key)}
+                        >
+                          <span className="flex items-center justify-center">
+                            <IoIosAdd className="text-md" />
+                          </span>
+                        </button>
+                      )}
                   </div>
                 )}
               </div>
