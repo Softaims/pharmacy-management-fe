@@ -154,9 +154,6 @@ const OrderSidebar = ({
             </button>
           ))}
         </div>
-        <p className="pt-2 font-semibold text-sm text-black">
-          Renouvellements automatiques
-        </p>
       </div>
 
       {/* Orders List */}
@@ -228,7 +225,7 @@ const OrderSidebar = ({
                   : "hover:bg-gray-50"
               }`}
             >
-              <div className="flex items-start justify-between">
+              <div className="flex  items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900 text-sm truncate">
                     {name.trim()}
