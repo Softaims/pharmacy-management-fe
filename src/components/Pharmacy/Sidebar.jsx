@@ -11,7 +11,7 @@ export default function Sidebar() {
         <img
           src={logo}
           alt="Pharmacy Logo"
-          className="h-8 w-8 object-contain"
+          className="h-12 w-12 object-cover"
         />
       </div>
       <nav className="mt-4 flex flex-col gap-4 items-center flex-1">
