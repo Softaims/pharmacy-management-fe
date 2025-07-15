@@ -131,7 +131,7 @@ const OrderSidebar = ({
             placeholder="Rechercher patient..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="py-1 pl-3 bg-[#F0F0F0] rounded-xl w-full text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="py-1 pl-3 bg-[#F0F0F0] rounded-xl w-full text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
 

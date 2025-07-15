@@ -4,6 +4,7 @@ import imgicon from "../../assets/ajouter-une-image.png";
 import { useAuth } from "../../contexts/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
 import axios from "axios";
+import { IoIosAdd } from "react-icons/io";
 
 const Settings = () => {
   const { user, logout } = useAuth();
@@ -24,7 +25,11 @@ const Settings = () => {
   const [signedUrl, setSignedUrl] = useState(null);
   const [imageKey, setImageKey] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState(
-    user?.pharmacy?.image || ""
+    user?.pharmacy?.imageUrl || ""
+  );
+  console.log(
+    "🚀 ~ Settings ~ uploadedImageUrl:,,,,,,,,,,,,,,,,,,",
+    uploadedImageUrl
   );
 
   // Initialize schedule state based on API response
@@ -46,7 +51,7 @@ const Settings = () => {
       setIsActive(user.pharmacy.isActive || false);
       setCanDeliver(user.pharmacy.canDeliver || false);
       setDeliveryPrice(user.pharmacy.deliveryPrice || 1);
-      setUploadedImageUrl(user.pharmacy.image || "");
+      setUploadedImageUrl(user.pharmacy.imageUrl || "");
 
       // Transform API schedules to match component's schedule format
       if (user.pharmacy.schedules) {
@@ -193,7 +198,8 @@ const Settings = () => {
     }
     try {
       const response = await axios.put(url, file, {
-        headers: { "Content-Type": "image/*" },
+        // headers: { "Content-Type": "image/*" },
+        headers: { "Content-Type": file.type },
       });
     } catch (error) {
       setImageKey(null);
@@ -255,10 +261,10 @@ const Settings = () => {
   return (
     <div className="mx-auto py-6 px-12 bg-white">
       <h1 className="text-2xl font-semibold mb-8 text-gray-800">Paramètres</h1>
-      <div className="w-[60%]">
+      <div className="w-[70%]">
         {/* Nom de la pharmacie */}
         <div className="mb-6 flex items-center border-b border-gray-300 pb-4">
-          <label className="w-[30%] text-sm font-medium text-gray-700 mr-4">
+          <label className="w-[25%] text-md font-bold text-gray-700 mr-4">
             Nom de la pharmacie :
           </label>
           <input
@@ -270,14 +276,14 @@ const Settings = () => {
         </div>
 
         {/* Image Upload Section */}
-        <div className="mb-6 flex items-center border-b border-gray-300 pb-4">
-          <label className="w-[30%] text-sm font-medium text-gray-700 mr-4">
+        <div className="mb-6 flex items-start border-b border-gray-300 pb-4">
+          <label className="w-[25%] text-md font-bold text-gray-700 mr-4">
             Image :
           </label>
           <div className="w-full">
             <div className="flex items-center space-x-4">
               <div
-                className="w-32 h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-pointer"
+                className="w-48 flex items-center justify-center  h-32 bg-gray-100 rounded-3xl overflow-hidden cursor-pointer"
                 onClick={() => document.getElementById("imageUpload").click()}
               >
                 {uploadedImageUrl ? (
@@ -290,7 +296,7 @@ const Settings = () => {
                   <img
                     src={imgicon}
                     alt="Upload Icon"
-                    className="w-16 h-16 mx-auto mt-4"
+                    className="w-12 h-12 flex items-center justify-center mx-auto "
                   />
                 )}
               </div>
@@ -307,7 +313,7 @@ const Settings = () => {
 
         {/* Adresse */}
         <div className="mb-6 flex items-center border-b border-gray-300 pb-4">
-          <label className="w-[30%] text-sm font-medium text-gray-700 mr-4">
+          <label className="w-[25%] text-md font-bold text-gray-700 mr-4">
             Adresse :
           </label>
           <input
@@ -320,21 +326,21 @@ const Settings = () => {
 
         {/* Horaires d'ouverture */}
         <div className="mb-8 border-b border-gray-300 pb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-4">
+          <label className="block text-md font-bold text-gray-700 mb-4">
             Horaires :
           </label>
-          <div className="space-y-3">
+          <div className="space-y-3 pl-12">
             {days.map(({ key, label }) => (
-              <div key={key} className="flex items-center gap-4">
+              <div key={key} className="flex items-center gap-10">
                 <div className="w-20 text-sm text-gray-700">{label}</div>
-                <label className="inline-flex items-center cursor-pointer">
+                <label className="inline-flex items-center cursor-pointer justify-center">
                   <input
                     type="checkbox"
                     checked={schedule[key]?.isOpen ?? false}
                     onChange={() => handleToggle(key)}
                     className="sr-only peer"
                   />
-                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all  peer-checked:bg-blue-600 "></div>
+                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer  peer-focus:ring-blue-300  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all  peer-checked:bg-[#069AA2] "></div>
                   <span className="ms-3 text-sm font-medium text-gray-900 ">
                     {schedule[key]?.isOpen ? "Ouvert" : "Fermé"}
                   </span>
@@ -342,9 +348,12 @@ const Settings = () => {
                 {schedule[key]?.isOpen && (
                   <div className="flex items-center gap-2 flex-wrap">
                     {schedule[key].timeSlots.map((slot, index) => (
-                      <div key={index} className="flex items-center gap-2 mb-2">
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 mb-2 px-2"
+                      >
                         <select
-                          className="px-2 py-1 border border-gray-300 rounded text-sm text-black bg-white"
+                          className="px-2 py-1  rounded-2xl text-sm text-black bg-gray-100"
                           value={slot.openTime || "9:00"}
                           onChange={(e) =>
                             handleTimeChange(
@@ -363,7 +372,7 @@ const Settings = () => {
                         </select>
                         <span className="text-gray-500">-</span>
                         <select
-                          className="px-2 py-1 border border-gray-300 rounded text-sm text-black bg-white"
+                          className="px-2 py-1 rounded-2xl text-sm text-black bg-gray-100"
                           value={slot.closeTime || "12:00"}
                           onChange={(e) =>
                             handleTimeChange(
@@ -384,10 +393,12 @@ const Settings = () => {
                     ))}
                     {schedule[key].timeSlots.length < 2 && (
                       <button
-                        className="ml-2 px-2 py-1 bg-teal-500 text-white rounded hover:bg-teal-600"
+                        className="ml-2 w-6 h-6 flex items-center justify-center bg-teal-500 text-white rounded-full hover:bg-teal-600 mx-auto"
                         onClick={() => addTimeSlot(key)}
                       >
-                        +
+                        <span className="flex items-center justify-center">
+                          <IoIosAdd className="text-md" />
+                        </span>
                       </button>
                     )}
                   </div>
@@ -398,34 +409,40 @@ const Settings = () => {
         </div>
 
         <div className="mb-6 flex items-center gap-4 border-b border-gray-300 pb-8">
-          <label className="w-[30%] text-sm font-medium text-gray-700">
-            Click and Collect :
+          <label className="w-[25%] text-md font-bold text-gray-700">
+            Click and Collect
           </label>
-          <div className="flex bg-gray-200 w-[10rem] h-[2rem] rounded-full">
+          <div className="flex bg-gray-200 w-[13rem] h-[2rem] rounded-full">
             <div className="flex-1 text-center font-medium text-gray-500 cursor-not-allowed opacity-50"></div>
-            <div className="flex-1 text-center justify-center items-center font-medium text-white bg-[#B0B0B0] rounded-full cursor-not-allowed opacity-80">
-              {isActive ? "Actif" : "Inactif"}
+            <div className="flex-1 text-center justify-center items-center font-medium text-white bg-[#069AA2] rounded-full cursor-not-allowed opacity-80">
+              <span className=" mt-[3.5px] flex items-center justify-center text-center">
+                {" "}
+                {isActive ? "Actif" : "Inactif"}
+              </span>
             </div>
           </div>
         </div>
 
         <div className="border-b border-gray-300 pb-8 mb-6">
           <div className=" flex items-center gap-4 ">
-            <label className="w-[30%] text-sm font-medium text-gray-700">
-              Livraison à domicile :
+            <label className="w-[25%] text-md font-bold text-gray-700">
+              Livraison à domicile
             </label>
             <div
-              className="flex bg-gray-200 w-[10rem] h-[2rem] rounded-full cursor-pointer"
+              className="flex bg-gray-200 w-[13rem] h-[2rem] rounded-full cursor-pointer"
               onClick={handleHomeDeliveryToggle}
             >
               <div
-                className={`flex-1 text-center font-medium ${
+                className={`flex-1 text-center justify-center font-medium ${
                   canDeliver
                     ? "text-transparent bg-transparent"
                     : "text-white bg-[#E9486C]"
                 } rounded-full transition-colors`}
               >
-                Désactivé
+                <span className=" flex items-center justify-center mt-0.5">
+                  {" "}
+                  Désactivé
+                </span>
               </div>
               <div
                 className={`flex-1 text-center font-medium ${
@@ -434,31 +451,34 @@ const Settings = () => {
                     : "text-transparent bg-transparent"
                 } rounded-full transition-colors`}
               >
-                Actif
+                <span className=" flex items-center justify-center mt-0.5">
+                  {" "}
+                  Actif
+                </span>
               </div>
             </div>
           </div>
           {canDeliver && (
             <div className="flex items-center gap-6 mt-6 mx-8">
-              <label className="text-sm w-[30%] font-medium text-gray-700">
+              <label className="text-md w-[25%] font-bold text-gray-700">
                 Prix d'une livraison :
               </label>
-              <div className="flex items-center gap-2 bg-gray-300 rounded-2xl">
+              <div className="flex items-center gap-2 bg-[#F6F6F6] rounded-2xl">
                 <button
-                  className="px-2 text-lg font-bold rounded text-gray-400 hover:text-gray-900"
+                  className="px-2 text-lg font-bold rounded text-gray-900"
                   onClick={() => handleDeliveryPriceChange(false)}
                 >
                   -
                 </button>
-                <span className="text-gray-700">{deliveryPrice}</span>
+                <span className="text-gray-900">{deliveryPrice}</span>
                 <button
-                  className="px-2 text-lg font-bold text-gray-400 hover:text-gray-900"
+                  className="px-2 text-lg font-bold text-gray-900"
                   onClick={() => handleDeliveryPriceChange(true)}
                 >
                   +
                 </button>
               </div>
-              <h4>Euros</h4>
+              <h4 className="text-gray-900">Euros</h4>
             </div>
           )}
         </div>
