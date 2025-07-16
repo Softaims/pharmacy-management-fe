@@ -446,7 +446,7 @@ const Orders = () => {
           )}
         </div>
       )}
-      <div className="hidden lg:flex flex-1">
+      <div className="hidden lg:flex flex-1 overflow-hidden">
         <div className="w-[60%]">
           <OrderDocumentViewer
             selectedOrder={selectedOrder}

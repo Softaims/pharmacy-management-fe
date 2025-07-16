@@ -13,15 +13,34 @@ const OrderDocumentViewer = ({
     { id: "vitalCard", label: "Mutuelle", urlKey: "vitalCardUrl" },
   ];
 
-  // Static fallback URL in case the backend doesn't provide a URL
-  const fallbackUrl =
-    "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
-
   // Get the URL for the active document tab
   const getDocumentUrl = () => {
     const activeTab = documentTabs.find((tab) => tab.id === activeDocumentTab);
-    // Check if there's a valid URL from the selected order, otherwise fall back to the static URL
-    return selectedOrder?.[activeTab.urlKey] || fallbackUrl;
+    if (!activeTab || !selectedOrder) return null;
+
+    let url = null;
+    const isSelf = selectedOrder.orderFor === "self";
+    console.log("🚀 ~ getDocumentUrl ~ isSelf:", isSelf);
+
+    const source = isSelf ? selectedOrder.patient : selectedOrder.familyMember;
+    console.log("🚀 ~ getDocumentUrl ~ source:", source);
+
+    switch (activeTab.id) {
+      case "prescription":
+        url = selectedOrder.prescriptionUrl;
+        break;
+      case "mutualCard":
+        url = source?.healthCoverages?.carteVitale;
+        break;
+      case "vitalCard":
+        url = source?.healthCoverages?.ameCoverage?.mediaUrl;
+        break;
+      default:
+        break;
+    }
+
+    console.log("🚀 ~ getDocumentUrl ~ url:", url);
+    return url ? url : null;
   };
 
   const documentUrl = getDocumentUrl();
