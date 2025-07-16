@@ -8,20 +8,43 @@ const OrderDocumentViewer = ({
 }) => {
   // Document tab configuration for scalability
   const documentTabs = [
-    { id: "prescription", label: "Ordonnance", urlKey: "prescriptionUrl" },
-    { id: "mutualCard", label: "Carte Vitale", urlKey: "mutualCardUrl" },
-    { id: "vitalCard", label: "Mutuelle", urlKey: "vitalCardUrl" },
+    { id: "prescription", label: "Ordonnance" },
+    { id: "mutualCard", label: "Carte Vitale" },
+    { id: "vitalCard", label: "Mutuelle" },
+    { id: "ameCard", label: "AME" },
   ];
 
-  // Static fallback URL in case the backend doesn't provide a URL
-  const fallbackUrl =
-    "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
-
-  // Get the URL for the active document tab
+  // Get the URL for the active document tab or Social Security Number
   const getDocumentUrl = () => {
     const activeTab = documentTabs.find((tab) => tab.id === activeDocumentTab);
-    // Check if there's a valid URL from the selected order, otherwise fall back to the static URL
-    return selectedOrder?.[activeTab.urlKey] || fallbackUrl;
+    if (!activeTab || !selectedOrder) return null;
+
+    let url = null;
+    const isSelf = selectedOrder.orderFor === "self";
+    console.log("🚀 ~ getDocumentUrl ~ isSelf:", isSelf);
+
+    const source = isSelf ? selectedOrder.patient : selectedOrder.familyMember;
+    console.log("🚀 ~ getDocumentUrl ~ source:", source);
+
+    switch (activeTab.id) {
+      case "prescription":
+        url = selectedOrder.prescriptionUrl;
+        break;
+      case "mutualCard":
+        url = source?.healthCoverages?.carteVitale?.socialSecurityNumber;
+        break;
+      case "vitalCard":
+        url = source?.healthCoverages?.privateCoverage?.mediaUrl;
+        break;
+      case "ameCard":
+        url = source?.healthCoverages?.ameCoverage?.mediaUrl;
+        break;
+      default:
+        break;
+    }
+
+    console.log("🚀 ~ getDocumentUrl ~ url:", url);
+    return url ? url : null;
   };
 
   const documentUrl = getDocumentUrl();
@@ -49,7 +72,23 @@ const OrderDocumentViewer = ({
 
       {/* Document Viewer */}
       <div className="flex-1 overflow-auto p-6">
-        {documentUrl ? (
+        {activeDocumentTab === "mutualCard" ? (
+          // Show Social Security Number for Carte Vitale tab
+          documentUrl ? (
+            <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
+              <p className="text-sm text-gray-500">
+                Social Security Number: {documentUrl}
+              </p>
+            </div>
+          ) : (
+            <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
+              <p className="text-sm text-gray-500">
+                No Social Security Number available
+              </p>
+            </div>
+          )
+        ) : documentUrl ? (
+          // Show PDF for other tabs
           <PdfViewer file={documentUrl} />
         ) : (
           <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">

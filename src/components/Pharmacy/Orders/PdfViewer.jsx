@@ -16,9 +16,6 @@ import "@react-pdf-viewer/full-screen/lib/styles/index.css";
 import "@react-pdf-viewer/print/lib/styles/index.css";
 
 const PdfViewer = ({ file }) => {
-  const pdfUrl =
-    "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf";
-
   const zoomPluginInstance = zoomPlugin();
   const { ZoomOut, ZoomIn, CurrentScale } = zoomPluginInstance;
 
@@ -52,7 +49,7 @@ const PdfViewer = ({ file }) => {
       >
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
           <Viewer
-            fileUrl={pdfUrl}
+            fileUrl={file}
             plugins={[
               zoomPluginInstance,
               fullScreenPluginInstance,

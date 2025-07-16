@@ -32,13 +32,16 @@ const DashboardPage = () => {
           address: pharmacy.address,
           status: pharmacy.isActive ? "Active" : "Inactif",
           joinedDate: dayjs(pharmacy.createdAt).format("DD MMMM YYYY"),
+          createdAt: pharmacy.createdAt,
         }));
         console.log(
           "🚀 ~ transformedPharmacies ~ transformedPharmacies:",
           transformedPharmacies
         );
-
-        setPharmacies(transformedPharmacies);
+        const sortedPharmacies = transformedPharmacies.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setPharmacies(sortedPharmacies);
       } catch (error) {
         console.error("Error fetching pharmacies:", error.message);
         // Optionally handle error (e.g., show notification)

@@ -446,7 +446,7 @@ const Orders = () => {
           )}
         </div>
       )}
-      <div className="hidden lg:flex flex-1">
+      <div className="hidden lg:flex flex-1 overflow-hidden">
         <div className="w-[60%]">
           <OrderDocumentViewer
             selectedOrder={selectedOrder}
@@ -619,7 +619,7 @@ const Orders = () => {
                       note: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 placeholder:text-gray-200 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                  className="w-full px-3 py-2 placeholder:text-gray-400 text-gray-700 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
                   rows="3"
                   placeholder="Entrez une note..."
                 />
