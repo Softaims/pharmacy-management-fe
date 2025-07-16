@@ -321,7 +321,7 @@ const AddPharmacyModal = ({
           status: "Active",
           joinedDate: dayjs(result.data.createdAt).format("DD MMMM YYYY"),
         };
-        setPharmacies([...pharmacies, newPharmacyData]);
+        setPharmacies([newPharmacyData, ...pharmacies]);
         toast.success("Pharmacie ajoutée avec succès !", {
           autoClose: 3000,
           theme: "dark",
