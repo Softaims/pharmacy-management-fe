@@ -8,9 +8,10 @@ const OrderDocumentViewer = ({
 }) => {
   // Document tab configuration for scalability
   const documentTabs = [
-    { id: "prescription", label: "Ordonnance", urlKey: "prescriptionUrl" },
-    { id: "mutualCard", label: "Carte Vitale", urlKey: "mutualCardUrl" },
-    { id: "vitalCard", label: "Mutuelle", urlKey: "vitalCardUrl" },
+    { id: "prescription", label: "Ordonnance" },
+    { id: "mutualCard", label: "Carte Vitale" },
+    { id: "vitalCard", label: "Mutuelle" },
+    { id: "ameCard", label: "AME" },
   ];
 
   // Get the URL for the active document tab or Social Security Number
@@ -30,10 +31,12 @@ const OrderDocumentViewer = ({
         url = selectedOrder.prescriptionUrl;
         break;
       case "mutualCard":
-        // For "Carte Vitale", return the Social Security Number instead of a URL
         url = source?.healthCoverages?.carteVitale?.socialSecurityNumber;
         break;
       case "vitalCard":
+        url = source?.healthCoverages?.privateCoverage?.mediaUrl;
+        break;
+      case "ameCard":
         url = source?.healthCoverages?.ameCoverage?.mediaUrl;
         break;
       default:
