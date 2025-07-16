@@ -13,7 +13,7 @@ const OrderDocumentViewer = ({
     { id: "vitalCard", label: "Mutuelle", urlKey: "vitalCardUrl" },
   ];
 
-  // Get the URL for the active document tab
+  // Get the URL for the active document tab or Social Security Number
   const getDocumentUrl = () => {
     const activeTab = documentTabs.find((tab) => tab.id === activeDocumentTab);
     if (!activeTab || !selectedOrder) return null;
@@ -30,7 +30,8 @@ const OrderDocumentViewer = ({
         url = selectedOrder.prescriptionUrl;
         break;
       case "mutualCard":
-        url = source?.healthCoverages?.carteVitale;
+        // For "Carte Vitale", return the Social Security Number instead of a URL
+        url = source?.healthCoverages?.carteVitale?.socialSecurityNumber;
         break;
       case "vitalCard":
         url = source?.healthCoverages?.ameCoverage?.mediaUrl;
@@ -68,7 +69,23 @@ const OrderDocumentViewer = ({
 
       {/* Document Viewer */}
       <div className="flex-1 overflow-auto p-6">
-        {documentUrl ? (
+        {activeDocumentTab === "mutualCard" ? (
+          // Show Social Security Number for Carte Vitale tab
+          documentUrl ? (
+            <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
+              <p className="text-sm text-gray-500">
+                Social Security Number: {documentUrl}
+              </p>
+            </div>
+          ) : (
+            <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
+              <p className="text-sm text-gray-500">
+                No Social Security Number available
+              </p>
+            </div>
+          )
+        ) : documentUrl ? (
+          // Show PDF for other tabs
           <PdfViewer file={documentUrl} />
         ) : (
           <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">

@@ -18,8 +18,10 @@ class ErrorBoundary extends React.Component {
       // Fallback UI
       return (
         <div>
-          <h1>Something went wrong.</h1>
-          <p>{this.state.error?.message || "An unexpected error occurred."}</p>
+          <h1 className=" text-black">Something went wrong.</h1>
+          <p className="text-black">
+            {this.state.error?.message || "An unexpected error occurred."}
+          </p>
         </div>
       );
     }
