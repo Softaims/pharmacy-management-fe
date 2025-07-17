@@ -62,6 +62,7 @@ const AddPharmacyModal = ({
       if (place.geometry) {
         const latitude = place.geometry.location.lat();
         const longitude = place.geometry.location.lng();
+
         setNewPharmacy({
           ...newPharmacy,
           address: place.formatted_address,
@@ -97,12 +98,22 @@ const AddPharmacyModal = ({
       const response = await new Promise((resolve, reject) => {
         geocoder.geocode({ address }, (results, status) => {
           if (status === "OK" && results[0]) {
-            resolve(results[0]);
+            // Check if the match is too vague
+            if (results[0].partial_match) {
+              reject(
+                new Error(
+                  "L'adresse est trop vague, veuillez entrer une adresse plus précise"
+                )
+              );
+            } else {
+              resolve(results[0]);
+            }
           } else {
             reject(new Error("Adresse non valide ou introuvable"));
           }
         });
       });
+
       console.log("🚀 ~ response ~ response:", response);
 
       const { lat, lng } = response.geometry.location;
@@ -117,6 +128,7 @@ const AddPharmacyModal = ({
       setErrors({
         ...errors,
         address:
+          error.message ||
           "Impossible de géocoder l'adresse. Veuillez vérifier l'adresse saisie.",
       });
       return false;
@@ -297,14 +309,15 @@ const AddPharmacyModal = ({
       [name]: error,
     });
 
-    // Geocode address on blur if latitude and longitude are null
-    if (
-      name === "address" &&
-      newPharmacy.address &&
-      !newPharmacy.latitude &&
-      !newPharmacy.longitude
-    ) {
-      await geocodeAddress(newPharmacy.address);
+    if (name === "address" && newPharmacy.address) {
+      // Ensure the user entered a valid address
+      const success = await geocodeAddress(newPharmacy.address);
+      if (!success) {
+        setErrors({
+          ...errors,
+          address: "Veuillez entrer une adresse correcte et précise.",
+        });
+      }
     }
   };
 
