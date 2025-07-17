@@ -20,7 +20,7 @@ export default function Sidebar() {
           className="h-12 w-12 object-cover"
         />
       </div>
-      <nav className="mt-4 flex flex-col gap-4 items-center flex-1">
+      <nav className="mt-10 flex flex-col gap-8 items-center flex-1">
         {menuItems.map((item) => (
           <div key={item.id} className="relative group">
             <Link

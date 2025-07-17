@@ -9,11 +9,18 @@ export default function PharmacyDashboard() {
   return (
     <div className="flex h-screen">
       {/* Fixed Sidebar */}
-      <div className="w-18  shadow-lg">
+      <div className="w-[98px]  shadow-lg">
         <Sidebar />
       </div>
-      <div className="flex-1">
+      <div className="flex-1 ">
         {/* Add margin-left for sidebar */}
+        <div className="text-[#069AA2] flex items-center justify-center border-b border-gray-200 h-[80px] px-4 bshadow-lg rounded-lg">
+          <h3 className="text-2xl font-semibold text-center leading-tight">
+            <span className="font-bold">Mezardopro :</span> Gestion Intelligente
+            de la Pharmacie
+          </h3>
+        </div>
+
         <Routes>
           <Route
             path="/"

@@ -155,18 +155,17 @@ const OrderDetailsSidebar = ({
 
   return (
     <div className="bg-white flex flex-col overflow-y-auto overflow-x-hidden h-full">
-      <div className="mx-2">
-        <nav className="flex flex-row justify-between gap-2 px-4 pt-4 overflow-x-auto">
+      <div className="mx-2 pt-2">
+        <nav className="flex space-x-0 bg-white rounded-lg overflow-hidden border border-gray-300">
           {detailsTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveDetailsTab(tab.id)}
-              className={`py-2 font-medium text-base sm:text-lg rounded-t-lg transition-colors relative ${
+              className={`py-2 px-6 text-gray-700 font-medium text-[12px] h-[52px] transition-colors flex-1 ${
                 activeDetailsTab === tab.id
-                  ? "text-[#069AA2] border-b-2 border-[#069AA2] bg-transparent"
-                  : "text-gray-500 hover:text-gray-700 bg-transparent border-b-2 border-transparent"
+                  ? "bg-gray-200 text-gray-900 flex-grow"
+                  : "bg-white hover:bg-gray-100 text-gray-600 hover:text-gray-800"
               }`}
-              style={{ background: "none" }}
             >
               {tab.label}
             </button>
