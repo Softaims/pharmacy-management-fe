@@ -52,16 +52,16 @@ const OrderDocumentViewer = ({
   return (
     <div className="flex flex-col h-full">
       {/* Document Tabs */}
-      <div className="">
-        <nav className="flex space-x-8 px-6 pt-4">
+      <div className="px-2 pt-2">
+        <nav className="flex space-x-0 bg-white rounded-lg overflow-hidden border border-gray-300">
           {documentTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveDocumentTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-2 px-6 text-gray-700 font-medium text-[12px] h-[52px] transition-colors flex-1 ${
                 activeDocumentTab === tab.id
-                  ? "border-[#069AA2] text-[#069AA2]"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "bg-gray-200 text-gray-900 flex-grow"
+                  : "bg-white hover:bg-gray-100 text-gray-600 hover:text-gray-800"
               }`}
             >
               {tab.label}
