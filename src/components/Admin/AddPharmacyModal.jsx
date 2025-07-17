@@ -133,12 +133,7 @@ const AddPharmacyModal = ({
     if (!address || address.trim() === "") {
       return "L'adresse est obligatoire";
     }
-    if (address.trim().length < 10) {
-      return "L'adresse doit contenir au moins 10 caractères";
-    }
-    if (address.trim().split(" ").length < 2) {
-      return "Veuillez entrer une adresse complète";
-    }
+
     return "";
   };
 
@@ -467,55 +462,40 @@ const AddPharmacyModal = ({
 
         {/* Form */}
         <div className="space-y-4">
-          {formFields.map((field) => (
-            <div key={field.name} className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {field.label}
-              </label>
-              <div className="relative">
-                <input
-                  type={field.type}
-                  value={newPharmacy[field.name]}
-                  onChange={(e) =>
-                    handleInputChange(field.name, e.target.value)
-                  }
-                  onBlur={() => handleBlur(field.name)}
-                  className={`w-full px-3 py-2 border placeholder:text-[12px] placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200 ${
-                    errors[field.name] && touched[field.name]
-                      ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500 "
-                      : "border-gray-300 hover:border-gray-400"
-                  }`}
-                  placeholder={field.placeholder}
-                />
-                {field.isPassword && (
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                    aria-label={
-                      showPassword
-                        ? "Masquer le mot de passe"
-                        : "Afficher le mot de passe"
+          {/* Render only the "Nom de la pharmacie" field first */}
+          {formFields
+            .filter((field) => field.name === "name")
+            .map((field) => (
+              <div key={field.name} className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {field.label}
+                </label>
+                <div className="relative">
+                  <input
+                    type={field.type}
+                    value={newPharmacy[field.name]}
+                    onChange={(e) =>
+                      handleInputChange(field.name, e.target.value)
                     }
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
+                    onBlur={() => handleBlur(field.name)}
+                    className={`w-full px-3 py-2 border placeholder:text-[12px] placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200 ${
+                      errors[field.name] && touched[field.name]
+                        ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500 "
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                    placeholder={field.placeholder}
+                  />
+                </div>
+                {errors[field.name] && touched[field.name] && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center">
+                    <span className="mr-1">⚠</span>
+                    {errors[field.name]}
+                  </p>
                 )}
               </div>
-              {errors[field.name] && touched[field.name] && (
-                <p className="text-red-500 text-xs mt-1 flex items-center">
-                  <span className="mr-1">⚠</span>
-                  {errors[field.name]}
-                </p>
-              )}
-            </div>
-          ))}
-
-          <div>
+            ))}
+          {/* Add the "Adresse" field as the second field */}
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Adresse *
             </label>
@@ -529,27 +509,66 @@ const AddPharmacyModal = ({
                 onChange={handleAddressChange}
                 className="w-full px-3 py-2 border placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 placeholder="Entrez l'adresse complète de la pharmacie"
+                style={{ width: "100%" }} /* Ensure full width */
               />
             </Autocomplete>
-            {/* <textarea
-              value={newPharmacy.address}
-              onChange={(e) => handleInputChange("address", e.target.value)}
-              onBlur={() => handleBlur("address")}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 placeholder:text-gray-300 text-black focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-colors duration-200 ${
-                errors.address && touched.address
-                  ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-300 hover:border-gray-400"
-              }`}
-              rows="3"
-              placeholder="Entrez l'adresse complète de la pharmacie"
-            />
             {errors.address && touched.address && (
               <p className="text-red-500 text-xs mt-1 flex items-center">
                 <span className="mr-1">⚠</span>
                 {errors.address}
               </p>
-            )} */}
+            )}
           </div>
+          {/* Render the remaining fields */}
+          {formFields
+            .filter((field) => field.name !== "name")
+            .map((field) => (
+              <div key={field.name} className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {field.label}
+                </label>
+                <div className="relative">
+                  <input
+                    type={field.type}
+                    value={newPharmacy[field.name]}
+                    onChange={(e) =>
+                      handleInputChange(field.name, e.target.value)
+                    }
+                    onBlur={() => handleBlur(field.name)}
+                    className={`w-full px-3 py-2 border placeholder:text-[12px] placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200 ${
+                      errors[field.name] && touched[field.name]
+                        ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500 "
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                    placeholder={field.placeholder}
+                  />
+                  {field.isPassword && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                      aria-label={
+                        showPassword
+                          ? "Masquer le mot de passe"
+                          : "Afficher le mot de passe"
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  )}
+                </div>
+                {errors[field.name] && touched[field.name] && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center">
+                    <span className="mr-1">⚠</span>
+                    {errors[field.name]}
+                  </p>
+                )}
+              </div>
+            ))}
         </div>
 
         {/* Footer */}
