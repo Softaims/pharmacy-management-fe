@@ -5,9 +5,4 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  build: {
-    rollupOptions: {
-      external: ["@react-google-maps/api"], // Mark @react-google-maps/api as external if you don't want it bundled
-    },
-  },
 });
