@@ -113,7 +113,7 @@ const Login = () => {
                 placeholder="Entrez votre e-mail"
                 value={email}
                 onChange={handleEmailChange}
-                className={`mt-1 w-full px-4 py-3 border ${
+                className={`mt-2 w-full px-4 py-3 border ${
                   emailError ? "border-red-500" : "border-gray-300"
                 } rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200`}
                 autoComplete="email"
@@ -140,7 +140,7 @@ const Login = () => {
                   placeholder="Entrez votre mot de passe"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200"
+                  className="mt-2 w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200"
                   autoComplete="current-password"
                   required
                   disabled={isLoading || loading}
