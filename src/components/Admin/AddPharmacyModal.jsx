@@ -22,17 +22,23 @@ const AddPharmacyModal = ({
     latitude: null,
     longitude: null,
   });
-  const [autocomplete, setAutocomplete] = useState(null); // State to store Autocomplete instance
+  const [autocomplete, setAutocomplete] = useState(null);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [lastMode, setLastMode] = useState(null); // Track the last mode (edit/add)
+  const [lastMode, setLastMode] = useState(null);
   const [loading, setLoading] = useState(false);
   const isEditMode = !!pharmacyToEdit;
+
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: "AIzaSyDE65cQp3MxQGqFHaIpcfC1wH7fcgACewY", // Replace with your API Key
-    libraries: ["places"], // Load places library
+    libraries: ["places"],
   });
+
+  // Initialize Geocoder
+  const geocoder = isLoaded ? new window.google.maps.Geocoder() : null;
+
+  // Handle place selection from Autocomplete dropdown
   const handlePlaceChanged = (autocomplete) => {
     const place = autocomplete.getPlace();
     if (place.geometry) {
@@ -44,18 +50,62 @@ const AddPharmacyModal = ({
         latitude: latitude,
         longitude: longitude,
       });
+      setErrors({ ...errors, address: "" }); // Clear address error
+    } else {
+      setErrors({
+        ...errors,
+        address:
+          "Veuillez sélectionner une adresse valide dans la liste ou saisir une adresse géocodable",
+      });
     }
   };
+
+  // Handle manual address input
   const handleAddressChange = (e) => {
     setNewPharmacy({
       ...newPharmacy,
       address: e.target.value,
+      latitude: null, // Reset coordinates to force geocoding on blur or submit
+      longitude: null,
     });
   };
+
+  // Geocode address to get latitude and longitude
+  const geocodeAddress = async (address) => {
+    if (!geocoder || !address) return false;
+
+    try {
+      const response = await new Promise((resolve, reject) => {
+        geocoder.geocode({ address }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            resolve(results[0]);
+          } else {
+            reject(new Error("Adresse non valide ou introuvable"));
+          }
+        });
+      });
+      console.log("🚀 ~ response ~ response:", response);
+
+      const { lat, lng } = response.geometry.location;
+      setNewPharmacy((prev) => ({
+        ...prev,
+        latitude: lat(),
+        longitude: lng(),
+      }));
+      setErrors({ ...errors, address: "" });
+      return true;
+    } catch (error) {
+      setErrors({
+        ...errors,
+        address:
+          "Impossible de géocoder l'adresse. Veuillez vérifier l'adresse saisie.",
+      });
+      return false;
+    }
+  };
+
   useEffect(() => {
     const currentMode = isEditMode ? "edit" : "add";
-
-    // If mode changed, reset form
     if (lastMode !== null && lastMode !== currentMode) {
       resetForm();
     }
@@ -68,14 +118,15 @@ const AddPharmacyModal = ({
         address: pharmacyToEdit.address,
         status: pharmacyToEdit.status,
         password: "",
+        latitude: pharmacyToEdit.latitude || null,
+        longitude: pharmacyToEdit.longitude || null,
       });
     } else if (lastMode !== currentMode) {
-      // Only reset form for add mode if we're switching from edit mode
       resetForm();
     }
 
     setLastMode(currentMode);
-  }, [pharmacyToEdit, showAddModal]); // Added showAddModal to dependency array
+  }, [pharmacyToEdit, showAddModal]);
 
   const resetForm = () => {
     setNewPharmacy({
@@ -85,6 +136,8 @@ const AddPharmacyModal = ({
       address: "",
       password: "",
       status: "",
+      latitude: null,
+      longitude: null,
     });
     setErrors({});
     setTouched({});
@@ -120,7 +173,6 @@ const AddPharmacyModal = ({
     if (!phone || phone.trim() === "") {
       return "Le numéro de téléphone est obligatoire";
     }
-    // French phone number validation (more flexible)
     const phoneRegex = /^(\+33|0)[1-9](\d{8})$/;
     const cleanPhone = phone.replace(/\s+/g, "");
     if (!phoneRegex.test(cleanPhone)) {
@@ -133,13 +185,11 @@ const AddPharmacyModal = ({
     if (!address || address.trim() === "") {
       return "L'adresse est obligatoire";
     }
-
     return "";
   };
 
   const validatePassword = (password) => {
-    if (isEditMode) return ""; // Password not required in edit mode
-
+    if (isEditMode) return "";
     if (!password || password.trim() === "") {
       return "Le mot de passe est obligatoire";
     }
@@ -155,11 +205,9 @@ const AddPharmacyModal = ({
     if (!/\d/.test(password)) {
       return "Le mot de passe doit contenir au moins un chiffre";
     }
-
     return "";
   };
 
-  // Real-time validation
   const validateField = (name, value) => {
     let error = "";
     switch (name) {
@@ -184,14 +232,12 @@ const AddPharmacyModal = ({
     return error;
   };
 
-  // Handle input change with validation
   const handleInputChange = (name, value) => {
     setNewPharmacy({
       ...newPharmacy,
       [name]: value,
     });
 
-    // Validate field if it has been touched
     if (touched[name]) {
       const error = validateField(name, value);
       setErrors({
@@ -201,8 +247,7 @@ const AddPharmacyModal = ({
     }
   };
 
-  // Handle field blur (when user leaves the field)
-  const handleBlur = (name) => {
+  const handleBlur = async (name) => {
     setTouched({
       ...touched,
       [name]: true,
@@ -213,25 +258,33 @@ const AddPharmacyModal = ({
       ...errors,
       [name]: error,
     });
+
+    // Geocode address on blur if latitude and longitude are null
+    if (
+      name === "address" &&
+      newPharmacy.address &&
+      !newPharmacy.latitude &&
+      !newPharmacy.longitude
+    ) {
+      await geocodeAddress(newPharmacy.address);
+    }
   };
 
-  // Check if form has changes in edit mode
   const hasChanges = () => {
-    if (!isEditMode || !pharmacyToEdit) return true; // Always enabled in add mode
-
+    if (!isEditMode || !pharmacyToEdit) return true;
     return (
       newPharmacy.name !== pharmacyToEdit.name ||
       newPharmacy.email !== pharmacyToEdit.email ||
       newPharmacy.phone !== pharmacyToEdit.phone ||
-      newPharmacy.address !== pharmacyToEdit.address
+      newPharmacy.address !== pharmacyToEdit.address ||
+      newPharmacy.latitude !== pharmacyToEdit.latitude ||
+      newPharmacy.longitude !== pharmacyToEdit.longitude
     );
   };
 
-  // Validate all fields before submit
-  const validateAllFields = () => {
+  const validateAllFields = async () => {
     const newErrors = {};
     const fieldsToValidate = ["name", "email", "phone", "address"];
-
     if (!isEditMode) {
       fieldsToValidate.push("password");
     }
@@ -242,6 +295,16 @@ const AddPharmacyModal = ({
         newErrors[field] = error;
       }
     });
+
+    // Validate coordinates
+    if (!newPharmacy.latitude || !newPharmacy.longitude) {
+      const success = await geocodeAddress(newPharmacy.address);
+      if (!success) {
+        newErrors.address =
+          newErrors.address ||
+          "Adresse non géocodable. Veuillez vérifier ou sélectionner une suggestion.";
+      }
+    }
 
     setErrors(newErrors);
     setTouched(
@@ -255,7 +318,6 @@ const AddPharmacyModal = ({
   };
 
   const handleSubmit = async () => {
-    // Check if there are changes in edit mode
     if (isEditMode && !hasChanges()) {
       toast.info("Aucune modification détectée", {
         autoClose: 3000,
@@ -264,19 +326,19 @@ const AddPharmacyModal = ({
       return;
     }
 
-    // Validate all fields
-    if (!validateAllFields()) {
+    // Validate all fields and geocode address if necessary
+    if (!(await validateAllFields())) {
       toast.error("Veuillez corriger les erreurs dans le formulaire", {
         autoClose: 3000,
         theme: "dark",
       });
       return;
     }
+
     setLoading(true);
     try {
       let result;
       if (isEditMode) {
-        // Create payload with only changed fields
         const payload = {};
         if (newPharmacy.name !== pharmacyToEdit.name)
           payload.name = newPharmacy.name;
@@ -286,8 +348,11 @@ const AddPharmacyModal = ({
           payload.phoneNumber = newPharmacy.phone;
         if (newPharmacy.address !== pharmacyToEdit.address)
           payload.address = newPharmacy.address;
+        if (newPharmacy.latitude !== pharmacyToEdit.latitude)
+          payload.latitude = newPharmacy.latitude;
+        if (newPharmacy.longitude !== pharmacyToEdit.longitude)
+          payload.longitude = newPharmacy.longitude;
 
-        // Only send PATCH request if there are changes
         if (Object.keys(payload).length === 0) {
           toast.info("Aucune modification détectée", {
             autoClose: 3000,
@@ -299,9 +364,6 @@ const AddPharmacyModal = ({
         }
 
         result = await apiService.updatePharmacy(pharmacyToEdit.id, payload);
-        console.log("🚀 ~ handleSubmit ~ result:", result);
-
-        // Update local state
         setPharmacies(
           pharmacies.map((pharmacy) =>
             pharmacy.id === pharmacyToEdit.id
@@ -354,23 +416,23 @@ const AddPharmacyModal = ({
       toast.error(
         `Erreur lors de ${
           isEditMode ? "la mise à jour" : "l'ajout"
-        } de la pharmacie : ${error.message}`
+        } de la pharmacie : ${error.message}`,
+        {
+          autoClose: 3000,
+          theme: "dark",
+        }
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle cancel button click - resets form and closes modal
   const handleCancel = () => {
     resetForm();
     setShowAddModal(false);
   };
 
-  // Handle backdrop click - only reset form if switching between modes
   const handleBackdropClick = () => {
-    // Don't reset form data on backdrop click - just close modal
-    // This preserves form data if user accidentally clicks outside
     setShowAddModal(false);
   };
 
@@ -379,8 +441,6 @@ const AddPharmacyModal = ({
       document.body.style.overflow = "hidden";
       const handleEscape = (e) => {
         if (e.key === "Escape") {
-          // Don't reset form on escape - just close modal
-          // This preserves form data if user accidentally presses escape
           setShowAddModal(false);
         }
       };
@@ -426,6 +486,14 @@ const AddPharmacyModal = ({
       : []),
   ];
 
+  if (loadError) {
+    return <div>Erreur de chargement de Google Maps</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Chargement de Google Maps...</div>;
+  }
+
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
@@ -437,7 +505,6 @@ const AddPharmacyModal = ({
         onClick={(e) => e.stopPropagation()}
         className="bg-white w-full max-w-[32rem] rounded-xl shadow-xl max-h-[90vh] overflow-y-auto animate-fadeIn scale-95 transition-transform p-6"
       >
-        {/* Header */}
         <div className="flex items-center justify-between border-b pb-4 mb-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
@@ -460,9 +527,7 @@ const AddPharmacyModal = ({
           </button>
         </div>
 
-        {/* Form */}
         <div className="space-y-4">
-          {/* Render only the "Nom de la pharmacie" field first */}
           {formFields
             .filter((field) => field.name === "name")
             .map((field) => (
@@ -494,7 +559,6 @@ const AddPharmacyModal = ({
                 )}
               </div>
             ))}
-          {/* Add the "Adresse" field as the second field */}
           <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Adresse *
@@ -507,9 +571,14 @@ const AddPharmacyModal = ({
                 type="text"
                 value={newPharmacy.address}
                 onChange={handleAddressChange}
-                className="w-full px-3 py-2 border placeholder:text-[12px] placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200"
+                onBlur={() => handleBlur("address")}
+                className={`w-full px-3 py-2 border placeholder:text-[12px] placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200 ${
+                  errors.address && touched.address
+                    ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300 hover:border-gray-400"
+                }`}
                 placeholder="Entrez l'adresse complète de la pharmacie"
-                style={{ width: "100%" }} /* Ensure full width */
+                style={{ width: "100%" }}
               />
             </Autocomplete>
             {errors.address && touched.address && (
@@ -519,7 +588,6 @@ const AddPharmacyModal = ({
               </p>
             )}
           </div>
-          {/* Render the remaining fields */}
           {formFields
             .filter((field) => field.name !== "name")
             .map((field) => (
@@ -571,7 +639,6 @@ const AddPharmacyModal = ({
             ))}
         </div>
 
-        {/* Footer */}
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={handleCancel}
