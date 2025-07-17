@@ -314,9 +314,9 @@ const AddPharmacyModal = ({
       newPharmacy.name !== pharmacyToEdit.name ||
       newPharmacy.email !== pharmacyToEdit.email ||
       newPharmacy.phone !== pharmacyToEdit.phone ||
-      newPharmacy.address !== pharmacyToEdit.address ||
-      newPharmacy.latitude !== pharmacyToEdit.latitude ||
-      newPharmacy.longitude !== pharmacyToEdit.longitude
+      newPharmacy.address !== pharmacyToEdit.address
+      // newPharmacy.latitude !== pharmacyToEdit.latitude ||
+      // newPharmacy.longitude !== pharmacyToEdit.longitude
     );
   };
 
