@@ -220,9 +220,6 @@ const PharmacyManagement = ({
                       <div className="font-medium text-gray-900">
                         {pharmacy.name}
                       </div>
-                      {/* <div className="text-sm text-gray-500">
-                        {pharmacy.owner}
-                      </div> */}
                       <div className="flex items-center mt-1 text-xs text-gray-400">
                         <Calendar className="w-3 h-3 mr-1" />
                         Joined {pharmacy.joinedDate}
@@ -247,7 +244,6 @@ const PharmacyManagement = ({
                   </td>
                   <td className="px-6 py-4">
                     <button
-                      // onClick={() => toggleStatus(pharmacy.id)}
                       onClick={() => handleStatusToggle(pharmacy)}
                       className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
                         pharmacy.status === "Active"
@@ -259,18 +255,20 @@ const PharmacyManagement = ({
                     </button>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
                       <button
                         onClick={() => openEditModal(pharmacy)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                        className="flex flex-col items-center text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors duration-200"
                       >
                         <Edit className="w-4 h-4" />
+                        <span className="text-xs font-medium mt-1">Edit</span>
                       </button>
                       <button
                         onClick={() => openDeleteModal(pharmacy)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                        className="flex flex-col items-center text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors duration-200"
                       >
                         <Trash2 className="w-4 h-4" />
+                        <span className="text-xs font-medium mt-1">Delete</span>
                       </button>
                     </div>
                   </td>
@@ -326,20 +324,20 @@ const PharmacyManagement = ({
                   Joined {pharmacy.joinedDate}
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openEditModal(pharmacy)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => openDeleteModal(pharmacy)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => openEditModal(pharmacy)}
+                    className="flex flex-col items-center text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors duration-200"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span className="text-xs font-medium mt-1">Edit</span>
+                  </button>
+                  <button
+                    onClick={() => openDeleteModal(pharmacy)}
+                    className="flex flex-col items-center text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors duration-200"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span className="text-xs font-medium mt-1">Delete</span>
+                  </button>
                 </div>
               </div>
             </div>

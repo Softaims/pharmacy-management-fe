@@ -11,6 +11,7 @@ const Login = () => {
   const [role, setRole] = useState("pharmacy");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading } = useAuth();
@@ -18,6 +19,21 @@ const Login = () => {
   const from =
     location.state?.from?.pathname ||
     (role === "admin" ? "/admin" : "/pharmacy");
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    if (newEmail && !validateEmail(newEmail)) {
+      setEmailError("Veuillez entrer une adresse e-mail valide");
+    } else {
+      setEmailError("");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,8 +46,7 @@ const Login = () => {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!validateEmail(email)) {
       toast.error("Veuillez entrer une adresse e-mail valide", {
         autoClose: 3000,
         theme: "dark",
@@ -97,12 +112,17 @@ const Login = () => {
                 type="email"
                 placeholder="Entrez votre e-mail"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className=" fragmt-1 w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200"
+                onChange={handleEmailChange}
+                className={`mt-2 w-full px-4 py-3 border ${
+                  emailError ? "border-red-500" : "border-gray-300"
+                } rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200`}
                 autoComplete="email"
                 required
                 disabled={isLoading || loading}
               />
+              {emailError && (
+                <p className="mt-1 text-sm text-red-500">{emailError}</p>
+              )}
             </div>
 
             {/* Password */}
@@ -120,7 +140,7 @@ const Login = () => {
                   placeholder="Entrez votre mot de passe"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200"
+                  className="mt-2 w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200"
                   autoComplete="current-password"
                   required
                   disabled={isLoading || loading}
