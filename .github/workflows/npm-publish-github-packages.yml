@@ -13,9 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: npm install
-
       - name: Setup SSH
         run: |
           sudo mkdir -p /root/.ssh
@@ -27,6 +24,9 @@ jobs:
         run: |
           sudo ssh -v -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && git pull origin main"
 
+          
+      - name: Install dependencies
+        run: npm install
       - name: Restart PM2 server
         run: |
           sudo ssh -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && npm run build"
