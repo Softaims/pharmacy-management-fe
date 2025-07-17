@@ -324,7 +324,7 @@ const PharmacyManagement = ({
                       type="checkbox"
                       checked={pharmacy.status === "Active"}
                       onChange={() => handleStatusToggle(pharmacy)}
-                      className="sr-only peer"
+                      className="hidden peer"
                     />
                     <div
                       className={`relative w-11 h-6 rounded-full peer transition-colors duration-200 ${
