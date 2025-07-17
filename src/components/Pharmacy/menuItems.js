@@ -13,8 +13,8 @@ const menuItems = [
   {
     id: "Statistiques",
     icon: staticsIcon,
-    path: "/pharmacy/Statistiques",
-    tooltip: "Statistiques",
+    path: "/pharmacy/statistics",
+    tooltip: "statistics",
   },
   {
     id: "settings",
