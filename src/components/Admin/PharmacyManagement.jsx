@@ -243,7 +243,7 @@ const PharmacyManagement = ({
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <button
+                    {/* <button
                       onClick={() => handleStatusToggle(pharmacy)}
                       className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
                         pharmacy.status === "Active"
@@ -252,7 +252,31 @@ const PharmacyManagement = ({
                       }`}
                     >
                       {pharmacy.status}
-                    </button>
+                    </button> */}
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={pharmacy.status === "Active"}
+                        onChange={() => handleStatusToggle(pharmacy)}
+                        className="peer hidden"
+                      />
+                      <div
+                        className={`relative w-11 h-6 rounded-full  transition-colors duration-200 ${
+                          pharmacy.status === "Active"
+                            ? "bg-green-600 peer-focus:ring-4 peer-focus:ring-green-300"
+                            : "bg-gray-200 peer-focus:ring-4 peer-focus:ring-gray-300"
+                        } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                      ></div>
+                      <span
+                        className={`ms-3 text-sm font-medium ${
+                          pharmacy.status === "Active"
+                            ? "text-green-800"
+                            : "text-red-800"
+                        }`}
+                      >
+                        {pharmacy.status}
+                      </span>
+                    </label>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
@@ -290,16 +314,30 @@ const PharmacyManagement = ({
                   <p className="text-sm text-gray-500">{pharmacy.owner}</p>
                 </div>
                 <div className="flex items-center gap-2 ml-3">
-                  <button
-                    onClick={() => handleStatusToggle(pharmacy)}
-                    className={`px-2 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
-                      pharmacy.status === "Active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {pharmacy.status}
-                  </button>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={pharmacy.status === "Active"}
+                      onChange={() => handleStatusToggle(pharmacy)}
+                      className="sr-only peer"
+                    />
+                    <div
+                      className={`relative w-11 h-6 rounded-full peer transition-colors duration-200 ${
+                        pharmacy.status === "Active"
+                          ? "bg-green-600 peer-focus:ring-4 peer-focus:ring-green-300"
+                          : "bg-gray-200 peer-focus:ring-4 peer-focus:ring-gray-300"
+                      } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                    ></div>
+                    <span
+                      className={`ms-3 text-sm font-medium ${
+                        pharmacy.status === "Active"
+                          ? "text-green-800"
+                          : "text-red-800"
+                      }`}
+                    >
+                      {pharmacy.status}
+                    </span>
+                  </label>
                 </div>
               </div>
 
