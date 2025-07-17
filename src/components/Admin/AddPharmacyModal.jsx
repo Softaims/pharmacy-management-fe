@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import apiService from "../../api/apiService";
@@ -31,10 +31,10 @@ const AddPharmacyModal = ({
   const modalRef = useRef(null);
   const addressInputRef = useRef(null);
   const isEditMode = !!pharmacyToEdit;
-
+  const libraries = useMemo(() => ["places"], []);
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: "AIzaSyDE65cQp3MxQGqFHaIpcfC1wH7fcgACewY", // Replace with your API Key
-    libraries: ["places"],
+    libraries: libraries,
   });
 
   // Initialize Geocoder
