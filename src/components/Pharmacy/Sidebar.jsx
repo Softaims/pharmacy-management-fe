@@ -12,7 +12,7 @@ export default function Sidebar() {
     logout(); // Call the logout function from AuthContext
   };
   return (
-    <div className="fixed top-0 left-0 bottom-0    flex flex-col">
+    <div className="fixed top-0 left-0 bottom-0 w-18 bg-[#069AA2]    flex flex-col">
       <div className="flex justify-center items-center">
         <img
           src={logo}

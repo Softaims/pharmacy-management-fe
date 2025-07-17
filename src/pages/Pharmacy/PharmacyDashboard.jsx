@@ -9,7 +9,7 @@ export default function PharmacyDashboard() {
   return (
     <div className="flex h-screen">
       {/* Fixed Sidebar */}
-      <div className="w-18 bg-[#069AA2] shadow-lg">
+      <div className="w-18  shadow-lg">
         <Sidebar />
       </div>
       <div className="flex-1">
