@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import apiService from "../../api/apiService";
@@ -28,6 +28,8 @@ const AddPharmacyModal = ({
   const [showPassword, setShowPassword] = useState(false);
   const [lastMode, setLastMode] = useState(null);
   const [loading, setLoading] = useState(false);
+  const modalRef = useRef(null);
+  const addressInputRef = useRef(null);
   const isEditMode = !!pharmacyToEdit;
 
   const { isLoaded, loadError } = useLoadScript({
@@ -38,25 +40,42 @@ const AddPharmacyModal = ({
   // Initialize Geocoder
   const geocoder = isLoaded ? new window.google.maps.Geocoder() : null;
 
+  // Handle autocomplete load and configure options
+  const onAutocompleteLoad = (autocomplete) => {
+    setAutocomplete(autocomplete);
+
+    // Configure autocomplete options
+    if (autocomplete) {
+      autocomplete.setOptions({
+        // Restrict to specific types if needed
+        // types: ['establishment'],
+        componentRestrictions: { country: ["fr"] }, // Restrict to France
+        // You can add more restrictions as needed
+      });
+    }
+  };
+
   // Handle place selection from Autocomplete dropdown
-  const handlePlaceChanged = (autocomplete) => {
-    const place = autocomplete.getPlace();
-    if (place.geometry) {
-      const latitude = place.geometry.location.lat();
-      const longitude = place.geometry.location.lng();
-      setNewPharmacy({
-        ...newPharmacy,
-        address: place.formatted_address,
-        latitude: latitude,
-        longitude: longitude,
-      });
-      setErrors({ ...errors, address: "" }); // Clear address error
-    } else {
-      setErrors({
-        ...errors,
-        address:
-          "Veuillez sélectionner une adresse valide dans la liste ou saisir une adresse géocodable",
-      });
+  const handlePlaceChanged = () => {
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      if (place.geometry) {
+        const latitude = place.geometry.location.lat();
+        const longitude = place.geometry.location.lng();
+        setNewPharmacy({
+          ...newPharmacy,
+          address: place.formatted_address,
+          latitude: latitude,
+          longitude: longitude,
+        });
+        setErrors({ ...errors, address: "" }); // Clear address error
+      } else {
+        setErrors({
+          ...errors,
+          address:
+            "Veuillez sélectionner une adresse valide dans la liste ou saisir une adresse géocodable",
+        });
+      }
     }
   };
 
@@ -103,6 +122,25 @@ const AddPharmacyModal = ({
       return false;
     }
   };
+
+  // Handle scroll event to reposition autocomplete dropdown
+  useEffect(() => {
+    const handleScroll = () => {
+      if (autocomplete && window.google && window.google.maps) {
+        // Force the autocomplete to recalculate its position
+        window.google.maps.event.trigger(autocomplete, "resize");
+      }
+    };
+
+    if (showAddModal && modalRef.current) {
+      const modalElement = modalRef.current;
+      modalElement.addEventListener("scroll", handleScroll);
+
+      return () => {
+        modalElement.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, [showAddModal, autocomplete]);
 
   useEffect(() => {
     const currentMode = isEditMode ? "edit" : "add";
@@ -502,8 +540,10 @@ const AddPharmacyModal = ({
       role="dialog"
     >
       <div
+        ref={modalRef}
         onClick={(e) => e.stopPropagation()}
         className="bg-white w-full max-w-[32rem] rounded-xl shadow-xl max-h-[90vh] overflow-y-auto animate-fadeIn scale-95 transition-transform p-6"
+        style={{ position: "relative" }}
       >
         <div className="flex items-center justify-between border-b pb-4 mb-4">
           <div>
@@ -559,28 +599,43 @@ const AddPharmacyModal = ({
                 )}
               </div>
             ))}
+
+          {/* Address field with Google Places Autocomplete */}
           <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Adresse *
             </label>
-            <Autocomplete
-              onLoad={(autocomplete) => setAutocomplete(autocomplete)}
-              onPlaceChanged={() => handlePlaceChanged(autocomplete)}
-            >
-              <input
-                type="text"
-                value={newPharmacy.address}
-                onChange={handleAddressChange}
-                onBlur={() => handleBlur("address")}
-                className={`w-full px-3 py-2 border placeholder:text-[12px] placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200 ${
-                  errors.address && touched.address
-                    ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 hover:border-gray-400"
-                }`}
-                placeholder="Entrez l'adresse complète de la pharmacie"
-                style={{ width: "100%" }}
-              />
-            </Autocomplete>
+            <div className="relative">
+              <Autocomplete
+                onLoad={onAutocompleteLoad}
+                onPlaceChanged={handlePlaceChanged}
+                options={{
+                  // Add bounds to prioritize results near a specific location
+                  // bounds: new google.maps.LatLngBounds(
+                  //   new google.maps.LatLng(46.2, 1.8),
+                  //   new google.maps.LatLng(49.5, 8.3)
+                  // ),
+                  componentRestrictions: { country: "fr" },
+                  fields: ["formatted_address", "geometry", "name"],
+                  strictBounds: false,
+                }}
+              >
+                <input
+                  ref={addressInputRef}
+                  type="text"
+                  value={newPharmacy.address}
+                  onChange={handleAddressChange}
+                  onBlur={() => handleBlur("address")}
+                  className={`w-full px-3 py-2 border placeholder:text-[12px] placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-colors duration-200 ${
+                    errors.address && touched.address
+                      ? "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 hover:border-gray-400"
+                  }`}
+                  placeholder="Entrez l'adresse complète de la pharmacie"
+                  autoComplete="address-line1"
+                />
+              </Autocomplete>
+            </div>
             {errors.address && touched.address && (
               <p className="text-red-500 text-xs mt-1 flex items-center">
                 <span className="mr-1">⚠</span>
@@ -588,6 +643,7 @@ const AddPharmacyModal = ({
               </p>
             )}
           </div>
+
           {formFields
             .filter((field) => field.name !== "name")
             .map((field) => (
