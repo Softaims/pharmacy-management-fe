@@ -2,6 +2,7 @@ import React from "react";
 import { Users, X, LogOut } from "lucide-react"; // Added LogOut icon
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-toastify"; // To show toast notifications for logout
+import logo from "../../assets/logo.png";
 
 const Sidebar = ({
   activeTab,
@@ -39,9 +40,22 @@ const Sidebar = ({
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center min-w-0">
-          <div className="ml-3 min-w-0">
-            <h4 className="font-semibold text-2xl text-gray-900">PharmAdmin</h4>
-            <p className="text-xs text-gray-500 truncate">Système de gestion</p>
+          <div className="">
+            <div className="flex justify-center items-center">
+              <img
+                src={logo}
+                alt="Pharmacy Logo"
+                className="h-12 w-12 object-cover"
+              />
+              <div className="">
+                <h4 className="font-semibold text-2xl text-gray-900">
+                  MezordoPro
+                </h4>
+                <p className="text-xs text-gray-500 truncate">
+                  Panneau d'administration
+                </p>
+              </div>
+            </div>
           </div>
         </div>
         <button
