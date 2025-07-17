@@ -615,7 +615,7 @@ const AddPharmacyModal = ({
                   //   new google.maps.LatLng(46.2, 1.8),
                   //   new google.maps.LatLng(49.5, 8.3)
                   // ),
-                  // componentRestrictions: { country: "fr" },
+                  componentRestrictions: { country: "fr" },
                   // fields: ["formatted_address", "geometry", "name"],
                   strictBounds: false,
                 }}
