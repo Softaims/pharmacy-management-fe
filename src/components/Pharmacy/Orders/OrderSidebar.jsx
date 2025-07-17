@@ -119,7 +119,7 @@ const OrderSidebar = ({
 
   return (
     <div
-      className={`w-full lg:w-76 bg-white border-r border-gray-200 flex flex-col ${
+      className={`w-full lg:w-66 bg-white border-r border-gray-200 flex flex-col ${
         selectedOrder ? "hidden lg:flex" : "flex"
       }`}
     >

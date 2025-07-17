@@ -7,6 +7,7 @@ const StatusConfirmationModal = ({
   onConfirm,
   pharmacyName,
   currentStatus,
+  loading,
 }) => {
   const modalRef = useRef(null);
   const cancelButtonRef = useRef(null);
@@ -23,15 +24,20 @@ const StatusConfirmationModal = ({
   }, [isOpen, onClose]);
 
   const handleOverlayClick = (e) => {
-    if (modalRef.current && !modalRef.current.contains(e.target)) {
+    if (modalRef.current && !modalRef.current.contains(e.target) && !loading) {
       onClose();
     }
   };
 
-  const handleConfirm = () => {
-    onConfirm();
-    // toast.success(`Status changed successfully for ${pharmacyName}`);
-    onClose();
+  const handleConfirm = async () => {
+    try {
+      await onConfirm(); // Assuming onConfirm is an async function
+      // toast.success(`Status changed successfully for ${pharmacyName}`);
+    } catch (error) {
+      // Handle error if needed
+    } finally {
+      onClose();
+    }
   };
 
   if (!isOpen) return null;
@@ -82,10 +88,13 @@ const StatusConfirmationModal = ({
             Cancel
           </button>
           <button
-            onClick={handleConfirm} // Step 2: use handleConfirm
-            className="px-4 py-2 text-sm font-medium text-white bg-[#069AA2] rounded-lg hover:bg-[#05828A] transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:ring-offset-2"
+            onClick={handleConfirm}
+            disabled={loading}
+            className={`px-4 py-2 text-sm font-medium text-white ${
+              loading ? "bg-gray-400" : "bg-[#069AA2]"
+            } rounded-lg hover:bg-[#05828A] transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:ring-offset-2`}
           >
-            Confirm
+            {loading ? "Processing..." : "Confirm"}
           </button>
         </div>
       </div>

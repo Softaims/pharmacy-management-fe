@@ -1,13 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import menuItems from "./menuItems";
+import { FiLogOut } from "react-icons/fi"; // Import FiLogOut icon
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Sidebar() {
-  const location = useLocation();
+  const { logout } = useAuth();
 
+  const location = useLocation();
+  const handleLogout = () => {
+    logout(); // Call the logout function from AuthContext
+  };
   return (
-    <div className="fixed top-0 left-0 bottom-0 bg-[#069AA2] shadow-lg w-16 flex flex-col">
-      <div className="p-4 flex justify-center items-center">
+    <div className="fixed top-0 left-0 bottom-0 w-18 bg-[#069AA2]    flex flex-col">
+      <div className="flex justify-center items-center">
         <img
           src={logo}
           alt="Pharmacy Logo"
@@ -26,7 +32,7 @@ export default function Sidebar() {
               }`}
             >
               {location.pathname === item.path && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8  rounded-r" />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r" />
               )}
               <img
                 src={item.icon}
@@ -40,6 +46,18 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
+      {/* Logout Button */}
+      <div className="p-2">
+        <div className="relative group">
+          <Link
+            onClick={handleLogout}
+            className="relative flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 hover:bg-[#63AAAE] text-gray-700"
+          >
+            <FiLogOut className="h-6 w-6 transition-transform group-hover:scale-110 text-red-500" />{" "}
+          </Link>
+          <span className=" text-sm font-medium">log out</span>
+        </div>
+      </div>
     </div>
   );
 }
