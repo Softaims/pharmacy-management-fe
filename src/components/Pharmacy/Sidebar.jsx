@@ -12,7 +12,7 @@ export default function Sidebar() {
     logout(); // Call the logout function from AuthContext
   };
   return (
-    <div className="fixed top-0 left-0 bottom-0 w-18 bg-[#069AA2]    flex flex-col">
+    <div className="fixed top-0 left-0 bottom-0 w-[98px] bg-[#069AA2]    flex flex-col">
       <div className="flex justify-center items-center">
         <img
           src={logo}
@@ -48,7 +48,7 @@ export default function Sidebar() {
       </nav>
       {/* Logout Button */}
       <div className="p-2">
-        <div className="relative group">
+        <div className="relative group   flex flex-col  items-center flex-1">
           <Link
             onClick={handleLogout}
             className="relative flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 hover:bg-[#63AAAE] text-gray-700"
