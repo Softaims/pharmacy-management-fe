@@ -74,6 +74,7 @@ const PharmacyManagement = ({
     setShowStatusModal(true);
   };
   const confirmStatusToggle = async () => {
+    setLoading(true);
     try {
       const newStatus = statusPharmacy.status === "Active" ? false : true;
       await apiService.changeStatus(statusPharmacy.id, newStatus);
@@ -96,6 +97,8 @@ const PharmacyManagement = ({
         error.message ||
           "Échec de la mise à jour du statut. Veuillez réessayer."
       ); // Toast d'erreur
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -253,22 +256,24 @@ const PharmacyManagement = ({
                     >
                       {pharmacy.status}
                     </button> */}
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={pharmacy.status === "Active"}
-                        onChange={() => handleStatusToggle(pharmacy)}
-                        className="peer hidden"
-                      />
-                      <div
-                        className={`relative w-11 h-6 rounded-full  transition-colors duration-200 ${
-                          pharmacy.status === "Active"
-                            ? "bg-green-600 peer-focus:ring-4 peer-focus:ring-green-300"
-                            : "bg-gray-200 peer-focus:ring-4 peer-focus:ring-gray-300"
-                        } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all`}
-                      ></div>
+                    <div className="inline-flex flex-col items-center">
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={pharmacy.status === "Active"}
+                          onChange={() => handleStatusToggle(pharmacy)}
+                          className="peer hidden"
+                        />
+                        <div
+                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                            pharmacy.status === "Active"
+                              ? "bg-green-600 peer-focus:ring-4 peer-focus:ring-green-300"
+                              : "bg-gray-200 peer-focus:ring-4 peer-focus:ring-gray-300"
+                          } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all`}
+                        ></div>
+                      </label>
                       <span
-                        className={`ms-3 text-sm font-medium ${
+                        className={`mt-1 text-sm font-medium ${
                           pharmacy.status === "Active"
                             ? "text-green-800"
                             : "text-red-800"
@@ -276,7 +281,7 @@ const PharmacyManagement = ({
                       >
                         {pharmacy.status}
                       </span>
-                    </label>
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
