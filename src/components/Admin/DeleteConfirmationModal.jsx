@@ -11,7 +11,7 @@ const DeleteConfirmationModal = ({
   const modalRef = useRef(null);
   const cancelButtonRef = useRef(null);
 
-  // Focus management and Escape key handler
+  // Focus management and Escape key handlers
   useEffect(() => {
     if (isOpen) {
       cancelButtonRef.current?.focus();
