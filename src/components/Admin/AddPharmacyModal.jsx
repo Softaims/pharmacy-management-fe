@@ -99,8 +99,8 @@ const AddPharmacyModal = ({
     if (name.trim().length < 2) {
       return "Le nom de la pharmacie doit contenir au moins 2 caractères";
     }
-    if (name.trim().length > 100) {
-      return "Le nom de la pharmacie ne peut pas dépasser 100 caractères";
+    if (name.trim().length > 30) {
+      return "Le nom de la pharmacie ne peut pas dépasser 30 caractères";
     }
     return "";
   };
@@ -507,7 +507,7 @@ const AddPharmacyModal = ({
                 type="text"
                 value={newPharmacy.address}
                 onChange={handleAddressChange}
-                className="w-full px-3 py-2 border placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-3 py-2 border placeholder:text-[12px] placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm pr-10 transition-colors duration-200"
                 placeholder="Entrez l'adresse complète de la pharmacie"
                 style={{ width: "100%" }} /* Ensure full width */
               />
