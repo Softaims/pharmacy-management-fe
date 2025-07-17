@@ -3,6 +3,7 @@ import { X, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import apiService from "../../api/apiService";
 import dayjs from "dayjs";
+import { useLoadScript, Autocomplete } from "@react-google-maps/api";
 
 const AddPharmacyModal = ({
   showAddModal,
@@ -18,15 +19,39 @@ const AddPharmacyModal = ({
     address: "",
     password: "",
     status: "",
+    latitude: null,
+    longitude: null,
   });
-
+  const [autocomplete, setAutocomplete] = useState(null); // State to store Autocomplete instance
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [lastMode, setLastMode] = useState(null); // Track the last mode (edit/add)
   const [loading, setLoading] = useState(false);
   const isEditMode = !!pharmacyToEdit;
-
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: "AIzaSyDE65cQp3MxQGqFHaIpcfC1wH7fcgACewY", // Replace with your API Key
+    libraries: ["places"], // Load places library
+  });
+  const handlePlaceChanged = (autocomplete) => {
+    const place = autocomplete.getPlace();
+    if (place.geometry) {
+      const latitude = place.geometry.location.lat();
+      const longitude = place.geometry.location.lng();
+      setNewPharmacy({
+        ...newPharmacy,
+        address: place.formatted_address,
+        latitude: latitude,
+        longitude: longitude,
+      });
+    }
+  };
+  const handleAddressChange = (e) => {
+    setNewPharmacy({
+      ...newPharmacy,
+      address: e.target.value,
+    });
+  };
   useEffect(() => {
     const currentMode = isEditMode ? "edit" : "add";
 
@@ -305,8 +330,8 @@ const AddPharmacyModal = ({
           phoneNumber: newPharmacy.phone,
           password: newPharmacy.password,
           address: newPharmacy.address,
-          latitude: 48.8534,
-          longitude: 2.3488,
+          latitude: newPharmacy.latitude,
+          longitude: newPharmacy.longitude,
           role: "PHARMACY",
         };
 
@@ -494,7 +519,19 @@ const AddPharmacyModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Adresse *
             </label>
-            <textarea
+            <Autocomplete
+              onLoad={(autocomplete) => setAutocomplete(autocomplete)}
+              onPlaceChanged={() => handlePlaceChanged(autocomplete)}
+            >
+              <input
+                type="text"
+                value={newPharmacy.address}
+                onChange={handleAddressChange}
+                className="w-full px-3 py-2 border placeholder:text-gray-300 text-black rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Entrez l'adresse complète de la pharmacie"
+              />
+            </Autocomplete>
+            {/* <textarea
               value={newPharmacy.address}
               onChange={(e) => handleInputChange("address", e.target.value)}
               onBlur={() => handleBlur("address")}
@@ -511,7 +548,7 @@ const AddPharmacyModal = ({
                 <span className="mr-1">⚠</span>
                 {errors.address}
               </p>
-            )}
+            )} */}
           </div>
         </div>
 
