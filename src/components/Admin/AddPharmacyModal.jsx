@@ -33,7 +33,7 @@ const AddPharmacyModal = ({
   const isEditMode = !!pharmacyToEdit;
   const libraries = useMemo(() => ["places"], []);
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "AIzaSyDE65cQp3MxQGqFHaIpcfC1wH7fcgACewY", // Replace with your API Key
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // Use Vite env variable
     libraries: libraries,
   });
 
