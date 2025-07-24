@@ -27,7 +27,7 @@ const PdfViewer = ({ file }) => {
 
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.href = pdfUrl;
+    link.href = file;
     link.download = "sample-local-pdf.pdf";
     link.target = "_blank";
     document.body.appendChild(link);
