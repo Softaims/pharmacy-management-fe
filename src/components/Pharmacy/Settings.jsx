@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useLoadScript, Autocomplete } from "@react-google-maps/api";
+
 import { toast } from "react-toastify";
 import imgicon from "../../assets/ajouter-une-image.png";
 import { useAuth } from "../../contexts/AuthContext";
@@ -8,10 +10,55 @@ import { IoIosAdd } from "react-icons/io";
 
 const Settings = () => {
   const { user, logout } = useAuth();
+  const addressInputRef = useRef(null);
+  const libraries = useMemo(() => ["places"], []);
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: libraries,
+  });
+  const [autocomplete, setAutocomplete] = useState(null);
+  // Initialize Geocoder
+  const geocoder = isLoaded ? new window.google.maps.Geocoder() : null;
 
+  // Handle autocomplete load and configure options
+  const onAutocompleteLoad = (autocomplete) => {
+    setAutocomplete(autocomplete);
+    if (autocomplete) {
+      autocomplete.setOptions({
+        componentRestrictions: { country: ["fr", "pk"] },
+      });
+    }
+  };
+
+  // Handle place selection from Autocomplete dropdown (no geocoding, just set address)
+  const handlePlaceChanged = () => {
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      let displayAddress = "";
+      if (place && place.name && place.formatted_address) {
+        if (place.formatted_address.startsWith(place.name)) {
+          displayAddress = place.formatted_address;
+        } else {
+          displayAddress = `${place.name}, ${place.formatted_address}`;
+        }
+      } else if (place && place.formatted_address) {
+        displayAddress = place.formatted_address;
+      } else if (place && place.name && place.vicinity) {
+        displayAddress = `${place.name}, ${place.vicinity}`;
+      } else if (place && place.name) {
+        displayAddress = place.name;
+      }
+      setAddress(displayAddress);
+      setAddressError("");
+      // Do NOT set latitude/longitude here
+    }
+  };
   // Initialize state based on API response
   const [pharmacyName, setPharmacyName] = useState(user?.pharmacy?.name || "");
   const [address, setAddress] = useState(user?.pharmacy?.address || "");
+  const [addressError, setAddressError] = useState("");
+  const [latitude, setLatitude] = useState(user?.pharmacy?.latitude || null);
+  const [longitude, setLongitude] = useState(user?.pharmacy?.longitude || null);
   const [isActive, setIsActive] = useState(user?.pharmacy?.isActive || false);
   const [canDeliver, setCanDeliver] = useState(
     user?.pharmacy?.canDeliver || false
@@ -366,13 +413,41 @@ const Settings = () => {
 
     return true;
   };
-
-  const deepEqual = (a, b) => {
-    console.log("🚀 ~ deepEqual ~ a, b:", a, b);
-    if (JSON.stringify(a) === JSON.stringify(b)) {
+  // Geocode address to get latitude and longitude
+  const geocodeAddress = async (address) => {
+    if (!geocoder || !address) return false;
+    try {
+      const response = await new Promise((resolve, reject) => {
+        geocoder.geocode({ address }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            if (results[0].partial_match) {
+              reject(
+                new Error(
+                  "L'adresse est trop vague, veuillez entrer une adresse plus précise"
+                )
+              );
+            } else {
+              resolve(results[0]);
+            }
+          } else {
+            reject(new Error("Adresse non valide ou introuvable"));
+          }
+        });
+      });
+      const { lat, lng } = response.geometry.location;
+      setLatitude(lat());
+      setLongitude(lng());
+      setAddressError("");
       return true;
+    } catch (error) {
+      setLatitude(null);
+      setLongitude(null);
+      setAddressError(
+        error.message ||
+          "Impossible de géocoder l'adresse. Veuillez vérifier l'adresse saisie."
+      );
+      return false;
     }
-    return JSON.stringify(a) !== JSON.stringify(b);
   };
 
   const handleSave = async () => {
@@ -380,20 +455,30 @@ const Settings = () => {
       toast.error("Le nom de la pharmacie est obligatoire.");
       return;
     }
-
     if (!address.trim()) {
       toast.error("L'adresse est obligatoire.");
       return;
+    }
+    // Validate address with geocoding if lat/lng are not set
+    if (!latitude || !longitude) {
+      const valid = await geocodeAddress(address);
+      if (!valid) {
+        toast.error(
+          addressError || "Veuillez entrer une adresse correcte et précise."
+        );
+        return;
+      }
     }
     if (!hasChanges()) {
       toast.info("Aucune modification détectée.");
       return;
     }
-
     setIsSaving(true);
     const payload = {
       name: pharmacyName,
       address: address,
+      latitude: latitude,
+      longitude: longitude,
       isActive: isActive,
       canDeliver: canDeliver,
       deliveryPrice: deliveryPrice,
@@ -432,7 +517,6 @@ const Settings = () => {
         };
       }
     }
-
     try {
       await axiosInstance.patch(`/pharmacy/update`, payload);
       toast.success("Paramètres mis à jour avec succès");
@@ -509,13 +593,43 @@ const Settings = () => {
           <label className="w-[25%] text-md font-bold text-gray-700 mr-4">
             Adresse :
           </label>
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            className="w-full px-3 py-2 rounded-full bg-[#F6F6F6] text-gray-700"
-          />
+          <div className="w-full">
+            {loadError ? (
+              <div>Erreur de chargement de Google Maps</div>
+            ) : !isLoaded ? (
+              <div>Chargement de Google Maps...</div>
+            ) : (
+              <Autocomplete
+                onLoad={onAutocompleteLoad}
+                onPlaceChanged={handlePlaceChanged}
+                options={{
+                  componentRestrictions: { country: ["fr", "pk"] },
+                  strictBounds: false,
+                }}
+              >
+                <input
+                  ref={addressInputRef}
+                  type="text"
+                  value={address}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    setAddressError("");
+                    // Do NOT set latitude/longitude here
+                  }}
+                  className="w-full px-3 py-2 rounded-full bg-[#F6F6F6] text-gray-700"
+                  placeholder="Entrez l'adresse complète de la pharmacie"
+                  autoComplete="address-line1"
+                />
+              </Autocomplete>
+            )}
+          </div>
         </div>
+        {addressError && (
+          <p className="text-red-500 text-xs mt-1 flex items-center">
+            <span className="mr-1">⚠</span>
+            {addressError}
+          </p>
+        )}
 
         {/* Horaires d'ouverture */}
         <div className="mb-8 border-b border-gray-300 pb-4">
