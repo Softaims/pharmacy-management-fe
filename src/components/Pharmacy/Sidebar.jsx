@@ -55,7 +55,7 @@ export default function Sidebar() {
           >
             <FiLogOut className="h-6 w-6 transition-transform group-hover:scale-110 text-red-500" />{" "}
           </Link>
-          <span className=" text-sm font-medium">log out</span>
+          <span className=" text-sm text-white font-medium">log out</span>
         </div>
       </div>
     </div>

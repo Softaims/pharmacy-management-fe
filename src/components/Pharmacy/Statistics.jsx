@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import apiService from "../../api/apiService";
 
 const Statistics = () => {
   const [hoveredSegment, setHoveredSegment] = useState(null);
@@ -22,7 +23,16 @@ const Statistics = () => {
   const [error, setError] = useState(null);
   const [data, setData] = useState({
     orderStatusData: [],
-    weeklyData: [],
+    // Static weekly data for bar chart
+    weeklyData: [
+      { day: "Lundi", orders: 12 },
+      { day: "Mardi", orders: 18 },
+      { day: "Mercredi", orders: 9 },
+      { day: "Jeudi", orders: 15 },
+      { day: "Vendredi", orders: 20 },
+      { day: "Samedi", orders: 7 },
+      { day: "Dimanche", orders: 5 },
+    ],
     todayOrders: 0,
     activeClients: 0,
   });
@@ -44,74 +54,91 @@ const Statistics = () => {
     return day ? day.label : englishKey;
   };
 
-  // Simulate API call
+  // Fetch order status analytics from API
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
-
     try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Simulate API response with English day names (as backend would send)
-      const apiResponse = {
-        orderStatusData: [
-          {
-            name: "En attente",
-            value: Math.floor(Math.random() * 30) + 20,
-            color: "#f59e0b",
-            icon: Clock,
-          },
-          {
-            name: "En préparation",
-            value: Math.floor(Math.random() * 25) + 15,
-            color: "#14b8a6",
-            icon: Package,
-          },
-          {
-            name: "Prêt à retirer",
-            value: Math.floor(Math.random() * 20) + 10,
-            color: "#10b981",
-            icon: Truck,
-          },
-          {
-            name: "Finalisé",
-            value: Math.floor(Math.random() * 50) + 40,
-            color: "#6b7280",
-            icon: CheckCircle,
-          },
-        ],
-        weeklyData: [
-          { day: "monday", orders: Math.floor(Math.random() * 20) + 10 },
-          { day: "tuesday", orders: Math.floor(Math.random() * 30) + 15 },
-          { day: "wednesday", orders: Math.floor(Math.random() * 25) + 15 },
-          { day: "thursday", orders: Math.floor(Math.random() * 35) + 20 },
-          { day: "friday", orders: Math.floor(Math.random() * 40) + 25 },
-          { day: "saturday", orders: Math.floor(Math.random() * 35) + 20 },
-          { day: "sunday", orders: Math.floor(Math.random() * 20) + 8 },
-        ],
-        todayOrders: Math.floor(Math.random() * 20) + 25,
-        activeClients: Math.floor(Math.random() * 50) + 200,
+      const analyticsRes = await apiService.getAnalytics();
+      console.log("🚀 ~ fetchData ~ analyticsRes:", analyticsRes);
+      // Use new API response structure (byStatus/byDayOfWeek are direct children of data)
+      const apiData =
+        analyticsRes && analyticsRes.data ? analyticsRes.data : {};
+      const statusLabelMap = {
+        PENDING: "En attente",
+        "En préparation": "En préparation",
+        Finalisé: "Finalisé",
+        Refusé: "Refusé",
+        "Prêt à livrer": "Prêt à livrer",
+        // Add more mappings as needed
       };
-
-      // Transform the API response to include French day names
-      const transformedData = {
-        ...apiResponse,
-        weeklyData: apiResponse.weeklyData.map((item) => ({
-          ...item,
-          dayKey: item.day, // Keep original English key if needed
-          day: getFrenchDayName(item.day), // Convert to French label
-        })),
+      const statusColorMap = {
+        "En préparation": "#14b8a6",
+        Finalisé: "#6b7280",
+        Refusé: "#ef4444",
+        "En attente": "#f59e0b",
+        "Prêt à livrer": "#10b981",
+        // Add more mappings as needed
       };
+      const statusIconMap = {
+        "En préparation": Package,
+        Finalisé: CheckCircle,
+        Refusé: AlertCircle,
+        "En attente": Clock,
+        "Prêt à livrer": Truck,
+      };
+      // Map byStatus
+      const byStatus = apiData.byStatus || {};
+      const orderStatusData = Object.entries(byStatus).map(([name, value]) => {
+        const frenchName = statusLabelMap[name] || name;
+        return {
+          name: frenchName,
+          value,
+          color: statusColorMap[frenchName] || "#8884d8",
+          icon: statusIconMap[frenchName] || Clock,
+        };
+      });
 
-      // Simulate occasional API errors
-      if (Math.random() < 0.1) {
-        throw new Error("Erreur de connexion au serveur");
-      }
+      // Map byDayOfWeek to weeklyData (fill missing days with 0)
+      const byDayOfWeek = apiData.byDayOfWeek || {};
+      const dayKeyToFrench = {
+        MONDAY: "Lundi",
+        TUESDAY: "Mardi",
+        WEDNESDAY: "Mercredi",
+        THURSDAY: "Jeudi",
+        FRIDAY: "Vendredi",
+        SATURDAY: "Samedi",
+        SUNDAY: "Dimanche",
+      };
+      const weekOrder = [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY",
+      ];
+      const weeklyData = weekOrder.map((key) => ({
+        day: dayKeyToFrench[key],
+        orders: byDayOfWeek[key] || 0,
+      }));
 
-      setData(transformedData);
+      // Get todayOrders and total if available
+      const today = new Date();
+      const todayKey = weekOrder[today.getDay() === 0 ? 6 : today.getDay() - 1];
+      const todayOrders = byDayOfWeek[todayKey] || 0;
+      const activeClients = 0; // Not provided in response
+
+      setData((prev) => ({
+        ...prev,
+        orderStatusData,
+        weeklyData,
+        todayOrders,
+        activeClients,
+      }));
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Erreur de chargement des statistiques");
     } finally {
       setIsLoading(false);
     }
@@ -363,7 +390,7 @@ const Statistics = () => {
       <div className="max-w-7xl mx-auto p-6">
         {/* Header with refresh button */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Tableau de Bord</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Statistiques</h1>
           <button
             onClick={fetchData}
             disabled={isLoading}
