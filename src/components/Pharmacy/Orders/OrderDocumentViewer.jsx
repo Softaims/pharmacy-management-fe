@@ -21,10 +21,10 @@ const OrderDocumentViewer = ({
 
     let url = null;
     const isSelf = selectedOrder.orderFor === "self";
-    console.log("🚀 ~ getDocumentUrl ~ isSelf:", isSelf);
+    // console.log("🚀 ~ getDocumentUrl ~ isSelf:", isSelf);
 
     const source = isSelf ? selectedOrder.patient : selectedOrder.familyMember;
-    console.log("🚀 ~ getDocumentUrl ~ source:", source);
+    // console.log("🚀 ~ getDocumentUrl ~ source:", source);
 
     switch (activeTab.id) {
       case "prescription":
@@ -43,7 +43,7 @@ const OrderDocumentViewer = ({
         break;
     }
 
-    console.log("🚀 ~ getDocumentUrl ~ url:", url);
+    // console.log("🚀 ~ getDocumentUrl ~ url:", url);
     return url ? url : null;
   };
 

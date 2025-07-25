@@ -151,7 +151,7 @@ const AddPharmacyModal = ({
         });
       });
 
-      console.log("🚀 ~ response ~ response:", response);
+      // console.log("🚀 ~ response ~ response:", response);
 
       const { lat, lng } = response.geometry.location;
       setNewPharmacy((prev) => ({

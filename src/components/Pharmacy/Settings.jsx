@@ -74,10 +74,10 @@ const Settings = () => {
   const [uploadedImageUrl, setUploadedImageUrl] = useState(
     user?.pharmacy?.imageUrl || ""
   );
-  console.log(
-    "🚀 ~ Settings ~ uploadedImageUrl:,,,,,,,,,,,,,,,,,,",
-    uploadedImageUrl
-  );
+  // console.log(
+  //   "🚀 ~ Settings ~ uploadedImageUrl:,,,,,,,,,,,,,,,,,,",
+  //   uploadedImageUrl
+  // );
 
   // Initialize schedule state based on API response
   const [schedule, setSchedule] = useState({
@@ -336,27 +336,27 @@ const Settings = () => {
     let changesDetected = false;
 
     if (pharmacyName !== user?.pharmacy?.name) {
-      console.log("Pharmacy name changed:", pharmacyName);
+      // console.log("Pharmacy name changed:", pharmacyName);
       changesDetected = true;
     }
 
     if (address !== user?.pharmacy?.address) {
-      console.log("Address changed:", address);
+      // console.log("Address changed:", address);
       changesDetected = true;
     }
 
     if (isActive !== user?.pharmacy?.isActive) {
-      console.log("Active status changed:", isActive);
+      // console.log("Active status changed:", isActive);
       changesDetected = true;
     }
 
     if (canDeliver !== user?.pharmacy?.canDeliver) {
-      console.log("Home delivery changed:", canDeliver);
+      // console.log("Home delivery changed:", canDeliver);
       changesDetected = true;
     }
 
     if (deliveryPrice !== user?.pharmacy?.deliveryPrice) {
-      console.log("Delivery price changed:", deliveryPrice);
+      // console.log("Delivery price changed:", deliveryPrice);
       changesDetected = true;
     }
 
@@ -364,17 +364,17 @@ const Settings = () => {
       schedule,
       user?.pharmacy?.schedules
     );
-    console.log("🚀 ~ hasChanges ~ hasScheduleChanges:", hasScheduleChanges);
+    // console.log("🚀 ~ hasChanges ~ hasScheduleChanges:", hasScheduleChanges);
 
     if (hasScheduleChanges) {
-      console.log("Schedule changed:");
-      console.log("Old Schedule:", user?.pharmacy?.schedules);
-      console.log("New Schedule:", schedule);
+      // console.log("Schedule changed:");
+      // console.log("Old Schedule:", user?.pharmacy?.schedules);
+      // console.log("New Schedule:", schedule);
       changesDetected = true;
     }
 
     if (imageKey !== null) {
-      console.log("Image changed:", imageKey);
+      // console.log("Image changed:", imageKey);
       changesDetected = true;
     }
 
@@ -521,7 +521,7 @@ const Settings = () => {
       await axiosInstance.patch(`/pharmacy/update`, payload);
       toast.success("Paramètres mis à jour avec succès");
     } catch (error) {
-      console.log("🚀 ~ handleSave ~ error:", error);
+      // console.log("🚀 ~ handleSave ~ error:", error);
       console.error(
         "Erreur lors de la mise à jour des paramètres :",
         error?.response.data.message

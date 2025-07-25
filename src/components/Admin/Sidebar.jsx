@@ -11,7 +11,7 @@ const Sidebar = ({
   setSidebarOpen,
 }) => {
   const { user, logout, isLoading } = useAuth(); // Access user and logout function from AuthContext
-  console.log("🚀 ~ user:,,,,,,,,,,,,,,,,,,,,,,,", user, isLoading);
+  // console.log("🚀 ~ user:,,,,,,,,,,,,,,,,,,,,,,,", user, isLoading);
 
   const sidebarItems = [
     { id: "users", label: "Gestion des pharmacies", icon: Users },
@@ -23,7 +23,7 @@ const Sidebar = ({
       await logout();
       toast.success("Déconnexion réussie !");
     } catch (error) {
-      console.log("🚀 ~ handleLogout ~ error:", error);
+      // console.log("🚀 ~ handleLogout ~ error:", error);
       toast.error("Erreur lors de la déconnexion. Veuillez réessayer.");
     }
   };

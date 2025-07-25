@@ -5,10 +5,10 @@ import Cookies from "js-cookie";
 const apiService = {
   // Admin login
   Signin: async (payload) => {
-    console.log("🚀 ~ Signin: ~ payload:", payload);
+    // console.log("🚀 ~ Signin: ~ payload:", payload);
     try {
       const response = await axios.post("/admin/login", payload);
-      console.log("🚀 ~ Signin: ~ response:", response);
+      // console.log("🚀 ~ Signin: ~ response:", response);
       const staticExpiryDate = new Date();
       staticExpiryDate.setDate(staticExpiryDate.getDate() + 7); // 7 days from now
 
@@ -27,7 +27,7 @@ const apiService = {
 
       return response.data;
     } catch (error) {
-      console.log("🚀 ~ Signin: ~ error:", error.response?.data || error);
+      // console.log("🚀 ~ Signin: ~ error:", error.response?.data || error);
       throw error.response?.data || { message: "Something went wrong" };
     }
   },
@@ -62,7 +62,7 @@ const apiService = {
 
       return response.data;
     } catch (error) {
-      console.log("🚀 ~ PharSign: ~ error:", error.response?.data || error);
+      // console.log("🚀 ~ PharSign: ~ error:", error.response?.data || error);
       throw error.response?.data || { message: "Something went wrong" };
     }
   },
@@ -87,7 +87,7 @@ const apiService = {
       const response = await axios.post("/auth/refresh", payload);
       return response.data;
     } catch (error) {
-      console.log("🚀 ~ refreshToken: ~ error:", error.response?.data || error);
+      // console.log("🚀 ~ refreshToken: ~ error:", error.response?.data || error);
       throw error.response?.data || { message: "Failed to refresh token" };
     }
   },
@@ -129,23 +129,23 @@ const apiService = {
   deletePharmacy: async (id) => {
     try {
       const response = await axios.delete(`/admin/pharmacy/${id}`);
-      console.log("🚀 ~ deletePharmacy: ~ response:", response);
+      // console.log("🚀 ~ deletePharmacy: ~ response:", response);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: "Failed to delete pharmacy" };
     }
   },
   changeStatus: async (id, isActive) => {
-    console.log(
-      "🚀 ~ changeStatus: ~ isActive:,,,,,,,,,,,,,,,,,,,,,,,,,",
-      isActive,
-      id
-    );
+    // console.log(
+    //   "🚀 ~ changeStatus: ~ isActive:,,,,,,,,,,,,,,,,,,,,,,,,,",
+    //   isActive,
+    //   id
+    // );
     try {
       const response = await axios.patch(`/admin/pharmacy/${id}/status`, {
         isActive,
       });
-      console.log("🚀 ~ changeStatus: ~ response:", response);
+      // console.log("🚀 ~ changeStatus: ~ response:", response);
       return response.data;
     } catch (error) {
       throw (
@@ -166,11 +166,11 @@ const apiService = {
     }
   },
   changeOrderStatus: async (id, status) => {
-    console.log(
-      "🚀 ~ changeOrderStatus: ~ id, status,,,,,,,,,,,,,,,:",
-      id,
-      status
-    );
+    // console.log(
+    //   "🚀 ~ changeOrderStatus: ~ id, status,,,,,,,,,,,,,,,:",
+    //   id,
+    //   status
+    // );
     try {
       const response = await axios.patch(`/order/status/${id}`, {
         status,
@@ -185,12 +185,12 @@ const apiService = {
     }
   },
   changeOrderStatusWithDetails: async (orderId, newStatus, deliveryDetails) => {
-    console.log(
-      "🚀 ~ changeOrderStatusWithDetails: ~ orderId, newStatus, deliveryDetails:",
-      orderId,
-      newStatus,
-      deliveryDetails
-    );
+    // console.log(
+    //   "🚀 ~ changeOrderStatusWithDetails: ~ orderId, newStatus, deliveryDetails:",
+    //   orderId,
+    //   newStatus,
+    //   deliveryDetails
+    // );
 
     // Determine completionStatus based on deliveryDetails.type
     const completionStatus =
@@ -239,18 +239,18 @@ const apiService = {
   getOrderHistory: async (orderId) => {
     try {
       const response = await axios.get(`pharmacy/orders/history/${orderId}`);
-      console.log("🚀 ~ getOrderHistory: ~ response:", response);
+      // console.log("🚀 ~ getOrderHistory: ~ response:", response);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: "Failed to get order history" };
     }
   },
   updateOrderHistory: async (id, editHistoryDetails) => {
-    console.log(
-      "🚀 ~ updateOrderHistory: ~ orderId, historyId, payload:",
-      id,
-      editHistoryDetails
-    );
+    // console.log(
+    //   "🚀 ~ updateOrderHistory: ~ orderId, historyId, payload:",
+    //   id,
+    //   editHistoryDetails
+    // );
 
     // Dynamically set the completionStatus
     const completionStatus =

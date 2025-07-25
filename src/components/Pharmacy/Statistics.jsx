@@ -12,6 +12,7 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
+  XCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiService from "../../api/apiService";
@@ -60,44 +61,41 @@ const Statistics = () => {
     setError(null);
     try {
       const analyticsRes = await apiService.getAnalytics();
-      console.log("🚀 ~ fetchData ~ analyticsRes:", analyticsRes);
       // Use new API response structure (byStatus/byDayOfWeek are direct children of data)
       const apiData =
         analyticsRes && analyticsRes.data ? analyticsRes.data : {};
-      const statusLabelMap = {
-        PENDING: "En attente",
-        "En préparation": "En préparation",
-        Finalisé: "Finalisé",
-        Refusé: "Refusé",
-        "Prêt à livrer": "Prêt à livrer",
-        // Add more mappings as needed
-      };
-      const statusColorMap = {
-        "En préparation": "#14b8a6",
-        Finalisé: "#6b7280",
-        Refusé: "#ef4444",
-        "En attente": "#f59e0b",
-        "Prêt à livrer": "#10b981",
-        // Add more mappings as needed
-      };
-      const statusIconMap = {
-        "En préparation": Package,
-        Finalisé: CheckCircle,
-        Refusé: AlertCircle,
-        "En attente": Clock,
-        "Prêt à livrer": Truck,
-      };
-      // Map byStatus
+      // Define all possible statuses to always show
+      const allStatuses = [
+        { key: "PENDING", label: "En attente", color: "#f59e0b", icon: Clock },
+        {
+          key: "En préparation",
+          label: "En préparation",
+          color: "#14b8a6",
+          icon: Package,
+        },
+        {
+          key: "Finalisé",
+          label: "Finalisé",
+          color: "#6b7280",
+          icon: CheckCircle,
+        },
+        {
+          key: "Prêt à livrer",
+          label: "Prêt à livrer",
+          color: "#10b981",
+          icon: Truck,
+        },
+        { key: "Refusé", label: "Refusé", color: "#ef4444", icon: AlertCircle },
+        { key: "Annulée", label: "Annulée", color: "#6366f1", icon: XCircle },
+        // Add more if needed
+      ];
       const byStatus = apiData.byStatus || {};
-      const orderStatusData = Object.entries(byStatus).map(([name, value]) => {
-        const frenchName = statusLabelMap[name] || name;
-        return {
-          name: frenchName,
-          value,
-          color: statusColorMap[frenchName] || "#8884d8",
-          icon: statusIconMap[frenchName] || Clock,
-        };
-      });
+      const orderStatusData = allStatuses.map((status) => ({
+        name: status.label,
+        value: byStatus[status.key] !== undefined ? byStatus[status.key] : 0,
+        color: status.color,
+        icon: status.icon,
+      }));
 
       // Map byDayOfWeek to weeklyData (fill missing days with 0)
       const byDayOfWeek = apiData.byDayOfWeek || {};
@@ -331,7 +329,14 @@ const Statistics = () => {
 
   // Enhanced Bar Chart Component
   const EnhancedBarChart = ({ data: chartData }) => {
-    if (!chartData || chartData.length === 0) return null;
+    const totalOrders = chartData.reduce((sum, item) => sum + item.orders, 0);
+    if (!chartData || chartData.length === 0 || totalOrders === 0) {
+      return (
+        <div className="flex items-center justify-center h-64 text-gray-500 text-lg">
+          Il n'y a aucune commande pour la semaine passée.
+        </div>
+      );
+    }
 
     return (
       <div className="flex items-end justify-between h-64 px-4">
