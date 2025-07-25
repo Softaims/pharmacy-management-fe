@@ -27,3 +27,4 @@ jobs:
             ssh -i ~/.ssh/id_rsa ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && git pull origin main && npm install && npm run build && pm2 restart pharmacy-managemen"
           elif [ "${GITHUB_REF##*/}" = "staging" ]; then
             ssh -i ~/.ssh/id_rsa ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe-staging && git pull origin staging && npm install && npm run build && pm2 restart pharmacy-staging"
+          fi
