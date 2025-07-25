@@ -65,7 +65,7 @@ const Login = () => {
       });
       navigate(from, { replace: true });
     } catch (err) {
-      console.log("🚀 ~ handleSubmit ~ err:", err);
+      // console.log("🚀 ~ handleSubmit ~ err:", err);
       toast.error(err.message || "Une erreur s'est produite", {
         theme: "dark",
       });

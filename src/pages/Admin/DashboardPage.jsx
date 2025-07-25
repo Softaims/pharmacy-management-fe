@@ -14,13 +14,13 @@ const DashboardPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
-  console.log("🚀 ~ DashboardPage ~ user:", user);
+  // console.log("🚀 ~ DashboardPage ~ user:", user);
   const [pharmacies, setPharmacies] = useState([]);
   useEffect(() => {
     const fetchPharmacies = async () => {
       try {
         const response = await apiService.getPharmacies();
-        console.log("🚀 ~ fetchPharmacies ~ data:", response);
+        // console.log("🚀 ~ fetchPharmacies ~ data:", response);
 
         // Transform API data to match the static data structure
         const transformedPharmacies = response.data.map((pharmacy) => ({
@@ -34,10 +34,10 @@ const DashboardPage = () => {
           joinedDate: dayjs(pharmacy.createdAt).format("DD MMMM YYYY"),
           createdAt: pharmacy.createdAt,
         }));
-        console.log(
-          "🚀 ~ transformedPharmacies ~ transformedPharmacies:",
-          transformedPharmacies
-        );
+        // console.log(
+        //   "🚀 ~ transformedPharmacies ~ transformedPharmacies:",
+        //   transformedPharmacies
+        // );
         const sortedPharmacies = transformedPharmacies.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );

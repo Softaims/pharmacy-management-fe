@@ -4,7 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 const Profile = () => {
   // Get user data from AuthContext
   const { user, logout } = useAuth();
-  console.log("🚀 ~ Profile ~ user:", user);
+  // console.log("🚀 ~ Profile ~ user:", user);
 
   const handleLogout = () => {
     logout(); // Call the logout function from AuthContext
