@@ -4,6 +4,7 @@ import Sidebar from "../../components/Pharmacy/Sidebar.jsx";
 import Orders from "../../components/Pharmacy/Orders.jsx";
 import Profile from "../../components/Pharmacy/Profile.jsx";
 import Settings from "../../components/Pharmacy/Settings.jsx";
+import Statistics from "../../components/Pharmacy/Statistics.jsx";
 
 export default function PharmacyDashboard() {
   return (
@@ -29,6 +30,7 @@ export default function PharmacyDashboard() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/statistics" element={<Statistics />} />
         </Routes>
       </div>
     </div>
