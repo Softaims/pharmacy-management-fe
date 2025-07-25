@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { X, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import apiService from "../../api/apiService";
@@ -28,10 +34,15 @@ const AddPharmacyModal = ({
   const [showPassword, setShowPassword] = useState(false);
   const [lastMode, setLastMode] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [addressFromAutocomplete, setAddressFromAutocomplete] = useState(false);
+
   const modalRef = useRef(null);
   const addressInputRef = useRef(null);
+  const geocodingTimeoutRef = useRef(null);
+
   const isEditMode = !!pharmacyToEdit;
   const libraries = useMemo(() => ["places"], []);
+
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // Use Vite env variable
     libraries: libraries,
@@ -40,17 +51,26 @@ const AddPharmacyModal = ({
   // Initialize Geocoder
   const geocoder = isLoaded ? new window.google.maps.Geocoder() : null;
 
+  // Debounced geocoding function to avoid excessive API calls
+  const debouncedGeocode = useCallback((address, callback) => {
+    if (geocodingTimeoutRef.current) {
+      clearTimeout(geocodingTimeoutRef.current);
+    }
+
+    geocodingTimeoutRef.current = setTimeout(() => {
+      geocodeAddress(address).then(callback);
+    }, 1000); // Wait 1 second after user stops typing
+  }, []);
+
   // Handle autocomplete load and configure options
   const onAutocompleteLoad = (autocomplete) => {
     setAutocomplete(autocomplete);
 
-    // Configure autocomplete options
+    // Configure autocomplete options with field restrictions to reduce cost
     if (autocomplete) {
       autocomplete.setOptions({
-        // Restrict to specific types if needed
-        // types: ['establishment'],
         componentRestrictions: { country: ["fr", "pk"] }, // Restrict to France and Pakistan
-        // You can add more restrictions as needed
+        fields: ["formatted_address", "geometry"], // Only request necessary fields to reduce cost
       });
     }
   };
@@ -69,7 +89,13 @@ const AddPharmacyModal = ({
           latitude: latitude,
           longitude: longitude,
         });
+        setAddressFromAutocomplete(true); // Mark as from autocomplete
         setErrors({ ...errors, address: "" }); // Clear address error
+
+        // Clear any pending geocoding timeout since we have coordinates
+        if (geocodingTimeoutRef.current) {
+          clearTimeout(geocodingTimeoutRef.current);
+        }
       } else {
         setErrors({
           ...errors,
@@ -85,14 +111,25 @@ const AddPharmacyModal = ({
     setNewPharmacy({
       ...newPharmacy,
       address: e.target.value,
-      latitude: null, // Reset coordinates to force geocoding on blur or submit
-      longitude: null,
+      // Only reset coordinates if not from autocomplete
+      latitude: addressFromAutocomplete ? newPharmacy.latitude : null,
+      longitude: addressFromAutocomplete ? newPharmacy.longitude : null,
     });
+    setAddressFromAutocomplete(false); // Mark as manual input
   };
 
-  // Geocode address to get latitude and longitude
+  // Geocode address to get latitude and longitude with smart logic
   const geocodeAddress = async (address) => {
     if (!geocoder || !address) return false;
+
+    // Skip geocoding if coordinates already exist from autocomplete
+    if (
+      newPharmacy.latitude &&
+      newPharmacy.longitude &&
+      addressFromAutocomplete
+    ) {
+      return true;
+    }
 
     try {
       const response = await new Promise((resolve, reject) => {
@@ -139,7 +176,6 @@ const AddPharmacyModal = ({
   useEffect(() => {
     const handleScroll = () => {
       if (autocomplete && window.google && window.google.maps) {
-        // Force the autocomplete to recalculate its position
         window.google.maps.event.trigger(autocomplete, "resize");
       }
     };
@@ -147,12 +183,18 @@ const AddPharmacyModal = ({
     if (showAddModal && modalRef.current) {
       const modalElement = modalRef.current;
       modalElement.addEventListener("scroll", handleScroll);
-
-      return () => {
-        modalElement.removeEventListener("scroll", handleScroll);
-      };
+      return () => modalElement.removeEventListener("scroll", handleScroll);
     }
   }, [showAddModal, autocomplete]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (geocodingTimeoutRef.current) {
+        clearTimeout(geocodingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const currentMode = isEditMode ? "edit" : "add";
@@ -171,6 +213,7 @@ const AddPharmacyModal = ({
         latitude: pharmacyToEdit.latitude || null,
         longitude: pharmacyToEdit.longitude || null,
       });
+      setAddressFromAutocomplete(true); // Assume existing address is valid
     } else if (lastMode !== currentMode) {
       resetForm();
     }
@@ -192,9 +235,15 @@ const AddPharmacyModal = ({
     setErrors({});
     setTouched({});
     setShowPassword(false);
+    setAddressFromAutocomplete(false);
+
+    // Clear any pending geocoding timeout
+    if (geocodingTimeoutRef.current) {
+      clearTimeout(geocodingTimeoutRef.current);
+    }
   };
 
-  // Validation functions
+  // Validation functions (keeping existing ones)
   const validateName = (name) => {
     if (!name || name.trim() === "") {
       return "Le nom de la pharmacie est obligatoire";
@@ -235,6 +284,9 @@ const AddPharmacyModal = ({
     if (!address || address.trim() === "") {
       return "L'adresse est obligatoire";
     }
+    if (address.trim().length < 5) {
+      return "L'adresse doit contenir au moins 5 caractères";
+    }
     return "";
   };
 
@@ -259,41 +311,28 @@ const AddPharmacyModal = ({
   };
 
   const validateField = (name, value) => {
-    let error = "";
     switch (name) {
       case "name":
-        error = validateName(value);
-        break;
+        return validateName(value);
       case "email":
-        error = validateEmail(value);
-        break;
+        return validateEmail(value);
       case "phone":
-        error = validatePhone(value);
-        break;
+        return validatePhone(value);
       case "address":
-        error = validateAddress(value);
-        break;
+        return validateAddress(value);
       case "password":
-        error = validatePassword(value);
-        break;
+        return validatePassword(value);
       default:
-        break;
+        return "";
     }
-    return error;
   };
 
   const handleInputChange = (name, value) => {
-    setNewPharmacy({
-      ...newPharmacy,
-      [name]: value,
-    });
+    setNewPharmacy((prev) => ({ ...prev, [name]: value }));
 
     if (touched[name]) {
       const error = validateField(name, value);
-      setErrors({
-        ...errors,
-        [name]: error,
-      });
+      setErrors((prev) => ({ ...prev, [name]: error }));
     }
   };
 
@@ -309,15 +348,16 @@ const AddPharmacyModal = ({
       [name]: error,
     });
 
-    if (name === "address" && newPharmacy.address) {
-      // Ensure the user entered a valid address
-      const success = await geocodeAddress(newPharmacy.address);
-      if (!success) {
-        setErrors({
-          ...errors,
-          address: "Veuillez entrer une adresse correcte et précise.",
-        });
-      }
+    // Use debounced geocoding for manual address input
+    if (name === "address" && newPharmacy.address && !addressFromAutocomplete) {
+      debouncedGeocode(newPharmacy.address, (success) => {
+        if (!success) {
+          setErrors({
+            ...errors,
+            address: "Veuillez entrer une adresse correcte et précise.",
+          });
+        }
+      });
     }
   };
 
@@ -328,8 +368,6 @@ const AddPharmacyModal = ({
       newPharmacy.email !== pharmacyToEdit.email ||
       newPharmacy.phone !== pharmacyToEdit.phone ||
       newPharmacy.address !== pharmacyToEdit.address
-      // newPharmacy.latitude !== pharmacyToEdit.latitude ||
-      // newPharmacy.longitude !== pharmacyToEdit.longitude
     );
   };
 
@@ -347,13 +385,15 @@ const AddPharmacyModal = ({
       }
     });
 
-    // Validate coordinates
+    // Only geocode if coordinates don't exist and address wasn't from autocomplete
     if (!newPharmacy.latitude || !newPharmacy.longitude) {
-      const success = await geocodeAddress(newPharmacy.address);
-      if (!success) {
-        newErrors.address =
-          newErrors.address ||
-          "Adresse non géocodable. Veuillez vérifier ou sélectionner une suggestion.";
+      if (!addressFromAutocomplete) {
+        const success = await geocodeAddress(newPharmacy.address);
+        if (!success) {
+          newErrors.address =
+            newErrors.address ||
+            "Adresse non géocodable. Veuillez vérifier ou sélectionner une suggestion.";
+        }
       }
     }
 
@@ -623,13 +663,8 @@ const AddPharmacyModal = ({
                 onLoad={onAutocompleteLoad}
                 onPlaceChanged={handlePlaceChanged}
                 options={{
-                  // Add bounds to prioritize results near a specific location
-                  // bounds: new google.maps.LatLngBounds(
-                  //   new google.maps.LatLng(46.2, 1.8),
-                  //   new google.maps.LatLng(49.5, 8.3)
-                  // ),
                   componentRestrictions: { country: ["fr", "pk"] },
-                  // fields: ["formatted_address", "geometry", "name"],
+                  fields: ["formatted_address", "geometry"], // Restrict fields to reduce cost
                   strictBounds: false,
                 }}
               >
