@@ -49,7 +49,7 @@ const AddPharmacyModal = ({
       autocomplete.setOptions({
         // Restrict to specific types if needed
         // types: ['establishment'],
-        componentRestrictions: { country: ["fr"] }, // Restrict to France
+        componentRestrictions: { country: ["fr", "pk"] }, // Restrict to France and Pakistan
         // You can add more restrictions as needed
       });
     }
@@ -628,7 +628,7 @@ const AddPharmacyModal = ({
                   //   new google.maps.LatLng(46.2, 1.8),
                   //   new google.maps.LatLng(49.5, 8.3)
                   // ),
-                  componentRestrictions: { country: "fr" },
+                  componentRestrictions: { country: ["fr", "pk"] },
                   // fields: ["formatted_address", "geometry", "name"],
                   strictBounds: false,
                 }}

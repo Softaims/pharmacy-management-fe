@@ -23,14 +23,14 @@ A modern web application for pharmacy management, featuring two distinct panels:
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v16 or higher recommended)
+- [Node.js](https://nodejs.org/) (v20.19.2 recommended)
 - [npm](https://www.npmjs.com/)
 
 ### Installation
 
 1. **Clone the repository:**
    ```sh
-   git clone <your-repo-url>
+   git clone https://github.com/Softaims/pharmacy-management-fe.git
    cd pharmacy-management-fe
    ```
 2. **Install dependencies:**
@@ -58,8 +58,7 @@ npm run dev
 
 - **Frontend:** React, Vite, Tailwind CSS
 - **APIs:** Google Maps (Places, Geocoding)
-- **State Management:** React Context, Redux (if used)
-- **PDF/Image Viewing:** Integrated viewers for prescriptions and cards
+- **PDF Viewing:** Integrated viewers for prescriptions and cards
 
 ## Project Structure
 
@@ -74,7 +73,3 @@ npm run dev
 
 - Admin credentials are provided separately for security.
 - Ensure you have valid backend and Google Maps API keys before running the project.
-
-## License
-
-This project is for demonstration and internal use. Licensing details to be determined.
