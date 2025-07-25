@@ -69,7 +69,7 @@ const AddPharmacyModal = ({
     // Configure autocomplete options with field restrictions to reduce cost
     if (autocomplete) {
       autocomplete.setOptions({
-        componentRestrictions: { country: ["fr", "pk"] }, // Restrict to France and Pakistan
+        componentRestrictions: { country: ["fr"] }, // Restrict to France and Pakistan
         fields: ["formatted_address", "geometry"], // Only request necessary fields to reduce cost
       });
     }
@@ -663,7 +663,7 @@ const AddPharmacyModal = ({
                 onLoad={onAutocompleteLoad}
                 onPlaceChanged={handlePlaceChanged}
                 options={{
-                  componentRestrictions: { country: ["fr", "pk"] },
+                  componentRestrictions: { country: ["fr"] },
                   fields: ["formatted_address", "geometry"], // Restrict fields to reduce cost
                   strictBounds: false,
                 }}
