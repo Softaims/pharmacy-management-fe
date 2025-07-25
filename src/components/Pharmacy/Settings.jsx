@@ -524,9 +524,12 @@ const Settings = () => {
       console.log("🚀 ~ handleSave ~ error:", error);
       console.error(
         "Erreur lors de la mise à jour des paramètres :",
-        error.message
+        error?.response.data.message
       );
-      toast.error("Erreur lors de la mise à jour des paramètres");
+      toast.error(
+        error?.response.data.message ||
+          "Erreur lors de la mise à jour des paramètres"
+      );
     } finally {
       setIsSaving(false);
     }
@@ -647,11 +650,23 @@ const Settings = () => {
                     onChange={() => handleToggle(key)}
                     className="sr-only peer"
                   />
-                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer  peer-focus:ring-blue-300  peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all  peer-checked:bg-[#069AA2] "></div>
-                  <span className="ms-3 text-sm font-medium text-gray-900 ">
+                  <div
+                    className="relative w-11 h-6 bg-gray-200 rounded-full
+                  peer-focus:ring-blue-300 
+                  peer-checked:bg-[#069AA2] 
+                  after:content-[''] after:absolute after:top-0.5 after:start-[2px] 
+                  after:bg-[#E9486C] peer-checked:after:bg-white
+                  after:border-gray-300 after:border after:rounded-full 
+                  after:h-5 after:w-5 after:transition-all 
+                  peer-checked:after:translate-x-full 
+                  rtl:peer-checked:after:-translate-x-full
+  "
+                  ></div>
+                  <span className="ms-3 text-sm font-medium text-gray-900">
                     {schedule[key]?.isOpen ? "Ouvert" : "Fermé"}
                   </span>
                 </label>
+
                 {schedule[key]?.isOpen && (
                   <div className="flex items-center gap-2 flex-wrap">
                     {schedule[key].timeSlots.map((slot, index) => (
@@ -799,13 +814,25 @@ const Settings = () => {
                 <button
                   className="px-2 text-lg font-bold rounded text-gray-900"
                   onClick={() => handleDeliveryPriceChange(false)}
+                  type="button"
                 >
                   -
                 </button>
-                <span className="text-gray-900">{deliveryPrice}</span>
+                <input
+                  type="number"
+                  min={1}
+                  value={deliveryPrice}
+                  onChange={(e) => {
+                    const val = Math.max(1, parseInt(e.target.value) || 1);
+                    setDeliveryPrice(val);
+                  }}
+                  className="w-16 text-center text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none"
+                  style={{ MozAppearance: "textfield" }}
+                />
                 <button
                   className="px-2 text-lg font-bold text-gray-900"
                   onClick={() => handleDeliveryPriceChange(true)}
+                  type="button"
                 >
                   +
                 </button>
