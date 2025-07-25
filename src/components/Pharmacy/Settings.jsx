@@ -524,9 +524,12 @@ const Settings = () => {
       console.log("🚀 ~ handleSave ~ error:", error);
       console.error(
         "Erreur lors de la mise à jour des paramètres :",
-        error.message
+        error?.response.data.message
       );
-      toast.error("Erreur lors de la mise à jour des paramètres");
+      toast.error(
+        error?.response.data.message ||
+          "Erreur lors de la mise à jour des paramètres"
+      );
     } finally {
       setIsSaving(false);
     }
@@ -811,13 +814,25 @@ const Settings = () => {
                 <button
                   className="px-2 text-lg font-bold rounded text-gray-900"
                   onClick={() => handleDeliveryPriceChange(false)}
+                  type="button"
                 >
                   -
                 </button>
-                <span className="text-gray-900">{deliveryPrice}</span>
+                <input
+                  type="number"
+                  min={1}
+                  value={deliveryPrice}
+                  onChange={(e) => {
+                    const val = Math.max(1, parseInt(e.target.value) || 1);
+                    setDeliveryPrice(val);
+                  }}
+                  className="w-16 text-center text-gray-900 bg-transparent border-none focus:ring-0 focus:outline-none"
+                  style={{ MozAppearance: "textfield" }}
+                />
                 <button
                   className="px-2 text-lg font-bold text-gray-900"
                   onClick={() => handleDeliveryPriceChange(true)}
+                  type="button"
                 >
                   +
                 </button>
