@@ -1,9 +1,10 @@
-name: Deploy to EC2
+name: Deploy to EC2 (Main + Staging)
 
 on:
   push:
     branches:
       - main
+      - staging
 
 jobs:
   deploy:
@@ -13,20 +14,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: npm install
-
       - name: Setup SSH
         run: |
-          sudo mkdir -p /root/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | sudo tee /root/.ssh/id_rsa > /dev/null
-          sudo chmod 600 /root/.ssh/id_rsa
-          sudo ssh-keyscan -H 13.49.41.220 | sudo tee -a /root/.ssh/known_hosts
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 13.49.41.220 >> ~/.ssh/known_hosts
 
-      - name: Update code on EC2 by pulling from master
+      - name: Deploy based on branch
         run: |
-          sudo ssh -v -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && git pull origin main"
-
-      - name: Restart PM2 server
-        run: |
-          sudo ssh -i "${{ secrets.SSH_PRIVATE_KEY }}" ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && npm run build"
+          if [ "${GITHUB_REF##*/}" = "main" ]; then
+            ssh -i ~/.ssh/id_rsa ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe && git pull origin main && npm install && npm run build && pm2 restart pharmacy-managemen"
+          elif [ "${GITHUB_REF##*/}" = "staging" ]; then
+            ssh -i ~/.ssh/id_rsa ubuntu@13.49.41.220 "cd /home/ubuntu/pharmacy-management-fe-staging && git pull origin staging && npm install && npm run build && pm2 restart pharmacy-staging"
+          fi
