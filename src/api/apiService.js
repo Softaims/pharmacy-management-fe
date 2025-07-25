@@ -276,6 +276,15 @@ const apiService = {
       );
     }
   },
+  // Get pharmacy analytics (orders by status)
+  getAnalytics: async () => {
+    try {
+      const response = await axios.get("/pharmacy/analytics");
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: "Failed to get analytics" };
+    }
+  },
 };
 
 export default apiService;
