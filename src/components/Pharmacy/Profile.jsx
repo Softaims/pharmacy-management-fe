@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import apiService from "../../api/apiService"; // Static import of apiService
 
 const Profile = () => {
   // Get user data from AuthContext
@@ -81,9 +82,7 @@ const Profile = () => {
         newPassword,
         confirmNewPassword: confirmPassword,
       };
-      const res = await import("../../api/apiService").then((m) =>
-        m.default.updatePassword(payload)
-      );
+      const res = await apiService.updatePassword(payload);
       setPasswordSuccess(res?.message || "Mot de passe changé avec succès.");
       setCurrentPassword("");
       setNewPassword("");
