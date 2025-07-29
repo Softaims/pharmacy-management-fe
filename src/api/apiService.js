@@ -285,6 +285,15 @@ const apiService = {
       throw error.response?.data || { message: "Failed to get analytics" };
     }
   },
+  // Update pharmacy password
+  updatePassword: async (payload) => {
+    try {
+      const response = await axios.patch("/pharmacy/update-password", payload);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: "Failed to update password" };
+    }
+  },
 };
 
 export default apiService;
