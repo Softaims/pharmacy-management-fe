@@ -5,7 +5,7 @@ import Orders from "../../components/Pharmacy/Orders.jsx";
 import Profile from "../../components/Pharmacy/Profile.jsx";
 import Settings from "../../components/Pharmacy/Settings.jsx";
 import Statistics from "../../components/Pharmacy/Statistics.jsx";
-
+// Mezordopro: Recevez, gérez et préparez les ordonnances en toute simplicité
 export default function PharmacyDashboard() {
   return (
     <div className="flex h-screen">
@@ -15,10 +15,10 @@ export default function PharmacyDashboard() {
       </div>
       <div className="flex-1 ">
         {/* Add margin-left for sidebar */}
-        <div className="text-[#069AA2] flex items-center justify-center border-b border-gray-200 h-[80px] px-4 bshadow-lg rounded-lg">
+        <div className="text-white bg-[#069AA2]  flex items-center justify-center border-b border-gray-200 h-[80px] px-4 bshadow-lg ">
           <h3 className="text-2xl font-semibold text-center leading-tight">
-            <span className="font-bold">Mezardopro :</span> Gestion Intelligente
-            de la Pharmacie
+            <span className="font-bold">Mezardopro :</span> Recevez, gérez et
+            préparez les ordonnances en toute simplicité
           </h3>
         </div>
 
