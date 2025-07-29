@@ -91,6 +91,18 @@ const apiService = {
       throw error.response?.data || { message: "Failed to refresh token" };
     }
   },
+  // Register device token
+  registerDeviceToken: async (payload) => {
+    try {
+      const response = await axios.post("/auth/register-device-token", payload);
+      return response.data;
+    } catch (error) {
+      // console.log("🚀 ~ registerDeviceToken: ~ error:", error.response?.data || error);
+      throw (
+        error.response?.data || { message: "Failed to register device token" }
+      );
+    }
+  },
 
   // Logout
   logout: () => {
