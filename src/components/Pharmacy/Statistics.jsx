@@ -35,7 +35,7 @@ const Statistics = () => {
       { day: "Dimanche", orders: 5 },
     ],
     todayOrders: 0,
-    activeClients: 0,
+    totalPatients: 0, // Placeholder for total patients
   });
 
   // Days mapping for backend English keys to French labels
@@ -71,6 +71,12 @@ const Statistics = () => {
           key: "En préparation",
           label: "En préparation",
           color: "#14b8a6",
+          icon: Package,
+        },
+        {
+          key: "Prêt à collecter",
+          label: "Prêt à collecter",
+          color: "#06b6d4", // cyan-500
           icon: Package,
         },
         {
@@ -126,14 +132,14 @@ const Statistics = () => {
       const today = new Date();
       const todayKey = weekOrder[today.getDay() === 0 ? 6 : today.getDay() - 1];
       const todayOrders = byDayOfWeek[todayKey] || 0;
-      const activeClients = 0; // Not provided in response
+      const totalPatients = apiData.totalPatients || 0;
 
       setData((prev) => ({
         ...prev,
         orderStatusData,
         weeklyData,
         todayOrders,
-        activeClients,
+        totalPatients,
       }));
     } catch (err) {
       setError(err.message || "Erreur de chargement des statistiques");
@@ -188,9 +194,38 @@ const Statistics = () => {
     const centerX = 150;
     const centerY = 150;
 
-    const segments = chartData.map((item, index) => {
-      const percentage = (item.value / totalOrders) * 100;
-      const angle = (percentage / 100) * 360;
+    // If all values are zero, show a message
+    const allZero = chartData.every((item) => item.value === 0);
+    if (allZero) {
+      return (
+        <div className="flex items-center justify-center h-80 text-gray-500 text-lg">
+          Aucune donnée à afficher pour les statuts de commande.
+        </div>
+      );
+    }
+
+    // For 0-value segments, render a minimal angle (e.g., 1 degree) so all statuses are visible
+    const totalForPie = chartData.reduce(
+      (sum, item) => sum + (item.value > 0 ? item.value : 0),
+      0
+    );
+    const minAngle = 1; // degrees for 0-value segments
+    const totalAngle = 360;
+    const numZero = chartData.filter((item) => item.value === 0).length;
+    const angleForZeros = numZero * minAngle;
+    const angleForNonZeros = totalAngle - angleForZeros;
+
+    let segments = [];
+    chartData.forEach((item, index) => {
+      let angle = 0;
+      let percentage = 0;
+      if (item.value === 0) {
+        angle = minAngle;
+        percentage = 0;
+      } else {
+        angle = (item.value / totalForPie) * angleForNonZeros;
+        percentage = (item.value / totalForPie) * 100;
+      }
       const startAngle = cumulativeAngle;
       const endAngle = cumulativeAngle + angle;
 
@@ -217,16 +252,15 @@ const Statistics = () => {
       const labelX = centerX + labelRadius * Math.cos(labelAngleRad);
       const labelY = centerY + labelRadius * Math.sin(labelAngleRad);
 
-      cumulativeAngle += angle;
-
-      return {
+      segments.push({
         ...item,
         pathData,
         percentage: percentage.toFixed(1),
         labelX,
         labelY,
         index,
-      };
+      });
+      cumulativeAngle += angle;
     });
 
     return (
@@ -522,9 +556,6 @@ const Statistics = () => {
                     <p className="text-2xl font-bold text-gray-900">
                       {data.todayOrders}
                     </p>
-                    <p className="text-xs text-teal-600 font-medium">
-                      +12% vs hier
-                    </p>
                   </>
                 )}
               </div>
@@ -548,10 +579,7 @@ const Statistics = () => {
                 ) : (
                   <>
                     <p className="text-2xl font-bold text-gray-900">
-                      {data.activeClients}
-                    </p>
-                    <p className="text-xs text-green-600 font-medium">
-                      +5% cette semaine
+                      {data?.totalPatients}
                     </p>
                   </>
                 )}
