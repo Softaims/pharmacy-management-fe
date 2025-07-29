@@ -43,6 +43,24 @@ const Profile = () => {
       );
       return false;
     }
+    if (!/[A-Z]/.test(newPassword)) {
+      setPasswordError(
+        "Le nouveau mot de passe doit contenir au moins une lettre majuscule."
+      );
+      return false;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      setPasswordError(
+        "Le nouveau mot de passe doit contenir au moins un chiffre."
+      );
+      return false;
+    }
+    if (newPassword === currentPassword) {
+      setPasswordError(
+        "Le nouveau mot de passe ne doit pas être identique à l'actuel."
+      );
+      return false;
+    }
     if (newPassword !== confirmPassword) {
       setPasswordError("Les mots de passe ne correspondent pas.");
       return false;
@@ -58,15 +76,23 @@ const Profile = () => {
     if (!validatePassword()) return;
     setIsSubmitting(true);
     try {
-      // TODO: Replace with real API call
-      await new Promise((res) => setTimeout(res, 1000));
-      setPasswordSuccess("Mot de passe changé avec succès.");
+      const payload = {
+        currentPassword,
+        newPassword,
+        confirmNewPassword: confirmPassword,
+      };
+      const res = await import("../../api/apiService").then((m) =>
+        m.default.updatePassword(payload)
+      );
+      setPasswordSuccess(res?.message || "Mot de passe changé avec succès.");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setIsEditingPassword(false);
     } catch (err) {
-      setPasswordError("Erreur lors du changement de mot de passe.");
+      setPasswordError(
+        err?.message || "Erreur lors du changement de mot de passe."
+      );
     } finally {
       setIsSubmitting(false);
     }
