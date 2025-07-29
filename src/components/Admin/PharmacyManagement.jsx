@@ -208,6 +208,9 @@ const PharmacyManagement = ({
                   Statut
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Total commandes
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -246,16 +249,6 @@ const PharmacyManagement = ({
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    {/* <button
-                      onClick={() => handleStatusToggle(pharmacy)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
-                        pharmacy.status === "Active"
-                          ? "bg-green-100 text-green-800 hover:bg-green-200"
-                          : "bg-red-100 text-red-800 hover:bg-red-200"
-                      }`}
-                    >
-                      {pharmacy.status}
-                    </button> */}
                     <div className="inline-flex flex-col items-center">
                       <label className="inline-flex items-center cursor-pointer">
                         <input
@@ -282,6 +275,9 @@ const PharmacyManagement = ({
                         {pharmacy.status}
                       </span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 text-center font-semibold text-gray-700">
+                    {pharmacy.numberOfOrders ?? 0}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">

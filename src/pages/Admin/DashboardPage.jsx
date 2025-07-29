@@ -16,17 +16,16 @@ const DashboardPage = () => {
   const { user } = useAuth();
   // console.log("🚀 ~ DashboardPage ~ user:", user);
   const [pharmacies, setPharmacies] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchPharmacies = async () => {
+      setIsLoading(true);
       try {
         const response = await apiService.getPharmacies();
-        // console.log("🚀 ~ fetchPharmacies ~ data:", response);
-
         // Transform API data to match the static data structure
         const transformedPharmacies = response.data.map((pharmacy) => ({
           id: pharmacy.id,
           name: pharmacy.name,
-          owner: pharmacy.user ? pharmacy.user.email.split("@")[0] : "Unknown", // Extract owner name from email or fallback
           email: pharmacy.user?.email || "N/A",
           phone: pharmacy.user?.phoneNumber || "N/A",
           address: pharmacy.address,
@@ -34,22 +33,18 @@ const DashboardPage = () => {
           joinedDate: dayjs(pharmacy.createdAt).format("DD MMMM YYYY"),
           createdAt: pharmacy.createdAt,
         }));
-        // console.log(
-        //   "🚀 ~ transformedPharmacies ~ transformedPharmacies:",
-        //   transformedPharmacies
-        // );
         const sortedPharmacies = transformedPharmacies.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
         setPharmacies(sortedPharmacies);
       } catch (error) {
         console.error("Error fetching pharmacies:", error.message);
-        // Optionally handle error (e.g., show notification)
+      } finally {
+        setIsLoading(false);
       }
     };
-
     fetchPharmacies();
-  }, []); // Empty dependency array to run once on mount
+  }, []);
   // Close mobile sidebar when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -139,14 +134,22 @@ const DashboardPage = () => {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-4 lg:p-6">
           {activeTab === "users" ? (
-            <PharmacyManagement
-              pharmacies={pharmacies}
-              setPharmacies={setPharmacies}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              showAddModal={showAddModal}
-              setShowAddModal={setShowAddModal}
-            />
+            isLoading ? (
+              <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#069AA2]"></div>
+                </div>
+              </div>
+            ) : (
+              <PharmacyManagement
+                pharmacies={pharmacies}
+                setPharmacies={setPharmacies}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                showAddModal={showAddModal}
+                setShowAddModal={setShowAddModal}
+              />
+            )
           ) : (
             <SettingsPanel />
           )}
