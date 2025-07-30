@@ -510,7 +510,7 @@ const Orders = () => {
               </button>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 w-[14rem] text-gray-700 border bg-[#E9486C] border-gray-300 hover:bg-[#D1365A] rounded-lg transition text-sm"
+                className="px-4 py-2 w-[14rem] text-white border bg-[#E9486C] border-gray-300 hover:bg-[#D1365A] rounded-lg transition text-sm"
               >
                 Non
               </button>
@@ -550,7 +550,7 @@ const Orders = () => {
               </button>
               <button
                 onClick={() => setIsPrepModalOpen(false)}
-                className="px-4 py-2 w-[14rem] text-gray-700 border bg-red-500 border-gray-300 hover:bg-red-600 rounded-lg transition text-sm"
+                className="px-4 py-2 w-[14rem] text-white border bg-red-500 border-gray-300 hover:bg-red-600 rounded-lg transition text-sm"
               >
                 Annuler
               </button>
