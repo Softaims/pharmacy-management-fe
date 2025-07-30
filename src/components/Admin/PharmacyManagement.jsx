@@ -286,14 +286,16 @@ const PharmacyManagement = ({
                         className="flex flex-col items-center text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors duration-200"
                       >
                         <Edit className="w-4 h-4" />
-                        <span className="text-xs font-medium mt-1">Edit</span>
+                        <span className="text-xs font-medium mt-1">Éditer</span>
                       </button>
                       <button
                         onClick={() => openDeleteModal(pharmacy)}
                         className="flex flex-col items-center text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors duration-200"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span className="text-xs font-medium mt-1">Delete</span>
+                        <span className="text-xs font-medium mt-1">
+                          Supprimer
+                        </span>
                       </button>
                     </div>
                   </td>
