@@ -51,13 +51,15 @@ const OrderDetailsSidebar = ({
       case "À valider":
         return "bg-[#FEEEB8] text-black border-2 border-[#FAC710]";
       case "En préparation":
-        return "bg-[#E7D5AA] text-black border-2 border-[#FAA010]";
+        return "bg-[#FEE3B8] text-black border-2 border-[#FAA010]";
       case "Prêt à collecter":
         return "bg-[#B8F0F2] text-black border-2 border-[#12CDD4]";
       case "Prêt à livrer":
         return "bg-[#DEDAFF] text-black border-2 border-[#6631D7]";
       case "Finalisé":
         return "bg-[#DEF1CB] text-black border-2 border-[#8FD14F]";
+      case "Annulée":
+        return "bg-[#EBB6B6] text-black border-2 border-[#BD0A0A]";
       default:
         return "bg-gray-200 text-black border-2 border-gray-400";
     }
@@ -316,7 +318,9 @@ const OrderDetailsSidebar = ({
                     onClick={() => setIsWithdrawModalOpen(true)}
                     className="w-full sm:w-auto flex-1 bg-teal-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-teal-600 transition-colors"
                   >
-                    Retirer
+                    {normalizedStatus === "Prêt à livrer"
+                      ? "Livrer"
+                      : "Retirer"}
                   </button>
                 </div>
               )}
