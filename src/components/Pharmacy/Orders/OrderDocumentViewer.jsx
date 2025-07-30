@@ -77,13 +77,13 @@ const OrderDocumentViewer = ({
           documentUrl ? (
             <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
               <p className="text-sm text-gray-500">
-                Social Security Number: {documentUrl}
+                Numéro de sécurité social: {documentUrl}
               </p>
             </div>
           ) : (
             <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
               <p className="text-sm text-gray-500">
-                No Social Security Number available
+                Aucun numéro de sécurité sociale disponible
               </p>
             </div>
           )
@@ -92,7 +92,7 @@ const OrderDocumentViewer = ({
           <PdfViewer file={documentUrl} />
         ) : (
           <div className="w-full h-64 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg">
-            <p className="text-sm text-gray-500">No document available</p>
+            <p className="text-sm text-gray-500">Aucun document disponible</p>
           </div>
         )}
       </div>
