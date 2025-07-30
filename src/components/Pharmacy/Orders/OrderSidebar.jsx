@@ -232,7 +232,7 @@ const OrderSidebar = ({
                   </h3>
                   <div className="flex items-center justify-between mt-1">
                     <span
-                      className={`flex items-center justify-center w-30 py-1 rounded-md text-xs font-medium ${statusClass}`}
+                      className={`flex items-center justify-center w-30 py-1 rounded-md text-xs font-normal ${statusClass}`}
                     >
                       {normalizedStatus}
                     </span>
