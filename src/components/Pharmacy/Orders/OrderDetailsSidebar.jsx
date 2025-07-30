@@ -10,6 +10,7 @@ const OrderDetailsSidebar = ({
   setIsModalOpen,
   setIsPrepModalOpen,
   setIsWithdrawModalOpen,
+  setIsRefuseModalOpen,
   handleRefuse,
   handleCancel,
 }) => {
@@ -276,6 +277,7 @@ const OrderDetailsSidebar = ({
                   <button
                     className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
                     onClick={handleRefuse}
+                    // onClick={() => setIsRefuseModalOpen(true)}
                   >
                     Refuser
                   </button>
@@ -291,7 +293,8 @@ const OrderDetailsSidebar = ({
               {normalizedStatus === "En préparation" && (
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <button
-                    onClick={handleCancel}
+                    // onClick={handleCancel}
+                    onClick={() => setIsRefuseModalOpen(true)}
                     className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
                   >
                     Annuler
@@ -309,7 +312,8 @@ const OrderDetailsSidebar = ({
                 normalizedStatus === "Prêt à livrer") && (
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <button
-                    onClick={handleCancel}
+                    // onClick={handleCancel}
+                    onClick={() => setIsRefuseModalOpen(true)}
                     className="w-full sm:w-auto flex-1 bg-red-500 text-white py-3 px-4 rounded-lg text-base font-medium hover:bg-red-600 transition-colors"
                   >
                     Annuler

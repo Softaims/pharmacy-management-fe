@@ -5,6 +5,7 @@ import OrderDocumentViewer from "./Orders/OrderDocumentViewer.jsx";
 import OrderDetailsSidebar from "./Orders/OrderDetailsSidebar.jsx";
 import apiService from "../../api/apiService.js";
 import { pdfjs } from "react-pdf";
+import attentionLogo from "../../assets/attention.png";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 const Orders = () => {
@@ -17,6 +18,9 @@ const Orders = () => {
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isRefuseModalOpen, setIsRefuseModalOpen] = useState(false);
+  console.log("🚀 ~ Orders ~ isRefuseModalOpen:", isRefuseModalOpen);
+
   const [isLoading, setIsLoading] = useState(true);
   const [activeMobileTab, setActiveMobileTab] = useState("documents");
   const [searchTerm, setSearchTerm] = useState("");
@@ -300,7 +304,7 @@ const Orders = () => {
             }
           : prev
       );
-      toast.success("Ordonnance annulée avec succès et revenue à À valider");
+      toast.success("Commande refusée avec succès");
     } catch (error) {
       toast.error(
         error.message || "Échec de la mise à jour du statut de la commande"
@@ -333,6 +337,7 @@ const Orders = () => {
             }
           : prev
       );
+      setIsRefuseModalOpen(false);
       toast.success("Ordonnance annulée avec succès et revenue à À valider");
     } catch (error) {
       toast.error(
@@ -442,6 +447,7 @@ const Orders = () => {
               handleWithdraw={handleWithdraw}
               handleRefuse={handleRefuse}
               handleCancel={handleCancel}
+              setIsRefuseModalOpen={setIsRefuseModalOpen}
             />
           )}
         </div>
@@ -475,6 +481,7 @@ const Orders = () => {
             handleWithdraw={handleWithdraw}
             handleRefuse={handleRefuse}
             handleCancel={handleCancel}
+            setIsRefuseModalOpen={setIsRefuseModalOpen}
           />
         </div>
       </div>
@@ -511,6 +518,55 @@ const Orders = () => {
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 w-[14rem] text-white border bg-[#E9486C] border-gray-300 hover:bg-[#D1365A] rounded-lg transition text-sm"
+              >
+                Non
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isRefuseModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setIsRefuseModalOpen(false)}
+          aria-modal="true"
+          role="dialog"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white w-full max-w-[27rem] rounded-xl shadow-xl max-h-[90vh] overflow-y-auto animate-fadeIn scale-95 transition-transform p-6"
+          >
+            <div className="">
+              <img
+                src={attentionLogo}
+                className="w-[4rem] h-[4rem] text-center mx-auto mb-4"
+                alt=""
+              />
+            </div>
+            <div className="pb-4 mb-4 mt-6 text-center">
+              <p className="text-gray-900">
+                Êtes-vous sûr de vouloir annuler la commande ?
+              </p>
+              <p className="text-gray-900">
+                Une fois confirmé, le patient sera notifié et vous ne pourrez
+                plus retourner en arrière.
+              </p>
+            </div>
+            <div className="mt-6 flex flex-col items-center justify-center gap-3">
+              <button
+                onClick={handleCancel}
+                disabled={isButtonLoading}
+                className={`px-4 py-2 w-[14rem] ${
+                  isButtonLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#069AA2] hover:bg-[#05828A]"
+                } text-white rounded-lg transition text-sm`}
+              >
+                {isButtonLoading ? "Annulation..." : "Oui"}
+              </button>
+              <button
+                onClick={() => setIsRefuseModalOpen(false)}
+                className="px-4 py-2 w-[14rem] bg-[#E9486C] hover:bg-[#D1365A] text-white rounded-lg transition text-sm"
               >
                 Non
               </button>
