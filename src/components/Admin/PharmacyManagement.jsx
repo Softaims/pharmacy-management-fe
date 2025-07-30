@@ -123,7 +123,7 @@ const PharmacyManagement = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs lg:text-sm text-gray-500">
-                Total Pharmacies
+                Pharmacies inscrites
               </p>
               <p className="text-xl lg:text-2xl font-semibold text-gray-800">
                 {pharmacies.length}
@@ -138,7 +138,7 @@ const PharmacyManagement = ({
         <div className="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs lg:text-sm text-gray-500">Active</p>
+              <p className="text-xs lg:text-sm text-gray-500">Actives</p>
               <p className="text-xl lg:text-2xl font-semibold text-[#069AA2]">
                 {pharmacies.filter((p) => p.status === "Active").length}
               </p>
@@ -152,7 +152,7 @@ const PharmacyManagement = ({
         <div className="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs lg:text-sm text-gray-500">Inactif</p>
+              <p className="text-xs lg:text-sm text-gray-500">Inactives</p>
               <p className="text-xl lg:text-2xl font-semibold text-[#E9486C]">
                 {pharmacies.filter((p) => p.status === "Inactif").length}
               </p>
