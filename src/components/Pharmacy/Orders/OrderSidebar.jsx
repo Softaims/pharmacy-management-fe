@@ -179,6 +179,8 @@ const OrderSidebar = ({
             statusClass = "bg-[#DEDAFF] text-black border-2 border-[#6631D7]";
           } else if (normalizedStatus === "En préparation") {
             statusClass = "bg-[#E7D5AA] text-black border-2 border-[#FAA010]";
+          } else if (normalizedStatus === "Annulée") {
+            statusClass = "bg-[#EBB6B6] text-black border-2 border-[#BD0A0A]";
           } else {
             statusClass = "bg-gray-100 text-black border-2 border-gray-300";
           }
