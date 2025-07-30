@@ -55,7 +55,7 @@ const OrderDetailsSidebar = ({
       case "Prêt à collecter":
         return "bg-[#B8F0F2] text-black border-2 border-[#12CDD4]";
       case "Prêt à livrer":
-        return "bg-[#DEDAFF] text-black border-2 border-[#6631D grop";
+        return "bg-[#DEDAFF] text-black border-2 border-[#6631D7]";
       case "Finalisé":
         return "bg-[#DEF1CB] text-black border-2 border-[#8FD14F]";
       default:
@@ -240,7 +240,7 @@ const OrderDetailsSidebar = ({
                     </span>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`flex items-center justify-center w-32 py-1.5 rounded-md text-sm font-medium ${getStatusClass(
+                        className={`flex items-center justify-center w-32 py-1.5 rounded-md text-sm font-normal ${getStatusClass(
                           normalizedStatus
                         )}`}
                       >
