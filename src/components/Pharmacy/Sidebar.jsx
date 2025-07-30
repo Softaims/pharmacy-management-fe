@@ -53,9 +53,11 @@ export default function Sidebar() {
             onClick={handleLogout}
             className="relative flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 hover:bg-[#63AAAE] text-gray-700"
           >
-            <FiLogOut className="h-6 w-6 transition-transform group-hover:scale-110 text-red-500" />{" "}
+            <FiLogOut className="h-6 w-6 transition-transform group-hover:scale-110 text-white" />{" "}
           </Link>
-          <span className=" text-sm text-white font-medium">log out</span>
+          <span className=" text-[11px] text-white font-medium">
+            Se déconnecter
+          </span>
         </div>
       </div>
     </div>
