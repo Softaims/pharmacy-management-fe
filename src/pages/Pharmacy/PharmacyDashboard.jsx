@@ -17,7 +17,7 @@ export default function PharmacyDashboard() {
         {/* Add margin-left for sidebar */}
         <div className="text-white bg-[#069AA2]  flex items-center justify-center border-b border-gray-200 h-[80px] px-4 bshadow-lg ">
           <h3 className="text-2xl font-semibold text-center leading-tight">
-            <span className="font-bold">Mezardopro :</span> Recevez, gérez et
+            <span className="font-bold">Mézordopro :</span> Recevez, gérez et
             préparez les ordonnances en toute simplicité
           </h3>
         </div>

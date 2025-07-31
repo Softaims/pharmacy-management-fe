@@ -74,7 +74,7 @@ const StatusConfirmationModal = ({
           Are you sure you want to mark{" "}
           <span className="font-medium text-gray-900">{pharmacyName}</span> as{" "}
           <span className="font-medium text-gray-900">
-            {currentStatus === "Active" ? "Inactif" : "Active"}
+            {currentStatus === "Active" ? "Inactive" : "Active"}
           </span>
           ?
         </p>

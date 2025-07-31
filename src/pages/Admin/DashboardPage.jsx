@@ -29,7 +29,7 @@ const DashboardPage = () => {
           email: pharmacy.user?.email || "N/A",
           phone: pharmacy.user?.phoneNumber || "N/A",
           address: pharmacy.address,
-          status: pharmacy.isActive ? "Active" : "Inactif",
+          status: pharmacy.isActive ? "Active" : "Inactive",
           joinedDate: dayjs(pharmacy.createdAt).format("DD MMMM YYYY"),
           createdAt: pharmacy.createdAt,
         }));

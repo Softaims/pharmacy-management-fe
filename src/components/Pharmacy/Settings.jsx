@@ -761,7 +761,7 @@ const Settings = () => {
             <div className="flex-1 text-center justify-center items-center font-medium text-white bg-[#069AA2] rounded-full cursor-not-allowed opacity-80">
               <span className=" mt-[3.5px] flex items-center justify-center text-center">
                 {" "}
-                {isActive ? "Actif" : "Inactif"}
+                {isActive ? "Actif" : "Inactive"}
               </span>
             </div>
           </div>

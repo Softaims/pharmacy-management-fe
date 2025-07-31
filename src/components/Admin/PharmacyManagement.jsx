@@ -83,7 +83,7 @@ const PharmacyManagement = ({
           pharmacy.id === statusPharmacy.id
             ? {
                 ...pharmacy,
-                status: newStatus ? "Active" : "Inactif",
+                status: newStatus ? "Active" : "Inactive",
               }
             : pharmacy
         )
@@ -108,7 +108,7 @@ const PharmacyManagement = ({
   //       pharmacy.id === id
   //         ? {
   //             ...pharmacy,
-  //             status: pharmacy.status === "Active" ? "Inactif" : "Active",
+  //             status: pharmacy.status === "Active" ? "Inactive" : "Active",
   //           }
   //         : pharmacy
   //     )
@@ -154,7 +154,7 @@ const PharmacyManagement = ({
             <div>
               <p className="text-xs lg:text-sm text-gray-500">Inactives</p>
               <p className="text-xl lg:text-2xl font-semibold text-[#E9486C]">
-                {pharmacies.filter((p) => p.status === "Inactif").length}
+                {pharmacies.filter((p) => p.status === "Inactive").length}
               </p>
             </div>
             <div className="bg-red-100 p-2 lg:p-3 rounded-lg">
