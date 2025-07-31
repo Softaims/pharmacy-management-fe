@@ -35,6 +35,8 @@ const AddPharmacyModal = ({
   const [lastMode, setLastMode] = useState(null);
   const [loading, setLoading] = useState(false);
   const [addressFromAutocomplete, setAddressFromAutocomplete] = useState(false);
+  // Add new state to track if address was actually changed by user
+  const [addressChanged, setAddressChanged] = useState(false);
 
   const modalRef = useRef(null);
   const addressInputRef = useRef(null);
@@ -90,6 +92,7 @@ const AddPharmacyModal = ({
           longitude: longitude,
         });
         setAddressFromAutocomplete(true); // Mark as from autocomplete
+        setAddressChanged(true); // Mark address as changed
         setErrors({ ...errors, address: "" }); // Clear address error
 
         // Clear any pending geocoding timeout since we have coordinates
@@ -108,9 +111,18 @@ const AddPharmacyModal = ({
 
   // Handle manual address input
   const handleAddressChange = (e) => {
+    const newAddress = e.target.value;
+
+    // Only mark as changed if the address is actually different from original
+    if (isEditMode && pharmacyToEdit) {
+      setAddressChanged(newAddress !== pharmacyToEdit.address);
+    } else {
+      setAddressChanged(true); // For add mode, any input is a change
+    }
+
     setNewPharmacy({
       ...newPharmacy,
-      address: e.target.value,
+      address: newAddress,
       // Only reset coordinates if not from autocomplete
       latitude: addressFromAutocomplete ? newPharmacy.latitude : null,
       longitude: addressFromAutocomplete ? newPharmacy.longitude : null,
@@ -214,6 +226,7 @@ const AddPharmacyModal = ({
         longitude: pharmacyToEdit.longitude || null,
       });
       setAddressFromAutocomplete(true); // Assume existing address is valid
+      setAddressChanged(false); // Reset address changed flag
     } else if (lastMode !== currentMode) {
       resetForm();
     }
@@ -236,6 +249,7 @@ const AddPharmacyModal = ({
     setTouched({});
     setShowPassword(false);
     setAddressFromAutocomplete(false);
+    setAddressChanged(false); // Reset address changed flag
 
     // Clear any pending geocoding timeout
     if (geocodingTimeoutRef.current) {
@@ -348,8 +362,13 @@ const AddPharmacyModal = ({
       [name]: error,
     });
 
-    // Use debounced geocoding for manual address input
-    if (name === "address" && newPharmacy.address && !addressFromAutocomplete) {
+    // Use debounced geocoding for manual address input only if address was changed
+    if (
+      name === "address" &&
+      newPharmacy.address &&
+      !addressFromAutocomplete &&
+      addressChanged
+    ) {
       debouncedGeocode(newPharmacy.address, (success) => {
         if (!success) {
           setErrors({
@@ -385,8 +404,8 @@ const AddPharmacyModal = ({
       }
     });
 
-    // Only geocode if coordinates don't exist and address wasn't from autocomplete
-    if (!newPharmacy.latitude || !newPharmacy.longitude) {
+    // Only geocode if address was changed and coordinates don't exist and address wasn't from autocomplete
+    if (addressChanged && (!newPharmacy.latitude || !newPharmacy.longitude)) {
       if (!addressFromAutocomplete) {
         const success = await geocodeAddress(newPharmacy.address);
         if (!success) {
@@ -437,12 +456,13 @@ const AddPharmacyModal = ({
           payload.email = newPharmacy.email;
         if (newPharmacy.phone !== pharmacyToEdit.phone)
           payload.phoneNumber = newPharmacy.phone;
-        if (newPharmacy.address !== pharmacyToEdit.address)
+
+        // Only include address and coordinates if address was actually changed
+        if (addressChanged && newPharmacy.address !== pharmacyToEdit.address) {
           payload.address = newPharmacy.address;
-        if (newPharmacy.latitude !== pharmacyToEdit.latitude)
           payload.latitude = newPharmacy.latitude;
-        if (newPharmacy.longitude !== pharmacyToEdit.longitude)
           payload.longitude = newPharmacy.longitude;
+        }
 
         if (Object.keys(payload).length === 0) {
           toast.info("Aucune modification détectée", {
