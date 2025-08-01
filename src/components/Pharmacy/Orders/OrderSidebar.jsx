@@ -67,10 +67,6 @@ const OrderSidebar = ({
     });
   };
 
-  // Handle sorting toggle
-  // Handle sorting toggle
-  // Handle sorting toggle
-  // Handle sorting toggle
   const handleSortToggle = () => {
     const newSortOrder = sortOrder === "asc" ? "desc" : "asc"; // Toggle sort order
     setSortOrder(newSortOrder); // Set the new sort order
@@ -166,9 +162,9 @@ const OrderSidebar = ({
             alt="Sort"
             onClick={handleSortToggle}
             className="cursor-pointer"
-            title={`Sort in ${
-              sortOrder === "asc" ? "Descending" : "Ascending"
-            } order`} // Tooltip for sorting
+            title={`Trier en ${
+              sortOrder === "asc" ? "ordre décroissant" : "ordre croissant"
+            }`} // Tooltip for sorting in French
           />
         </div>
 
