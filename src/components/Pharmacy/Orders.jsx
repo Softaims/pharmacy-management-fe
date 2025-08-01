@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import OrderSidebar from "./Orders/OrderSidebar.jsx";
 import OrderDocumentViewer from "./Orders/OrderDocumentViewer.jsx";
@@ -8,6 +8,7 @@ import { pdfjs } from "react-pdf";
 import attentionLogo from "../../assets/attention.png";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
 const Orders = () => {
   const [activeOrderTab, setActiveOrderTab] = useState("all");
   const [activeDocumentTab, setActiveDocumentTab] = useState("prescription");
@@ -19,7 +20,6 @@ const Orders = () => {
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isRefuseModalOpen, setIsRefuseModalOpen] = useState(false);
-  console.log("🚀 ~ Orders ~ isRefuseModalOpen:", isRefuseModalOpen);
 
   const [isLoading, setIsLoading] = useState(true);
   const [activeMobileTab, setActiveMobileTab] = useState("documents");
@@ -32,6 +32,10 @@ const Orders = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const ITEMS_PER_PAGE = 10;
+
+  // Add ref to prevent duplicate API calls
+  const isLoadingRef = useRef(false);
+  const lastLoadedPageRef = useRef(0);
 
   const [deliveryDetails, setDeliveryDetails] = useState({
     type: "complete",
@@ -50,13 +54,16 @@ const Orders = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
+      if (isLoadingRef.current) return; // Prevent duplicate calls
+
       setIsLoading(true);
+      isLoadingRef.current = true;
+
       try {
         const response = await apiService.getOrders(1, ITEMS_PER_PAGE);
         setOrders(response.data);
         setCurrentPage(1);
-        setHasMore(response.data.length === ITEMS_PER_PAGE);
-        setCurrentPage(1);
+        lastLoadedPageRef.current = 1;
         setHasMore(response.data.length === ITEMS_PER_PAGE);
 
         if (window.innerWidth >= 1024 && response.data.length > 0) {
@@ -66,6 +73,7 @@ const Orders = () => {
         toast.error("Erreur lors de la récupération des ordonnances");
       } finally {
         setIsLoading(false);
+        isLoadingRef.current = false;
       }
     };
 
@@ -73,16 +81,32 @@ const Orders = () => {
   }, []);
 
   const loadMoreOrders = async () => {
-    if (isLoadingMore || !hasMore) return;
+    // Prevent multiple simultaneous calls
+    if (isLoadingMore || !hasMore || isLoadingRef.current) return;
+
+    const nextPage = currentPage + 1;
+
+    // Prevent loading the same page twice
+    if (nextPage <= lastLoadedPageRef.current) return;
 
     setIsLoadingMore(true);
+    isLoadingRef.current = true;
+
     try {
-      const nextPage = currentPage + 1;
       const response = await apiService.getOrders(nextPage, ITEMS_PER_PAGE);
 
       if (response.data.length > 0) {
-        setOrders((prevOrders) => [...prevOrders, ...response.data]);
+        // Use Set to prevent duplicate orders based on ID
+        setOrders((prevOrders) => {
+          const existingIds = new Set(prevOrders.map((order) => order.id));
+          const newOrders = response.data.filter(
+            (order) => !existingIds.has(order.id)
+          );
+          return [...prevOrders, ...newOrders];
+        });
+
         setCurrentPage(nextPage);
+        lastLoadedPageRef.current = nextPage;
         setHasMore(response.data.length === ITEMS_PER_PAGE);
       } else {
         setHasMore(false);
@@ -91,6 +115,7 @@ const Orders = () => {
       toast.error("Erreur lors du chargement des ordonnances supplémentaires");
     } finally {
       setIsLoadingMore(false);
+      isLoadingRef.current = false;
     }
   };
 
@@ -195,7 +220,7 @@ const Orders = () => {
   const handlePrepare = async () => {
     if (!selectedOrder) return;
     setIsPrepModalOpen(false);
-    setDeliveryDetails({ type: "complete", note: "" }); // Reset deliveryDetails when opening delivery modal
+    setDeliveryDetails({ type: "complete", note: "" });
     setIsDeliveryModalOpen(true);
   };
 
@@ -348,7 +373,6 @@ const Orders = () => {
     }
   };
 
-  // Reset deliveryDetails when closing delivery modals
   const handleCloseDeliveryModal = () => {
     setIsDeliveryModalOpen(false);
     setDeliveryDetails({ type: "complete", note: "" });
@@ -376,7 +400,6 @@ const Orders = () => {
         setSearchTerm={setSearchTerm}
         getStatusCircles={getStatusCircles}
         getFilteredOrders={getFilteredOrders}
-        // Pagination props
         loadMoreOrders={loadMoreOrders}
         hasMore={hasMore}
         isLoadingMore={isLoadingMore}
