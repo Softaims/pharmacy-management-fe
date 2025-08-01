@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import { FaCircle, FaRegCircle } from "react-icons/fa";
-
+import sortingIcon from "../../../assets/sortingicon.svg";
 const OrderSidebar = ({
   activeOrderTab,
   setActiveOrderTab,
@@ -125,7 +125,7 @@ const OrderSidebar = ({
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200 w-[90%]">
-        <div className="flex items-center w-full mb-4">
+        <div className="flex items-center w-full mb-4 gap-4">
           <input
             type="text"
             placeholder="Rechercher patient..."
@@ -133,6 +133,7 @@ const OrderSidebar = ({
             onChange={(e) => setSearchTerm(e.target.value)}
             className="py-1 pl-3 bg-[#F0F0F0] rounded-xl w-full text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
+          <img src={sortingIcon} alt="" />
         </div>
 
         {/* Tabs */}
