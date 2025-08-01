@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { FaCircle, FaRegCircle } from "react-icons/fa";
 import sortingIcon from "../../../assets/sortingicon.svg";
+
 const OrderSidebar = ({
   activeOrderTab,
   setActiveOrderTab,
@@ -10,13 +11,13 @@ const OrderSidebar = ({
   searchTerm,
   setSearchTerm,
   getFilteredOrders,
-  // Infinite scrolling props
   loadMoreOrders,
   hasMore,
   isLoadingMore,
 }) => {
   const scrollContainerRef = useRef(null);
   const loadingTriggerRef = useRef(null);
+  const [sortOrder, setSortOrder] = useState("desc"); // 'asc' or 'desc'
 
   const orderTabs = [
     { id: "all", label: "Toutes", count: orders.length },
@@ -63,6 +64,33 @@ const OrderSidebar = ({
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
+    });
+  };
+
+  // Handle sorting toggle
+  // Handle sorting toggle
+  // Handle sorting toggle
+  // Handle sorting toggle
+  const handleSortToggle = () => {
+    const newSortOrder = sortOrder === "asc" ? "desc" : "asc"; // Toggle sort order
+    setSortOrder(newSortOrder); // Set the new sort order
+
+    // Sort the filtered orders after toggling the order
+    const sortedOrders = getSortedFilteredOrders();
+
+    // Deselect the previous selected order and select the last order in the sorted list
+    setSelectedOrder(sortedOrders[sortedOrders.length - 1]); // Select the last order
+  };
+
+  // Get sorted and filtered orders
+  const getSortedFilteredOrders = () => {
+    const filtered = getFilteredOrders(); // Get the filtered orders
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.updatedAt);
+      const dateB = new Date(b.updatedAt);
+
+      // Sort based on the order (ascending or descending)
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
     });
   };
 
@@ -133,7 +161,15 @@ const OrderSidebar = ({
             onChange={(e) => setSearchTerm(e.target.value)}
             className="py-1 pl-3 bg-[#F0F0F0] rounded-xl w-full text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
-          <img src={sortingIcon} alt="" />
+          <img
+            src={sortingIcon}
+            alt="Sort"
+            onClick={handleSortToggle}
+            className="cursor-pointer"
+            title={`Sort in ${
+              sortOrder === "asc" ? "Descending" : "Ascending"
+            } order`} // Tooltip for sorting
+          />
         </div>
 
         {/* Tabs */}
@@ -166,7 +202,7 @@ const OrderSidebar = ({
           overscrollBehavior: "contain",
         }}
       >
-        {getFilteredOrders().map((order) => {
+        {getSortedFilteredOrders().map((order) => {
           const normalizedStatus =
             order.status === "PENDING" ? "À valider" : order.status;
           let statusClass = "";
@@ -186,7 +222,6 @@ const OrderSidebar = ({
             statusClass = "bg-gray-100 text-black border-2 border-gray-300";
           }
 
-          // Status-specific circle filling logic
           const filledCount =
             normalizedStatus === "Refusé" ||
             normalizedStatus === "En préparation" ||
@@ -228,7 +263,7 @@ const OrderSidebar = ({
                   : "hover:bg-gray-50"
               }`}
             >
-              <div className="flex  items-start justify-between">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900 text-sm truncate">
                     {name.trim()}
@@ -275,7 +310,7 @@ const OrderSidebar = ({
         )}
 
         {/* No Results Message */}
-        {getFilteredOrders().length === 0 && (
+        {getSortedFilteredOrders().length === 0 && (
           <div className="p-8 text-center text-gray-500">
             <div className="text-lg mb-2">📋</div>
             <p className="text-sm">
