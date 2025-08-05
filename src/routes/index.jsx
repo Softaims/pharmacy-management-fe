@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "../pages/Admin/LoginPage.jsx";
 import DashboardPage from "../pages/Admin/DashboardPage.jsx";
 import PharmacyDashboard from "../pages/Pharmacy/PharmacyDashboard.jsx";
+import CreatePharmacyPass from "../pages/Pharmacy/CreatePharmacyPass.jsx";
 
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -37,8 +38,8 @@ export default function AppRoutes() {
           )
         }
       />
+      <Route path="/set-password/:token" element={<CreatePharmacyPass />} />
 
-      {/* Protected Admin Routes */}
       <Route
         path="/admin"
         element={
