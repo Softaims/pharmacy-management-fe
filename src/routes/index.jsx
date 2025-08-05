@@ -35,7 +35,17 @@ export default function AppRoutes() {
           )
         }
       />
-      <Route path="/set-password" element={<CreatePharmacyPass />} />
+      {/* <Route path="/set-password" element={<CreatePharmacyPass />} /> */}
+      <Route
+        path="/set-password"
+        element={
+          isAuthenticated && role === "admin" ? (
+            <Navigate to="/admin" replace />
+          ) : (
+            <CreatePharmacyPass />
+          )
+        }
+      />
 
       <Route
         path="/admin"
@@ -46,7 +56,6 @@ export default function AppRoutes() {
         }
       />
 
-      {/* Catch all route - redirect to appropriate dashboard or home */}
       <Route
         path="/"
         element={
