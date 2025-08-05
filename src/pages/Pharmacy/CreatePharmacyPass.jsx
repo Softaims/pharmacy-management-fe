@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import logo from "../../assets/logo.png";
@@ -14,7 +14,10 @@ const CreatePharmacyPass = () => {
   const [passwordError, setPasswordError] = useState("");
   const [hasInteracted, setHasInteracted] = useState(false);
   const navigate = useNavigate();
-  const { token } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const token = queryParams.get("token");
+  console.log("🚀 ~ CreatePharmacyPass ~ token:", token);
 
   const baseURL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
@@ -36,6 +39,19 @@ const CreatePharmacyPass = () => {
   const handlePasswordBlur = () => {
     setHasInteracted(true);
     setPasswordError(validatePassword(password));
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    setConfirmPassword(e.target.value);
+  };
+
+  const isFormValid = () => {
+    return (
+      password &&
+      confirmPassword &&
+      password === confirmPassword &&
+      !validatePassword(password)
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -113,11 +129,7 @@ const CreatePharmacyPass = () => {
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-10 px-6 shadow-2xl sm:rounded-2xl sm:px-12 transform transition-all duration-500 ease-in-out hover:-translate-y-1">
-          <form
-            className="space-y-6"
-            onSubmit={handleSubmit}
-            noValidate={false}
-          >
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Password */}
             <div>
               <label
@@ -134,6 +146,7 @@ const CreatePharmacyPass = () => {
                   value={password}
                   onChange={handlePasswordChange}
                   onBlur={handlePasswordBlur}
+                  onPaste={handlePasswordChange}
                   className={`mt-2 w-full px-4 py-3 border ${
                     passwordError && hasInteracted
                       ? "border-red-500"
@@ -171,8 +184,15 @@ const CreatePharmacyPass = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirmez votre mot de passe"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="mt-2 w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200"
+                  onChange={handleConfirmPasswordChange}
+                  onPaste={handleConfirmPasswordChange}
+                  className={`mt-2 w-full px-4 py-3 border ${
+                    hasInteracted &&
+                    password !== confirmPassword &&
+                    confirmPassword
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#069AA2] focus:border-transparent sm:text-sm bg-white text-gray-900 transition-all duration-200`}
                   autoComplete="new-password"
                   required
                   disabled={loading}
@@ -186,13 +206,20 @@ const CreatePharmacyPass = () => {
                   {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
+              {hasInteracted &&
+                password !== confirmPassword &&
+                confirmPassword && (
+                  <p className="mt-1 text-sm text-red-500">
+                    Les mots de passe ne correspondent pas
+                  </p>
+                )}
             </div>
 
             {/* Submit */}
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !isFormValid()}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-[#069AA2] hover:bg-[#05828A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#069AA2] transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {loading ? (
