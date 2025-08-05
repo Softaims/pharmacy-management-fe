@@ -22,7 +22,7 @@ export default function FCMHandler() {
             });
             await apiService.registerDeviceToken({ deviceToken });
           } else {
-            toast.error("Notifications are blocked in browser settings.");
+            // toast.error("Notifications are blocked in browser settings.");
           }
         } catch (err) {
           console.error("Error getting FCM token", err);
