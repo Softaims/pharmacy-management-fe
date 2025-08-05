@@ -233,14 +233,14 @@ const apiService = {
     }
   },
 
-  getOrders: async (page = 1, limit = 100, name = " ") => {
+  getOrders: async (page = 1, limit = 100, search = " ") => {
     try {
       // Sending pagination parameters with the request
       const response = await axios.get("/pharmacy/orders", {
         params: {
-          page, // The current page number (default is 1)
+          page,
           limit,
-          name,
+          name: search,
         },
       });
 
