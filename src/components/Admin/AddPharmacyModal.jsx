@@ -23,7 +23,6 @@ const AddPharmacyModal = ({
     email: "",
     phone: "",
     address: "",
-    password: "",
     status: "",
     latitude: null,
     longitude: null,
@@ -221,7 +220,6 @@ const AddPharmacyModal = ({
         phone: pharmacyToEdit.phone,
         address: pharmacyToEdit.address,
         status: pharmacyToEdit.status,
-        password: "",
         latitude: pharmacyToEdit.latitude || null,
         longitude: pharmacyToEdit.longitude || null,
       });
@@ -240,7 +238,6 @@ const AddPharmacyModal = ({
       email: "",
       phone: "",
       address: "",
-      password: "",
       status: "",
       latitude: null,
       longitude: null,
@@ -304,25 +301,25 @@ const AddPharmacyModal = ({
     return "";
   };
 
-  const validatePassword = (password) => {
-    if (isEditMode) return "";
-    if (!password || password.trim() === "") {
-      return "Le mot de passe est obligatoire";
-    }
-    if (password.length < 8) {
-      return "Le mot de passe doit contenir au moins 8 caractères";
-    }
-    if (!/[A-Z]/.test(password)) {
-      return "Le mot de passe doit contenir au moins une lettre majuscule";
-    }
-    if (!/[a-z]/.test(password)) {
-      return "Le mot de passe doit contenir au moins une lettre minuscule";
-    }
-    if (!/\d/.test(password)) {
-      return "Le mot de passe doit contenir au moins un chiffre";
-    }
-    return "";
-  };
+  // const validatePassword = (password) => {
+  //   if (isEditMode) return "";
+  //   if (!password || password.trim() === "") {
+  //     return "Le mot de passe est obligatoire";
+  //   }
+  //   if (password.length < 8) {
+  //     return "Le mot de passe doit contenir au moins 8 caractères";
+  //   }
+  //   if (!/[A-Z]/.test(password)) {
+  //     return "Le mot de passe doit contenir au moins une lettre majuscule";
+  //   }
+  //   if (!/[a-z]/.test(password)) {
+  //     return "Le mot de passe doit contenir au moins une lettre minuscule";
+  //   }
+  //   if (!/\d/.test(password)) {
+  //     return "Le mot de passe doit contenir au moins un chiffre";
+  //   }
+  //   return "";
+  // };
 
   const validateField = (name, value) => {
     switch (name) {
@@ -334,8 +331,8 @@ const AddPharmacyModal = ({
         return validatePhone(value);
       case "address":
         return validateAddress(value);
-      case "password":
-        return validatePassword(value);
+      // case "password":
+      //   return validatePassword(value);
       default:
         return "";
     }
@@ -393,9 +390,6 @@ const AddPharmacyModal = ({
   const validateAllFields = async () => {
     const newErrors = {};
     const fieldsToValidate = ["name", "email", "phone", "address"];
-    if (!isEditMode) {
-      fieldsToValidate.push("password");
-    }
 
     fieldsToValidate.forEach((field) => {
       const error = validateField(field, newPharmacy[field]);
@@ -436,7 +430,6 @@ const AddPharmacyModal = ({
       return;
     }
 
-    // Validate all fields and geocode address if necessary
     if (!(await validateAllFields())) {
       toast.error("Veuillez corriger les erreurs dans le formulaire", {
         autoClose: 3000,
@@ -496,7 +489,6 @@ const AddPharmacyModal = ({
           name: newPharmacy.name,
           email: newPharmacy.email,
           phoneNumber: newPharmacy.phone,
-          password: newPharmacy.password,
           address: newPharmacy.address,
           latitude: newPharmacy.latitude,
           longitude: newPharmacy.longitude,
@@ -511,7 +503,7 @@ const AddPharmacyModal = ({
           name: result.data.name,
           address: result.data.address,
           phone: result.data.user.phoneNumber,
-          status: "Active",
+          status: "Inactive",
           joinedDate: dayjs(result.data.createdAt).format("DD MMMM YYYY"),
         };
         setPharmacies([newPharmacyData, ...pharmacies]);
@@ -584,17 +576,6 @@ const AddPharmacyModal = ({
       type: "tel",
       placeholder: "Entrez le numéro de téléphone (ex: +33780763734)",
     },
-    ...(!isEditMode
-      ? [
-          {
-            label: "Mot de passe *",
-            name: "password",
-            type: showPassword ? "text" : "password",
-            placeholder: "Entrez un mot de passe sécurisé",
-            isPassword: true,
-          },
-        ]
-      : []),
   ];
 
   if (loadError) {
