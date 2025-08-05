@@ -112,7 +112,7 @@ const Orders = () => {
         setHasMore(false);
       }
     } catch (err) {
-      toast.error("Erreur lors du chargement des ordonnances supplémentaires");
+      // toast.error("Erreur lors du chargement des ordonnances supplémentaires");
     } finally {
       setIsLoadingMore(false);
       isLoadingRef.current = false;
