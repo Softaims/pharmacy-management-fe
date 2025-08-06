@@ -24,8 +24,10 @@ const Orders = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeMobileTab, setActiveMobileTab] = useState("documents");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [isButtonLoading, setIsButtonLoading] = useState(false);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,6 +44,15 @@ const Orders = () => {
     note: "",
   });
 
+  // Add debouncing effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   useEffect(() => {
     const handleResize = () => {
       setIsLargeScreen(window.innerWidth >= 1024);
@@ -52,34 +63,65 @@ const Orders = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      if (isLoadingRef.current) return; // Prevent duplicate calls
+  // Modified fetchOrders function to accept search parameter
+  const fetchOrders = async (page = 1, search = "") => {
+    if (isLoadingRef.current) return;
 
-      setIsLoading(true);
-      isLoadingRef.current = true;
+    setIsLoading(page === 1);
+    isLoadingRef.current = true;
 
-      try {
-        const response = await apiService.getOrders(1, ITEMS_PER_PAGE);
+    try {
+      // Pass search parameter to API
+      const response = await apiService.getOrders(page, ITEMS_PER_PAGE, search);
+
+      if (page === 1) {
+        // Reset orders for new search or initial load
         setOrders(response.data);
         setCurrentPage(1);
         lastLoadedPageRef.current = 1;
-        setHasMore(response.data.length === ITEMS_PER_PAGE);
 
+        // Auto-select first order on large screens
         if (window.innerWidth >= 1024 && response.data.length > 0) {
           setSelectedOrder(response.data[0]);
+        } else {
+          setSelectedOrder(null);
         }
-      } catch (err) {
-        toast.error("Erreur lors de la récupération des ordonnances");
-      } finally {
-        setIsLoading(false);
-        isLoadingRef.current = false;
+      } else {
+        // Append orders for pagination
+        setOrders((prevOrders) => {
+          const existingIds = new Set(prevOrders.map((order) => order.id));
+          const newOrders = response.data.filter(
+            (order) => !existingIds.has(order.id)
+          );
+          return [...prevOrders, ...newOrders];
+        });
+        setCurrentPage(page);
+        lastLoadedPageRef.current = page;
       }
-    };
 
-    fetchOrders();
+      setHasMore(response.data.length === ITEMS_PER_PAGE);
+    } catch (err) {
+      toast.error("Erreur lors de la récupération des ordonnances");
+    } finally {
+      setIsLoading(false);
+      isLoadingRef.current = false;
+    }
+  };
+
+  // Effect for initial load
+  useEffect(() => {
+    fetchOrders(1, "");
   }, []);
 
+  // Effect for search - triggers when debouncedSearchTerm changes
+  useEffect(() => {
+    // Reset pagination and fetch with search term
+    setCurrentPage(1);
+    lastLoadedPageRef.current = 0;
+    fetchOrders(1, debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
+
+  // Modified loadMoreOrders function
   const loadMoreOrders = async () => {
     // Prevent multiple simultaneous calls
     if (isLoadingMore || !hasMore || isLoadingRef.current) return;
@@ -93,7 +135,12 @@ const Orders = () => {
     isLoadingRef.current = true;
 
     try {
-      const response = await apiService.getOrders(nextPage, ITEMS_PER_PAGE);
+      // Use debouncedSearchTerm for consistency
+      const response = await apiService.getOrders(
+        nextPage,
+        ITEMS_PER_PAGE,
+        debouncedSearchTerm
+      );
 
       if (response.data.length > 0) {
         // Use Set to prevent duplicate orders based on ID
@@ -140,45 +187,29 @@ const Orders = () => {
       .map((_, index) => (index < filledCount ? "bg-black" : "bg-gray-300"));
   };
 
+  // Remove the frontend filtering function since search is now handled by backend
   const getFilteredOrders = () => {
-    const tabFilteredOrders = (() => {
-      switch (activeOrderTab) {
-        case "preparation":
-          return orders.filter((order) =>
-            [
-              "À valider",
-              "PENDING",
-              "En préparation",
-              "Prêt à collecter",
-              "Prêt à livrer",
-            ].includes(order.status)
-          );
-        case "past":
-          return orders.filter(
-            (order) =>
-              order.status === "Finalisé" ||
-              order.status === "Refusé" ||
-              order.status === "Annulée"
-          );
-        default:
-          return orders;
-      }
-    })();
-
-    return searchTerm
-      ? tabFilteredOrders.filter((order) => {
-          const firstName =
-            order.orderFor === "familymember"
-              ? order.familyMember?.firstName
-              : order.patient?.firstName;
-          const lastName =
-            order.orderFor === "familymember"
-              ? order.familyMember?.lastName
-              : order.patient?.lastName;
-          const fullName = `${firstName || ""} ${lastName || ""}`.toLowerCase();
-          return fullName.includes(searchTerm.toLowerCase());
-        })
-      : tabFilteredOrders;
+    switch (activeOrderTab) {
+      case "preparation":
+        return orders.filter((order) =>
+          [
+            "À valider",
+            "PENDING",
+            "En préparation",
+            "Prêt à collecter",
+            "Prêt à livrer",
+          ].includes(order.status)
+        );
+      case "past":
+        return orders.filter(
+          (order) =>
+            order.status === "Finalisé" ||
+            order.status === "Refusé" ||
+            order.status === "Annulée"
+        );
+      default:
+        return orders;
+    }
   };
 
   const handleValidate = async () => {
@@ -378,15 +409,15 @@ const Orders = () => {
     setDeliveryDetails({ type: "complete", note: "" });
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 overflow-y-hidden">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#069AA2]"></div>
-        </div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-50 overflow-y-hidden">
+  //       <div className="text-center">
+  //         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#069AA2]"></div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex h-full bg-gray-50 overflow-y-hidden">
