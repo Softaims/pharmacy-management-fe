@@ -36,12 +36,6 @@ const ProtectedRoute = ({ children, roles = [] }) => {
             Vous n'avez pas les permissions nécessaires pour accéder à cette
             page.
           </p>
-          <button
-            onClick={() => window.history.back()}
-            className="bg-[#069AA2] hover:bg-[#05828A] text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            Retour
-          </button>
         </div>
       </div>
     );
