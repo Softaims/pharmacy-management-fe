@@ -15,7 +15,7 @@ export default function PharmacyDashboard() {
   const ordersRef = useRef(null); // Create ref for Orders component
 
   onMessage(messaging, (payload) => {
-    console.log("Message received. ", payload);
+    // console.log("Message received. ", payload);
     toast.info(<Message notification={payload.notification} />);
     if (ordersRef.current) {
       ordersRef.current.fetchOrders(1, ""); // Refetch orders with page 1 and empty search term
