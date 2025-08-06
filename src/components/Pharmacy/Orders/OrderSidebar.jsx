@@ -94,11 +94,11 @@ const OrderSidebar = ({
   const handleIntersection = useCallback(
     (entries) => {
       const target = entries[0];
-      if (target.isIntersecting && hasMore && !isLoadingMore && !searchTerm) {
+      if (target.isIntersecting && hasMore && !isLoadingMore) {
         loadMoreOrders();
       }
     },
-    [hasMore, isLoadingMore, loadMoreOrders, searchTerm]
+    [hasMore, isLoadingMore, loadMoreOrders]
   );
 
   useEffect(() => {
@@ -274,7 +274,7 @@ const OrderSidebar = ({
         })}
 
         {/* Loading Trigger Element (for Intersection Observer) */}
-        {hasMore && !searchTerm && (
+        {hasMore && (
           <div
             ref={loadingTriggerRef}
             className="h-20 flex items-center justify-center"
@@ -291,7 +291,7 @@ const OrderSidebar = ({
         )}
 
         {/* End of Results Message */}
-        {!hasMore && orders.length > 0 && !searchTerm && (
+        {!hasMore && orders.length > 0 && (
           <div className="p-4 text-center text-gray-500 text-sm border-t border-gray-100">
             Toutes les ordonnances ont été chargées
           </div>
