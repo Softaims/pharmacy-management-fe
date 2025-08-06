@@ -11,7 +11,7 @@ import Message from "./components/Message.jsx";
 function App() {
   onMessage(messaging, (payload) => {
     console.log("Message received. ", payload);
-    toast.success(<Message notification={payload.notification} />);
+    toast.info(<Message notification={payload.notification} />);
   });
 
   return (
