@@ -240,15 +240,7 @@ const OrderSidebar = ({
               )
             );
 
-          const name =
-            order.orderFor === "familymember"
-              ? `${order.familyMember?.firstName || "N/A"} ${
-                  order.familyMember?.lastName || ""
-                }`
-              : `${order.patient?.firstName || "N/A"} ${
-                  order.patient?.lastName || ""
-                }`;
-
+          const name = order.patient.firstName;
           return (
             <div
               key={order.id}
