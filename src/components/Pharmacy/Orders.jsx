@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useImperativeHandle } from "react";
 import { toast } from "react-toastify";
 import OrderSidebar from "./Orders/OrderSidebar.jsx";
 import OrderDocumentViewer from "./Orders/OrderDocumentViewer.jsx";
@@ -9,7 +9,7 @@ import attentionLogo from "../../assets/attention.png";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-const Orders = () => {
+const Orders = React.forwardRef((props, ref) => {
   const [activeOrderTab, setActiveOrderTab] = useState("all");
   const [activeDocumentTab, setActiveDocumentTab] = useState("prescription");
   const [activeDetailsTab, setActiveDetailsTab] = useState("details");
@@ -107,7 +107,10 @@ const Orders = () => {
       isLoadingRef.current = false;
     }
   };
-
+  // Expose fetchOrders to the parent component (PharmacyDashboard)
+  useImperativeHandle(ref, () => ({
+    fetchOrders,
+  }));
   // Effect for initial load
   useEffect(() => {
     fetchOrders(1, "");
@@ -793,6 +796,6 @@ const Orders = () => {
       )}
     </div>
   );
-};
+});
 
 export default Orders;
