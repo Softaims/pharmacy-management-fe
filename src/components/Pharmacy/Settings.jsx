@@ -25,7 +25,7 @@ const Settings = () => {
     setAutocomplete(autocomplete);
     if (autocomplete) {
       autocomplete.setOptions({
-        componentRestrictions: { country: ["fr", "pk"] },
+        componentRestrictions: { country: ["fr"] },
       });
     }
   };
@@ -50,6 +50,7 @@ const Settings = () => {
       }
       setAddress(displayAddress);
       setAddressError("");
+      geocodeAddress(place.displayAddress);
       // Do NOT set latitude/longitude here
     }
   };
@@ -606,7 +607,7 @@ const Settings = () => {
                 onLoad={onAutocompleteLoad}
                 onPlaceChanged={handlePlaceChanged}
                 options={{
-                  componentRestrictions: { country: ["fr", "pk"] },
+                  componentRestrictions: { country: ["fr"] },
                   strictBounds: false,
                 }}
               >
