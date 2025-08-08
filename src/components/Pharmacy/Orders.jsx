@@ -192,9 +192,10 @@ const Orders = React.forwardRef((props, ref) => {
 
   // Remove the frontend filtering function since search is now handled by backend
   const getFilteredOrders = () => {
+    const ordersArray = Array.isArray(orders) ? orders : orders.orders || [];
     switch (activeOrderTab) {
       case "preparation":
-        return orders.filter((order) =>
+        return ordersArray.filter((order) =>
           [
             "À valider",
             "PENDING",
@@ -204,14 +205,14 @@ const Orders = React.forwardRef((props, ref) => {
           ].includes(order.status)
         );
       case "past":
-        return orders.filter(
+        return ordersArray.filter(
           (order) =>
             order.status === "Finalisé" ||
             order.status === "Refusé" ||
             order.status === "Annulée"
         );
       default:
-        return orders;
+        return ordersArray;
     }
   };
 
