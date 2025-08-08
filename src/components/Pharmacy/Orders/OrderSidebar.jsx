@@ -15,6 +15,7 @@ const OrderSidebar = ({
   hasMore,
   isLoadingMore,
 }) => {
+  console.log("🚀 ~ OrderSidebar ~ orders:", orders);
   const scrollContainerRef = useRef(null);
   const loadingTriggerRef = useRef(null);
   const [sortOrder, setSortOrder] = useState("desc"); // 'asc' or 'desc'
@@ -24,24 +25,30 @@ const OrderSidebar = ({
     {
       id: "preparation",
       label: "En cours",
-      count: orders.filter(
-        (o) =>
-          o.status === "À valider" ||
-          o.status === "En préparation" ||
-          o.status === "Prêt à collecter" ||
-          o.status === "Prêt à livrer" ||
-          o.status === "PENDING"
-      ).length,
+      count:
+        orders &&
+        orders.length > 0 &&
+        orders?.filter(
+          (o) =>
+            o.status === "À valider" ||
+            o.status === "En préparation" ||
+            o.status === "Prêt à collecter" ||
+            o.status === "Prêt à livrer" ||
+            o.status === "PENDING"
+        ).length,
     },
     {
       id: "past",
       label: "Passées",
-      count: orders.filter(
-        (o) =>
-          o.status === "Finalisé" ||
-          o.status === "Refusé" ||
-          o.status === "Annulée"
-      ).length,
+      count:
+        orders &&
+        orders.length > 0 &&
+        orders?.filter(
+          (o) =>
+            o.status === "Finalisé" ||
+            o.status === "Refusé" ||
+            o.status === "Annulée"
+        ).length,
     },
   ];
 
