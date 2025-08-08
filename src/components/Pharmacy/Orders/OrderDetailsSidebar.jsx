@@ -199,7 +199,9 @@ const OrderDetailsSidebar = ({
                             )
                           : "—"}
                       </li>
-                      <li className="text-sm">{person?.phoneNumber || "—"}</li>
+                      <li className="text-sm">
+                        {selectedOrder?.patient?.phoneNumber || "—"}
+                      </li>
                       {person?.email && (
                         <li className="text-sm">{person?.email || "—"}</li>
                       )}
