@@ -73,16 +73,17 @@ const Orders = React.forwardRef((props, ref) => {
     try {
       // Pass search parameter to API
       const response = await apiService.getOrders(page, ITEMS_PER_PAGE, search);
+      console.log("🚀 ~ fetchOrders ~ response:", response.data.orders[0]);
 
       if (page === 1) {
         // Reset orders for new search or initial load
-        setOrders(response.data);
+        setOrders(response.data.orders);
         setCurrentPage(1);
         lastLoadedPageRef.current = 1;
 
         // Auto-select first order on large screens
-        if (window.innerWidth >= 1024 && response.data.length > 0) {
-          setSelectedOrder(response.data[0]);
+        if (window.innerWidth >= 1024) {
+          setSelectedOrder(response?.data?.orders[0]);
         } else {
           setSelectedOrder(null);
         }
@@ -90,7 +91,7 @@ const Orders = React.forwardRef((props, ref) => {
         // Append orders for pagination
         setOrders((prevOrders) => {
           const existingIds = new Set(prevOrders.map((order) => order.id));
-          const newOrders = response.data.filter(
+          const newOrders = response.data.orders.filter(
             (order) => !existingIds.has(order.id)
           );
           return [...prevOrders, ...newOrders];
@@ -99,7 +100,7 @@ const Orders = React.forwardRef((props, ref) => {
         lastLoadedPageRef.current = page;
       }
 
-      setHasMore(response.data.length === ITEMS_PER_PAGE);
+      setHasMore(response.data.orders.length === ITEMS_PER_PAGE);
     } catch (err) {
       toast.error("Erreur lors de la récupération des ordonnances");
     } finally {
@@ -145,11 +146,11 @@ const Orders = React.forwardRef((props, ref) => {
         debouncedSearchTerm
       );
 
-      if (response.data.length > 0) {
+      if (response.data.orders.length > 0) {
         // Use Set to prevent duplicate orders based on ID
         setOrders((prevOrders) => {
           const existingIds = new Set(prevOrders.map((order) => order.id));
-          const newOrders = response.data.filter(
+          const newOrders = response.data.orders.filter(
             (order) => !existingIds.has(order.id)
           );
           return [...prevOrders, ...newOrders];
@@ -157,7 +158,7 @@ const Orders = React.forwardRef((props, ref) => {
 
         setCurrentPage(nextPage);
         lastLoadedPageRef.current = nextPage;
-        setHasMore(response.data.length === ITEMS_PER_PAGE);
+        setHasMore(response.data.orders.length === ITEMS_PER_PAGE);
       } else {
         setHasMore(false);
       }
