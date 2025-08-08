@@ -521,6 +521,8 @@ const Settings = () => {
     try {
       await axiosInstance.patch(`/pharmacy/update`, payload);
       toast.success("Paramètres mis à jour avec succès");
+
+      window.location.reload();
     } catch (error) {
       // console.log("🚀 ~ handleSave ~ error:", error);
       console.error(
