@@ -6,7 +6,7 @@ import OrderDetailsSidebar from "./Orders/OrderDetailsSidebar.jsx";
 import apiService from "../../api/apiService.js";
 import { pdfjs } from "react-pdf";
 import attentionLogo from "../../assets/attention.png";
-
+import { FaTimes } from "react-icons/fa"; // Import FaTimes (cross icon) from react-icons
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const Orders = React.forwardRef((props, ref) => {
@@ -544,7 +544,6 @@ const Orders = React.forwardRef((props, ref) => {
           />
         </div>
       </div>
-
       {/* Modal for "À valider" to "En préparation" */}
       {isModalOpen && (
         <div
@@ -633,7 +632,6 @@ const Orders = React.forwardRef((props, ref) => {
           </div>
         </div>
       )}
-
       {/* Modal for "En préparation" to "Prêt à collecter" */}
       {isPrepModalOpen && (
         <div
@@ -673,8 +671,8 @@ const Orders = React.forwardRef((props, ref) => {
           </div>
         </div>
       )}
-
       {/* Modal for Delivery Details */}
+
       {isDeliveryModalOpen && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
@@ -684,13 +682,23 @@ const Orders = React.forwardRef((props, ref) => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white w-full max-w-[27rem] rounded-xl shadow-xl max-h-[90vh] overflow-y-auto animate-fadeIn scale-95 transition-transform p-6"
+            className="bg-white w-full max-w-[27rem] rounded-xl shadow-xl max-h-[90vh] overflow-y-auto animate-fadeIn scale-95 transition-transform p-6 relative"
           >
+            {/* Cross button */}
+            <button
+              onClick={handleCloseDeliveryModal}
+              className="absolute top-4 right-4 text-red-500 hover:text-red-700"
+              aria-label="Close modal"
+            >
+              <FaTimes className="h-5 w-5 stroke-1" />
+            </button>
+
             <div className="pb-4 mb-4">
               <h3 className="text-center text-gray-900 font-medium">
                 Entrez les détails de la délivrance
               </h3>
             </div>
+
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <input
@@ -707,6 +715,7 @@ const Orders = React.forwardRef((props, ref) => {
                   Délivrance complète
                 </label>
               </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="radio"
@@ -722,6 +731,7 @@ const Orders = React.forwardRef((props, ref) => {
                   Délivrance partielle
                 </label>
               </div>
+
               <div>
                 <label className="block text-sm text-gray-700 mb-1">
                   Note :
@@ -740,6 +750,7 @@ const Orders = React.forwardRef((props, ref) => {
                 />
               </div>
             </div>
+
             <div className="mt-6 flex justify-end">
               <button
                 onClick={handleDelivery}
@@ -756,7 +767,6 @@ const Orders = React.forwardRef((props, ref) => {
           </div>
         </div>
       )}
-
       {/* Modal for "Retirer" Confirmation */}
       {isWithdrawModalOpen && (
         <div
