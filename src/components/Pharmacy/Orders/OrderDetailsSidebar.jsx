@@ -267,7 +267,7 @@ const OrderDetailsSidebar = ({
                     {normalizedStatus === "En préparation"
                       ? " préparer"
                       : normalizedStatus === "Prêt à collecter"
-                      ? " retirer"
+                      ? " délivrer"
                       : normalizedStatus === "Prêt à livrer"
                       ? " livrer"
                       : " valider"}
@@ -326,7 +326,7 @@ const OrderDetailsSidebar = ({
                   >
                     {normalizedStatus === "Prêt à livrer"
                       ? "Livrer"
-                      : "Retirer"}
+                      : "Délivrée"}
                   </button>
                 </div>
               )}
