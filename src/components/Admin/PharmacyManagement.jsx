@@ -83,7 +83,7 @@ const PharmacyManagement = ({
           pharmacy.id === statusPharmacy.id
             ? {
                 ...pharmacy,
-                status: newStatus ? "Active" : "Inactif",
+                status: newStatus ? "Active" : "Inactive",
               }
             : pharmacy
         )
@@ -108,7 +108,7 @@ const PharmacyManagement = ({
   //       pharmacy.id === id
   //         ? {
   //             ...pharmacy,
-  //             status: pharmacy.status === "Active" ? "Inactif" : "Active",
+  //             status: pharmacy.status === "Active" ? "Inactive" : "Active",
   //           }
   //         : pharmacy
   //     )
@@ -123,7 +123,7 @@ const PharmacyManagement = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs lg:text-sm text-gray-500">
-                Total Pharmacies
+                Pharmacies inscrites
               </p>
               <p className="text-xl lg:text-2xl font-semibold text-gray-800">
                 {pharmacies.length}
@@ -138,7 +138,7 @@ const PharmacyManagement = ({
         <div className="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs lg:text-sm text-gray-500">Active</p>
+              <p className="text-xs lg:text-sm text-gray-500">Actives</p>
               <p className="text-xl lg:text-2xl font-semibold text-[#069AA2]">
                 {pharmacies.filter((p) => p.status === "Active").length}
               </p>
@@ -152,9 +152,9 @@ const PharmacyManagement = ({
         <div className="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs lg:text-sm text-gray-500">Inactif</p>
+              <p className="text-xs lg:text-sm text-gray-500">Inactives</p>
               <p className="text-xl lg:text-2xl font-semibold text-[#E9486C]">
-                {pharmacies.filter((p) => p.status === "Inactif").length}
+                {pharmacies.filter((p) => p.status === "Inactive").length}
               </p>
             </div>
             <div className="bg-red-100 p-2 lg:p-3 rounded-lg">
@@ -286,14 +286,16 @@ const PharmacyManagement = ({
                         className="flex flex-col items-center text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors duration-200"
                       >
                         <Edit className="w-4 h-4" />
-                        <span className="text-xs font-medium mt-1">Edit</span>
+                        <span className="text-xs font-medium mt-1">Éditer</span>
                       </button>
                       <button
                         onClick={() => openDeleteModal(pharmacy)}
                         className="flex flex-col items-center text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors duration-200"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span className="text-xs font-medium mt-1">Delete</span>
+                        <span className="text-xs font-medium mt-1">
+                          Supprimer
+                        </span>
                       </button>
                     </div>
                   </td>

@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { FaCircle, FaRegCircle } from "react-icons/fa";
+import sortingIcon from "../../../assets/sortingicon.svg";
 
 const OrderSidebar = ({
   activeOrderTab,
@@ -10,37 +11,44 @@ const OrderSidebar = ({
   searchTerm,
   setSearchTerm,
   getFilteredOrders,
-  // Infinite scrolling props
   loadMoreOrders,
   hasMore,
   isLoadingMore,
 }) => {
+  console.log("🚀 ~ OrderSidebar ~ orders:", orders);
   const scrollContainerRef = useRef(null);
   const loadingTriggerRef = useRef(null);
+  const [sortOrder, setSortOrder] = useState("desc"); // 'asc' or 'desc'
 
   const orderTabs = [
     { id: "all", label: "Toutes", count: orders.length },
     {
       id: "preparation",
       label: "En cours",
-      count: orders.filter(
-        (o) =>
-          o.status === "À valider" ||
-          o.status === "En préparation" ||
-          o.status === "Prêt à collecter" ||
-          o.status === "Prêt à livrer" ||
-          o.status === "PENDING"
-      ).length,
+      count:
+        orders &&
+        orders.length > 0 &&
+        orders?.filter(
+          (o) =>
+            o.status === "À valider" ||
+            o.status === "En préparation" ||
+            o.status === "Prêt à collecter" ||
+            o.status === "Prêt à livrer" ||
+            o.status === "PENDING"
+        ).length,
     },
     {
       id: "past",
       label: "Passées",
-      count: orders.filter(
-        (o) =>
-          o.status === "Finalisé" ||
-          o.status === "Refusé" ||
-          o.status === "Annulée"
-      ).length,
+      count:
+        orders &&
+        orders.length > 0 &&
+        orders?.filter(
+          (o) =>
+            o.status === "Finalisé" ||
+            o.status === "Refusé" ||
+            o.status === "Annulée"
+        ).length,
     },
   ];
 
@@ -66,15 +74,38 @@ const OrderSidebar = ({
     });
   };
 
+  const handleSortToggle = () => {
+    const newSortOrder = sortOrder === "asc" ? "desc" : "asc"; // Toggle sort order
+    setSortOrder(newSortOrder); // Set the new sort order
+
+    // Sort the filtered orders after toggling the order
+    const sortedOrders = getSortedFilteredOrders();
+
+    // Deselect the previous selected order and select the last order in the sorted list
+    setSelectedOrder(sortedOrders[sortedOrders.length - 1]); // Select the last order
+  };
+
+  // Get sorted and filtered orders
+  const getSortedFilteredOrders = () => {
+    const filtered = getFilteredOrders(); // Get the filtered orders
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.updatedAt);
+      const dateB = new Date(b.updatedAt);
+
+      // Sort based on the order (ascending or descending)
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+  };
+
   // Intersection Observer for infinite scrolling
   const handleIntersection = useCallback(
     (entries) => {
       const target = entries[0];
-      if (target.isIntersecting && hasMore && !isLoadingMore && !searchTerm) {
+      if (target.isIntersecting && hasMore && !isLoadingMore) {
         loadMoreOrders();
       }
     },
-    [hasMore, isLoadingMore, loadMoreOrders, searchTerm]
+    [hasMore, isLoadingMore, loadMoreOrders]
   );
 
   useEffect(() => {
@@ -125,13 +156,22 @@ const OrderSidebar = ({
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200 w-[90%]">
-        <div className="flex items-center w-full mb-4">
+        <div className="flex items-center w-full mb-4 gap-4">
           <input
             type="text"
             placeholder="Rechercher patient..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="py-1 pl-3 bg-[#F0F0F0] rounded-xl w-full text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <img
+            src={sortingIcon}
+            alt="Sort"
+            onClick={handleSortToggle}
+            className="cursor-pointer"
+            title={`Trier en ${
+              sortOrder === "asc" ? "ordre décroissant" : "ordre croissant"
+            }`} // Tooltip for sorting in French
           />
         </div>
 
@@ -165,7 +205,7 @@ const OrderSidebar = ({
           overscrollBehavior: "contain",
         }}
       >
-        {getFilteredOrders().map((order) => {
+        {getSortedFilteredOrders().map((order) => {
           const normalizedStatus =
             order.status === "PENDING" ? "À valider" : order.status;
           let statusClass = "";
@@ -179,11 +219,12 @@ const OrderSidebar = ({
             statusClass = "bg-[#DEDAFF] text-black border-2 border-[#6631D7]";
           } else if (normalizedStatus === "En préparation") {
             statusClass = "bg-[#E7D5AA] text-black border-2 border-[#FAA010]";
+          } else if (normalizedStatus === "Annulée") {
+            statusClass = "bg-[#EBB6B6] text-black border-2 border-[#BD0A0A]";
           } else {
             statusClass = "bg-gray-100 text-black border-2 border-gray-300";
           }
 
-          // Status-specific circle filling logic
           const filledCount =
             normalizedStatus === "Refusé" ||
             normalizedStatus === "En préparation" ||
@@ -206,15 +247,7 @@ const OrderSidebar = ({
               )
             );
 
-          const name =
-            order.orderFor === "familymember"
-              ? `${order.familyMember?.firstName || "N/A"} ${
-                  order.familyMember?.lastName || ""
-                }`
-              : `${order.patient?.firstName || "N/A"} ${
-                  order.patient?.lastName || ""
-                }`;
-
+          const name = order.patient.firstName;
           return (
             <div
               key={order.id}
@@ -225,14 +258,14 @@ const OrderSidebar = ({
                   : "hover:bg-gray-50"
               }`}
             >
-              <div className="flex  items-start justify-between">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900 text-sm truncate">
                     {name.trim()}
                   </h3>
                   <div className="flex items-center justify-between mt-1">
                     <span
-                      className={`flex items-center justify-center w-30 py-1 rounded-md text-xs font-medium ${statusClass}`}
+                      className={`flex items-center justify-center w-30 py-1 rounded-md text-xs font-normal ${statusClass}`}
                     >
                       {normalizedStatus}
                     </span>
@@ -248,7 +281,7 @@ const OrderSidebar = ({
         })}
 
         {/* Loading Trigger Element (for Intersection Observer) */}
-        {hasMore && !searchTerm && (
+        {hasMore && (
           <div
             ref={loadingTriggerRef}
             className="h-20 flex items-center justify-center"
@@ -265,14 +298,14 @@ const OrderSidebar = ({
         )}
 
         {/* End of Results Message */}
-        {!hasMore && orders.length > 0 && !searchTerm && (
+        {!hasMore && orders.length > 0 && (
           <div className="p-4 text-center text-gray-500 text-sm border-t border-gray-100">
             Toutes les ordonnances ont été chargées
           </div>
         )}
 
         {/* No Results Message */}
-        {getFilteredOrders().length === 0 && (
+        {getSortedFilteredOrders().length === 0 && (
           <div className="p-8 text-center text-gray-500">
             <div className="text-lg mb-2">📋</div>
             <p className="text-sm">

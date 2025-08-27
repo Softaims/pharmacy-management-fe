@@ -11,7 +11,6 @@ const Sidebar = ({
   setSidebarOpen,
 }) => {
   const { user, logout, isLoading } = useAuth(); // Access user and logout function from AuthContext
-  // console.log("🚀 ~ user:,,,,,,,,,,,,,,,,,,,,,,,", user, isLoading);
 
   const sidebarItems = [
     { id: "users", label: "Gestion des pharmacies", icon: Users },

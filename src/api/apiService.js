@@ -91,6 +91,18 @@ const apiService = {
       throw error.response?.data || { message: "Failed to refresh token" };
     }
   },
+  // Register device token
+  registerDeviceToken: async (payload) => {
+    try {
+      const response = await axios.post("/auth/register-device-token", payload);
+      return response.data;
+    } catch (error) {
+      // console.log("🚀 ~ registerDeviceToken: ~ error:", error.response?.data || error);
+      throw (
+        error.response?.data || { message: "Failed to register device token" }
+      );
+    }
+  },
 
   // Logout
   logout: () => {
@@ -221,13 +233,14 @@ const apiService = {
     }
   },
 
-  getOrders: async (page = 1, limit = 100) => {
+  getOrders: async (page = 1, limit = 100, search = " ") => {
     try {
       // Sending pagination parameters with the request
       const response = await axios.get("/pharmacy/orders", {
         params: {
-          page, // The current page number (default is 1)
-          limit, // The number of items per page (default is 100)
+          page,
+          limit,
+          name: search,
         },
       });
 

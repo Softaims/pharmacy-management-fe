@@ -23,7 +23,6 @@ const AddPharmacyModal = ({
     email: "",
     phone: "",
     address: "",
-    password: "",
     status: "",
     latitude: null,
     longitude: null,
@@ -35,6 +34,8 @@ const AddPharmacyModal = ({
   const [lastMode, setLastMode] = useState(null);
   const [loading, setLoading] = useState(false);
   const [addressFromAutocomplete, setAddressFromAutocomplete] = useState(false);
+  // Add new state to track if address was actually changed by user
+  const [addressChanged, setAddressChanged] = useState(false);
 
   const modalRef = useRef(null);
   const addressInputRef = useRef(null);
@@ -90,6 +91,7 @@ const AddPharmacyModal = ({
           longitude: longitude,
         });
         setAddressFromAutocomplete(true); // Mark as from autocomplete
+        setAddressChanged(true); // Mark address as changed
         setErrors({ ...errors, address: "" }); // Clear address error
 
         // Clear any pending geocoding timeout since we have coordinates
@@ -108,9 +110,18 @@ const AddPharmacyModal = ({
 
   // Handle manual address input
   const handleAddressChange = (e) => {
+    const newAddress = e.target.value;
+
+    // Only mark as changed if the address is actually different from original
+    if (isEditMode && pharmacyToEdit) {
+      setAddressChanged(newAddress !== pharmacyToEdit.address);
+    } else {
+      setAddressChanged(true); // For add mode, any input is a change
+    }
+
     setNewPharmacy({
       ...newPharmacy,
-      address: e.target.value,
+      address: newAddress,
       // Only reset coordinates if not from autocomplete
       latitude: addressFromAutocomplete ? newPharmacy.latitude : null,
       longitude: addressFromAutocomplete ? newPharmacy.longitude : null,
@@ -209,11 +220,11 @@ const AddPharmacyModal = ({
         phone: pharmacyToEdit.phone,
         address: pharmacyToEdit.address,
         status: pharmacyToEdit.status,
-        password: "",
         latitude: pharmacyToEdit.latitude || null,
         longitude: pharmacyToEdit.longitude || null,
       });
       setAddressFromAutocomplete(true); // Assume existing address is valid
+      setAddressChanged(false); // Reset address changed flag
     } else if (lastMode !== currentMode) {
       resetForm();
     }
@@ -227,7 +238,6 @@ const AddPharmacyModal = ({
       email: "",
       phone: "",
       address: "",
-      password: "",
       status: "",
       latitude: null,
       longitude: null,
@@ -236,6 +246,7 @@ const AddPharmacyModal = ({
     setTouched({});
     setShowPassword(false);
     setAddressFromAutocomplete(false);
+    setAddressChanged(false); // Reset address changed flag
 
     // Clear any pending geocoding timeout
     if (geocodingTimeoutRef.current) {
@@ -290,25 +301,25 @@ const AddPharmacyModal = ({
     return "";
   };
 
-  const validatePassword = (password) => {
-    if (isEditMode) return "";
-    if (!password || password.trim() === "") {
-      return "Le mot de passe est obligatoire";
-    }
-    if (password.length < 8) {
-      return "Le mot de passe doit contenir au moins 8 caractères";
-    }
-    if (!/[A-Z]/.test(password)) {
-      return "Le mot de passe doit contenir au moins une lettre majuscule";
-    }
-    if (!/[a-z]/.test(password)) {
-      return "Le mot de passe doit contenir au moins une lettre minuscule";
-    }
-    if (!/\d/.test(password)) {
-      return "Le mot de passe doit contenir au moins un chiffre";
-    }
-    return "";
-  };
+  // const validatePassword = (password) => {
+  //   if (isEditMode) return "";
+  //   if (!password || password.trim() === "") {
+  //     return "Le mot de passe est obligatoire";
+  //   }
+  //   if (password.length < 8) {
+  //     return "Le mot de passe doit contenir au moins 8 caractères";
+  //   }
+  //   if (!/[A-Z]/.test(password)) {
+  //     return "Le mot de passe doit contenir au moins une lettre majuscule";
+  //   }
+  //   if (!/[a-z]/.test(password)) {
+  //     return "Le mot de passe doit contenir au moins une lettre minuscule";
+  //   }
+  //   if (!/\d/.test(password)) {
+  //     return "Le mot de passe doit contenir au moins un chiffre";
+  //   }
+  //   return "";
+  // };
 
   const validateField = (name, value) => {
     switch (name) {
@@ -320,8 +331,8 @@ const AddPharmacyModal = ({
         return validatePhone(value);
       case "address":
         return validateAddress(value);
-      case "password":
-        return validatePassword(value);
+      // case "password":
+      //   return validatePassword(value);
       default:
         return "";
     }
@@ -348,8 +359,13 @@ const AddPharmacyModal = ({
       [name]: error,
     });
 
-    // Use debounced geocoding for manual address input
-    if (name === "address" && newPharmacy.address && !addressFromAutocomplete) {
+    // Use debounced geocoding for manual address input only if address was changed
+    if (
+      name === "address" &&
+      newPharmacy.address &&
+      !addressFromAutocomplete &&
+      addressChanged
+    ) {
       debouncedGeocode(newPharmacy.address, (success) => {
         if (!success) {
           setErrors({
@@ -374,9 +390,6 @@ const AddPharmacyModal = ({
   const validateAllFields = async () => {
     const newErrors = {};
     const fieldsToValidate = ["name", "email", "phone", "address"];
-    if (!isEditMode) {
-      fieldsToValidate.push("password");
-    }
 
     fieldsToValidate.forEach((field) => {
       const error = validateField(field, newPharmacy[field]);
@@ -385,8 +398,8 @@ const AddPharmacyModal = ({
       }
     });
 
-    // Only geocode if coordinates don't exist and address wasn't from autocomplete
-    if (!newPharmacy.latitude || !newPharmacy.longitude) {
+    // Only geocode if address was changed and coordinates don't exist and address wasn't from autocomplete
+    if (addressChanged && (!newPharmacy.latitude || !newPharmacy.longitude)) {
       if (!addressFromAutocomplete) {
         const success = await geocodeAddress(newPharmacy.address);
         if (!success) {
@@ -417,7 +430,6 @@ const AddPharmacyModal = ({
       return;
     }
 
-    // Validate all fields and geocode address if necessary
     if (!(await validateAllFields())) {
       toast.error("Veuillez corriger les erreurs dans le formulaire", {
         autoClose: 3000,
@@ -437,12 +449,13 @@ const AddPharmacyModal = ({
           payload.email = newPharmacy.email;
         if (newPharmacy.phone !== pharmacyToEdit.phone)
           payload.phoneNumber = newPharmacy.phone;
-        if (newPharmacy.address !== pharmacyToEdit.address)
+
+        // Only include address and coordinates if address was actually changed
+        if (addressChanged && newPharmacy.address !== pharmacyToEdit.address) {
           payload.address = newPharmacy.address;
-        if (newPharmacy.latitude !== pharmacyToEdit.latitude)
           payload.latitude = newPharmacy.latitude;
-        if (newPharmacy.longitude !== pharmacyToEdit.longitude)
           payload.longitude = newPharmacy.longitude;
+        }
 
         if (Object.keys(payload).length === 0) {
           toast.info("Aucune modification détectée", {
@@ -476,7 +489,6 @@ const AddPharmacyModal = ({
           name: newPharmacy.name,
           email: newPharmacy.email,
           phoneNumber: newPharmacy.phone,
-          password: newPharmacy.password,
           address: newPharmacy.address,
           latitude: newPharmacy.latitude,
           longitude: newPharmacy.longitude,
@@ -491,7 +503,7 @@ const AddPharmacyModal = ({
           name: result.data.name,
           address: result.data.address,
           phone: result.data.user.phoneNumber,
-          status: "Active",
+          status: "Inactive",
           joinedDate: dayjs(result.data.createdAt).format("DD MMMM YYYY"),
         };
         setPharmacies([newPharmacyData, ...pharmacies]);
@@ -564,17 +576,6 @@ const AddPharmacyModal = ({
       type: "tel",
       placeholder: "Entrez le numéro de téléphone (ex: +33780763734)",
     },
-    ...(!isEditMode
-      ? [
-          {
-            label: "Mot de passe *",
-            name: "password",
-            type: showPassword ? "text" : "password",
-            placeholder: "Entrez un mot de passe sécurisé",
-            isPassword: true,
-          },
-        ]
-      : []),
   ];
 
   if (loadError) {
@@ -746,7 +747,7 @@ const AddPharmacyModal = ({
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={handleCancel}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
+            className="px-4 py-2 text-black border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm"
           >
             Annuler
           </button>

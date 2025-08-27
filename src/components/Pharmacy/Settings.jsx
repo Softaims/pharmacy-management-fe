@@ -25,7 +25,7 @@ const Settings = () => {
     setAutocomplete(autocomplete);
     if (autocomplete) {
       autocomplete.setOptions({
-        componentRestrictions: { country: ["fr", "pk"] },
+        componentRestrictions: { country: ["fr"] },
       });
     }
   };
@@ -50,6 +50,7 @@ const Settings = () => {
       }
       setAddress(displayAddress);
       setAddressError("");
+      geocodeAddress(place.displayAddress);
       // Do NOT set latitude/longitude here
     }
   };
@@ -520,6 +521,8 @@ const Settings = () => {
     try {
       await axiosInstance.patch(`/pharmacy/update`, payload);
       toast.success("Paramètres mis à jour avec succès");
+
+      window.location.reload();
     } catch (error) {
       // console.log("🚀 ~ handleSave ~ error:", error);
       console.error(
@@ -606,7 +609,7 @@ const Settings = () => {
                 onLoad={onAutocompleteLoad}
                 onPlaceChanged={handlePlaceChanged}
                 options={{
-                  componentRestrictions: { country: ["fr", "pk"] },
+                  componentRestrictions: { country: ["fr"] },
                   strictBounds: false,
                 }}
               >
@@ -643,6 +646,7 @@ const Settings = () => {
             {days.map(({ key, label }) => (
               <div key={key} className="flex items-center gap-10">
                 <div className="w-20 text-sm text-gray-700">{label}</div>
+
                 <label className="inline-flex items-center cursor-pointer justify-center">
                   <input
                     type="checkbox"
@@ -652,15 +656,14 @@ const Settings = () => {
                   />
                   <div
                     className="relative w-11 h-6 bg-gray-200 rounded-full
-                  peer-focus:ring-blue-300 
-                  peer-checked:bg-[#069AA2] 
-                  after:content-[''] after:absolute after:top-0.5 after:start-[2px] 
-                  after:bg-[#E9486C] peer-checked:after:bg-white
-                  after:border-gray-300 after:border after:rounded-full 
-                  after:h-5 after:w-5 after:transition-all 
-                  peer-checked:after:translate-x-full 
-                  rtl:peer-checked:after:-translate-x-full
-  "
+            peer-focus:ring-blue-300 
+            peer-checked:bg-[#069AA2] 
+            after:content-[''] after:absolute after:top-0.5 after:start-[2px] 
+            after:bg-[#E9486C] peer-checked:after:bg-white
+            after:border-gray-300 after:border after:rounded-full 
+            after:h-5 after:w-5 after:transition-all 
+            peer-checked:after:translate-x-full 
+            rtl:peer-checked:after:-translate-x-full"
                   ></div>
                   <span className="ms-3 text-sm font-medium text-gray-900">
                     {schedule[key]?.isOpen ? "Ouvert" : "Fermé"}
@@ -670,12 +673,9 @@ const Settings = () => {
                 {schedule[key]?.isOpen && (
                   <div className="flex items-center gap-2 flex-wrap">
                     {schedule[key].timeSlots.map((slot, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2 mb-2 px-2"
-                      >
+                      <div key={index} className="flex items-center gap-2 px-2">
                         <select
-                          className="px-2 py-1  rounded-2xl text-sm text-black bg-gray-100"
+                          className="px-2 py-1 rounded-2xl text-sm text-black bg-gray-100"
                           value={
                             slot.openTime === "23:59" ? "24:00" : slot.openTime
                           }
@@ -764,7 +764,7 @@ const Settings = () => {
             <div className="flex-1 text-center justify-center items-center font-medium text-white bg-[#069AA2] rounded-full cursor-not-allowed opacity-80">
               <span className=" mt-[3.5px] flex items-center justify-center text-center">
                 {" "}
-                {isActive ? "Actif" : "Inactif"}
+                {isActive ? "Actif" : "Inactive"}
               </span>
             </div>
           </div>

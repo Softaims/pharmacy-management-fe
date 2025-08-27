@@ -1,9 +1,10 @@
 import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import AppRoutes from "./routes/index.jsx";
 import { Bounce, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { AuthProvider } from "./contexts/AuthContext.jsx";
-import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import FCMHandler from "./hooks/FCMHandler.js";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <AuthProvider>
         <ErrorBoundary>
           <AppRoutes />
+          <FCMHandler /> {/* 👈 Moved here */}
           <ToastContainer
             position="bottom-right"
             autoClose={3000}

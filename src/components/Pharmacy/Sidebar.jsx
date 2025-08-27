@@ -12,12 +12,12 @@ export default function Sidebar() {
     logout(); // Call the logout function from AuthContext
   };
   return (
-    <div className="fixed top-0 left-0 bottom-0 w-[98px] bg-[#069AA2]    flex flex-col">
+    <div className="fixed top-0 left-0 bottom-0 w-[98px] bg-[#069AA2]  flex flex-col pt-5">
       <div className="flex justify-center items-center">
         <img
           src={logo}
           alt="Pharmacy Logo"
-          className="h-12 w-12 object-cover"
+          className="h-14 w-14 object-cover"
         />
       </div>
       <nav className="mt-10 flex flex-col gap-8 items-center flex-1">
@@ -53,9 +53,11 @@ export default function Sidebar() {
             onClick={handleLogout}
             className="relative flex items-center justify-center w-12 h-12 rounded-lg transition-all duration-200 hover:bg-[#63AAAE] text-gray-700"
           >
-            <FiLogOut className="h-6 w-6 transition-transform group-hover:scale-110 text-red-500" />{" "}
+            <FiLogOut className="h-6 w-6 transition-transform group-hover:scale-110 text-white" />{" "}
           </Link>
-          <span className=" text-sm text-white font-medium">log out</span>
+          <span className=" text-[11px] text-white font-medium">
+            Se déconnecter
+          </span>
         </div>
       </div>
     </div>

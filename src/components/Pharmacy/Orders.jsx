@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useImperativeHandle } from "react";
 import { toast } from "react-toastify";
 import OrderSidebar from "./Orders/OrderSidebar.jsx";
 import OrderDocumentViewer from "./Orders/OrderDocumentViewer.jsx";
 import OrderDetailsSidebar from "./Orders/OrderDetailsSidebar.jsx";
 import apiService from "../../api/apiService.js";
 import { pdfjs } from "react-pdf";
-
+import attentionLogo from "../../assets/attention.png";
+import { FaTimes } from "react-icons/fa"; // Import FaTimes (cross icon) from react-icons
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-const Orders = () => {
+
+const Orders = React.forwardRef((props, ref) => {
   const [activeOrderTab, setActiveOrderTab] = useState("all");
   const [activeDocumentTab, setActiveDocumentTab] = useState("prescription");
   const [activeDetailsTab, setActiveDetailsTab] = useState("details");
@@ -17,11 +19,15 @@ const Orders = () => {
   const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isRefuseModalOpen, setIsRefuseModalOpen] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [activeMobileTab, setActiveMobileTab] = useState("documents");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [isButtonLoading, setIsButtonLoading] = useState(false);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,10 +35,23 @@ const Orders = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const ITEMS_PER_PAGE = 10;
 
+  // Add ref to prevent duplicate API calls
+  const isLoadingRef = useRef(false);
+  const lastLoadedPageRef = useRef(0);
+
   const [deliveryDetails, setDeliveryDetails] = useState({
     type: "complete",
     note: "",
   });
+
+  // Add debouncing effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -44,49 +63,110 @@ const Orders = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setIsLoading(true);
-      try {
-        const response = await apiService.getOrders(1, ITEMS_PER_PAGE);
-        setOrders(response.data);
-        setCurrentPage(1);
-        setHasMore(response.data.length === ITEMS_PER_PAGE);
-        setCurrentPage(1);
-        setHasMore(response.data.length === ITEMS_PER_PAGE);
+  // Modified fetchOrders function to accept search parameter
+  const fetchOrders = async (page = 1, search = "") => {
+    if (isLoadingRef.current) return;
 
-        if (window.innerWidth >= 1024 && response.data.length > 0) {
-          setSelectedOrder(response.data[0]);
+    setIsLoading(page === 1);
+    isLoadingRef.current = true;
+
+    try {
+      // Pass search parameter to API
+      const response = await apiService.getOrders(page, ITEMS_PER_PAGE, search);
+      console.log("🚀 ~ fetchOrders ~ response:", response.data.orders[0]);
+
+      if (page === 1) {
+        // Reset orders for new search or initial load
+        setOrders(response.data.orders);
+        setCurrentPage(1);
+        lastLoadedPageRef.current = 1;
+
+        // Auto-select first order on large screens
+        if (window.innerWidth >= 1024) {
+          setSelectedOrder(response?.data?.orders[0]);
+        } else {
+          setSelectedOrder(null);
         }
-      } catch (err) {
-        toast.error("Erreur lors de la récupération des ordonnances");
-      } finally {
-        setIsLoading(false);
+      } else {
+        // Append orders for pagination
+        setOrders((prevOrders) => {
+          const existingIds = new Set(prevOrders.map((order) => order.id));
+          const newOrders = response.data.orders.filter(
+            (order) => !existingIds.has(order.id)
+          );
+          return [...prevOrders, ...newOrders];
+        });
+        setCurrentPage(page);
+        lastLoadedPageRef.current = page;
       }
-    };
 
-    fetchOrders();
+      setHasMore(response.data.orders.length === ITEMS_PER_PAGE);
+    } catch (err) {
+      toast.error("Erreur lors de la récupération des ordonnances");
+    } finally {
+      setIsLoading(false);
+      isLoadingRef.current = false;
+    }
+  };
+  // Expose fetchOrders to the parent component (PharmacyDashboard)
+  useImperativeHandle(ref, () => ({
+    fetchOrders,
+  }));
+  // Effect for initial load
+  useEffect(() => {
+    fetchOrders(1, "");
   }, []);
 
+  // Effect for search - triggers when debouncedSearchTerm changes
+  useEffect(() => {
+    // Reset pagination and fetch with search term
+    setCurrentPage(1);
+    lastLoadedPageRef.current = 0;
+    fetchOrders(1, debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
+
+  // Modified loadMoreOrders function
   const loadMoreOrders = async () => {
-    if (isLoadingMore || !hasMore) return;
+    // Prevent multiple simultaneous calls
+    if (isLoadingMore || !hasMore || isLoadingRef.current) return;
+
+    const nextPage = currentPage + 1;
+
+    // Prevent loading the same page twice
+    if (nextPage <= lastLoadedPageRef.current) return;
 
     setIsLoadingMore(true);
-    try {
-      const nextPage = currentPage + 1;
-      const response = await apiService.getOrders(nextPage, ITEMS_PER_PAGE);
+    isLoadingRef.current = true;
 
-      if (response.data.length > 0) {
-        setOrders((prevOrders) => [...prevOrders, ...response.data]);
+    try {
+      // Use debouncedSearchTerm for consistency
+      const response = await apiService.getOrders(
+        nextPage,
+        ITEMS_PER_PAGE,
+        debouncedSearchTerm
+      );
+
+      if (response.data.orders.length > 0) {
+        // Use Set to prevent duplicate orders based on ID
+        setOrders((prevOrders) => {
+          const existingIds = new Set(prevOrders.map((order) => order.id));
+          const newOrders = response.data.orders.filter(
+            (order) => !existingIds.has(order.id)
+          );
+          return [...prevOrders, ...newOrders];
+        });
+
         setCurrentPage(nextPage);
-        setHasMore(response.data.length === ITEMS_PER_PAGE);
+        lastLoadedPageRef.current = nextPage;
+        setHasMore(response.data.orders.length === ITEMS_PER_PAGE);
       } else {
         setHasMore(false);
       }
     } catch (err) {
-      toast.error("Erreur lors du chargement des ordonnances supplémentaires");
+      // toast.error("Erreur lors du chargement des ordonnances supplémentaires");
     } finally {
       setIsLoadingMore(false);
+      isLoadingRef.current = false;
     }
   };
 
@@ -111,45 +191,30 @@ const Orders = () => {
       .map((_, index) => (index < filledCount ? "bg-black" : "bg-gray-300"));
   };
 
+  // Remove the frontend filtering function since search is now handled by backend
   const getFilteredOrders = () => {
-    const tabFilteredOrders = (() => {
-      switch (activeOrderTab) {
-        case "preparation":
-          return orders.filter((order) =>
-            [
-              "À valider",
-              "PENDING",
-              "En préparation",
-              "Prêt à collecter",
-              "Prêt à livrer",
-            ].includes(order.status)
-          );
-        case "past":
-          return orders.filter(
-            (order) =>
-              order.status === "Finalisé" ||
-              order.status === "Refusé" ||
-              order.status === "Annulée"
-          );
-        default:
-          return orders;
-      }
-    })();
-
-    return searchTerm
-      ? tabFilteredOrders.filter((order) => {
-          const firstName =
-            order.orderFor === "familymember"
-              ? order.familyMember?.firstName
-              : order.patient?.firstName;
-          const lastName =
-            order.orderFor === "familymember"
-              ? order.familyMember?.lastName
-              : order.patient?.lastName;
-          const fullName = `${firstName || ""} ${lastName || ""}`.toLowerCase();
-          return fullName.includes(searchTerm.toLowerCase());
-        })
-      : tabFilteredOrders;
+    const ordersArray = Array.isArray(orders) ? orders : orders.orders || [];
+    switch (activeOrderTab) {
+      case "preparation":
+        return ordersArray.filter((order) =>
+          [
+            "À valider",
+            "PENDING",
+            "En préparation",
+            "Prêt à collecter",
+            "Prêt à livrer",
+          ].includes(order.status)
+        );
+      case "past":
+        return ordersArray.filter(
+          (order) =>
+            order.status === "Finalisé" ||
+            order.status === "Refusé" ||
+            order.status === "Annulée"
+        );
+      default:
+        return ordersArray;
+    }
   };
 
   const handleValidate = async () => {
@@ -191,7 +256,7 @@ const Orders = () => {
   const handlePrepare = async () => {
     if (!selectedOrder) return;
     setIsPrepModalOpen(false);
-    setDeliveryDetails({ type: "complete", note: "" }); // Reset deliveryDetails when opening delivery modal
+    setDeliveryDetails({ type: "complete", note: "" });
     setIsDeliveryModalOpen(true);
   };
 
@@ -300,7 +365,7 @@ const Orders = () => {
             }
           : prev
       );
-      toast.success("Ordonnance annulée avec succès et revenue à À valider");
+      toast.success("Commande refusée avec succès");
     } catch (error) {
       toast.error(
         error.message || "Échec de la mise à jour du statut de la commande"
@@ -333,6 +398,7 @@ const Orders = () => {
             }
           : prev
       );
+      setIsRefuseModalOpen(false);
       toast.success("Ordonnance annulée avec succès et revenue à À valider");
     } catch (error) {
       toast.error(
@@ -343,21 +409,20 @@ const Orders = () => {
     }
   };
 
-  // Reset deliveryDetails when closing delivery modals
   const handleCloseDeliveryModal = () => {
     setIsDeliveryModalOpen(false);
     setDeliveryDetails({ type: "complete", note: "" });
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 overflow-y-hidden">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#069AA2]"></div>
-        </div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-50 overflow-y-hidden">
+  //       <div className="text-center">
+  //         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#069AA2]"></div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex h-full bg-gray-50 overflow-y-hidden">
@@ -371,7 +436,6 @@ const Orders = () => {
         setSearchTerm={setSearchTerm}
         getStatusCircles={getStatusCircles}
         getFilteredOrders={getFilteredOrders}
-        // Pagination props
         loadMoreOrders={loadMoreOrders}
         hasMore={hasMore}
         isLoadingMore={isLoadingMore}
@@ -442,6 +506,7 @@ const Orders = () => {
               handleWithdraw={handleWithdraw}
               handleRefuse={handleRefuse}
               handleCancel={handleCancel}
+              setIsRefuseModalOpen={setIsRefuseModalOpen}
             />
           )}
         </div>
@@ -475,10 +540,10 @@ const Orders = () => {
             handleWithdraw={handleWithdraw}
             handleRefuse={handleRefuse}
             handleCancel={handleCancel}
+            setIsRefuseModalOpen={setIsRefuseModalOpen}
           />
         </div>
       </div>
-
       {/* Modal for "À valider" to "En préparation" */}
       {isModalOpen && (
         <div
@@ -510,7 +575,7 @@ const Orders = () => {
               </button>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 w-[14rem] text-gray-700 border bg-[#E9486C] border-gray-300 hover:bg-[#D1365A] rounded-lg transition text-sm"
+                className="px-4 py-2 w-[14rem] text-white border bg-[#E9486C] border-gray-300 hover:bg-[#D1365A] rounded-lg transition text-sm"
               >
                 Non
               </button>
@@ -518,7 +583,55 @@ const Orders = () => {
           </div>
         </div>
       )}
-
+      {isRefuseModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setIsRefuseModalOpen(false)}
+          aria-modal="true"
+          role="dialog"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white w-full max-w-[27rem] rounded-xl shadow-xl max-h-[90vh] overflow-y-auto animate-fadeIn scale-95 transition-transform p-6"
+          >
+            <div className="">
+              <img
+                src={attentionLogo}
+                className="w-[4rem] h-[4rem] text-center mx-auto mb-4"
+                alt=""
+              />
+            </div>
+            <div className="pb-4 mb-4 mt-6 text-center">
+              <p className="text-gray-900">
+                Êtes-vous sûr de vouloir annuler la commande ?
+              </p>
+              <p className="text-gray-900">
+                Une fois confirmé, le patient sera notifié et vous ne pourrez
+                plus retourner en arrière.
+              </p>
+            </div>
+            <div className="mt-6 flex flex-col items-center justify-center gap-3">
+              <button
+                onClick={handleCancel}
+                disabled={isButtonLoading}
+                className={`px-4 py-2 w-[14rem] ${
+                  isButtonLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#069AA2] hover:bg-[#05828A]"
+                } text-white rounded-lg transition text-sm`}
+              >
+                {isButtonLoading ? "Annulation..." : "Oui"}
+              </button>
+              <button
+                onClick={() => setIsRefuseModalOpen(false)}
+                className="px-4 py-2 w-[14rem] bg-[#E9486C] hover:bg-[#D1365A] text-white rounded-lg transition text-sm"
+              >
+                Non
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Modal for "En préparation" to "Prêt à collecter" */}
       {isPrepModalOpen && (
         <div
@@ -550,7 +663,7 @@ const Orders = () => {
               </button>
               <button
                 onClick={() => setIsPrepModalOpen(false)}
-                className="px-4 py-2 w-[14rem] text-gray-700 border bg-red-500 border-gray-300 hover:bg-red-600 rounded-lg transition text-sm"
+                className="px-4 py-2 w-[14rem] text-white border bg-red-500 border-gray-300 hover:bg-red-600 rounded-lg transition text-sm"
               >
                 Annuler
               </button>
@@ -558,8 +671,8 @@ const Orders = () => {
           </div>
         </div>
       )}
-
       {/* Modal for Delivery Details */}
+
       {isDeliveryModalOpen && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
@@ -569,13 +682,23 @@ const Orders = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white w-full max-w-[27rem] rounded-xl shadow-xl max-h-[90vh] overflow-y-auto animate-fadeIn scale-95 transition-transform p-6"
+            className="bg-white w-full max-w-[27rem] rounded-xl shadow-xl max-h-[90vh] overflow-y-auto animate-fadeIn scale-95 transition-transform p-6 relative"
           >
+            {/* Cross button */}
+            <button
+              onClick={handleCloseDeliveryModal}
+              className="absolute top-4 right-4 text-red-500 hover:text-red-700"
+              aria-label="Close modal"
+            >
+              <FaTimes className="h-5 w-5 stroke-1" />
+            </button>
+
             <div className="pb-4 mb-4">
               <h3 className="text-center text-gray-900 font-medium">
                 Entrez les détails de la délivrance
               </h3>
             </div>
+
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <input
@@ -592,6 +715,7 @@ const Orders = () => {
                   Délivrance complète
                 </label>
               </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="radio"
@@ -607,6 +731,7 @@ const Orders = () => {
                   Délivrance partielle
                 </label>
               </div>
+
               <div>
                 <label className="block text-sm text-gray-700 mb-1">
                   Note :
@@ -625,6 +750,7 @@ const Orders = () => {
                 />
               </div>
             </div>
+
             <div className="mt-6 flex justify-end">
               <button
                 onClick={handleDelivery}
@@ -641,7 +767,6 @@ const Orders = () => {
           </div>
         </div>
       )}
-
       {/* Modal for "Retirer" Confirmation */}
       {isWithdrawModalOpen && (
         <div
@@ -683,6 +808,6 @@ const Orders = () => {
       )}
     </div>
   );
-};
+});
 
 export default Orders;

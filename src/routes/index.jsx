@@ -2,16 +2,25 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "../pages/Admin/LoginPage.jsx";
 import DashboardPage from "../pages/Admin/DashboardPage.jsx";
 import PharmacyDashboard from "../pages/Pharmacy/PharmacyDashboard.jsx";
+import CreatePharmacyPass from "../pages/Pharmacy/CreatePharmacyPass.jsx";
 
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import useDocumentTitle from "../components/useDocumentTitle.js";
 
 export default function AppRoutes() {
-  const { isAuthenticated, role, isLoading } = useAuth();
+  const { isAuthenticated, role } = useAuth();
 
   // if (isLoading) {
   //   return <div>Loading...</div>; // Or a proper loading component
   // }
+  useDocumentTitle(
+    isAuthenticated
+      ? role === "admin"
+        ? "Mézordopro | Accès admin"
+        : "Mézordopro | Accès pharmacien"
+      : "Mézordopro | Login"
+  );
 
   return (
     <Routes>
@@ -20,17 +29,24 @@ export default function AppRoutes() {
         path="/login"
         element={
           isAuthenticated ? (
-            <Navigate
-              to={role === "admin" ? "/admin" : "/pharmacy-dashboard"}
-              replace
-            />
+            <Navigate to={role === "admin" ? "/admin" : "/pharmacy"} replace />
           ) : (
             <LoginPage />
           )
         }
       />
+      {/* <Route path="/set-password" element={<CreatePharmacyPass />} /> */}
+      <Route
+        path="/set-password"
+        element={
+          isAuthenticated && role === "admin" ? (
+            <Navigate to="/admin" replace />
+          ) : (
+            <CreatePharmacyPass />
+          )
+        }
+      />
 
-      {/* Protected Admin Routes */}
       <Route
         path="/admin"
         element={
@@ -40,9 +56,8 @@ export default function AppRoutes() {
         }
       />
 
-      {/* Catch all route - redirect to appropriate dashboard or home */}
       <Route
-        path="*"
+        path="/"
         element={
           <Navigate
             to={
