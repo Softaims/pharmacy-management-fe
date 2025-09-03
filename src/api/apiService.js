@@ -307,6 +307,48 @@ const apiService = {
       throw error.response?.data || { message: "Failed to update password" };
     }
   },
+  // Password reset - request OTP
+  requestResetOtp: async (payload) => {
+    try {
+      const response = await axios.post(
+        "auth/reset-password/request-otp",
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: "Failed to request reset OTP" };
+    }
+  },
+
+  // Password reset - verify OTP
+  verifyResetOtp: async (payload) => {
+    try {
+      const response = await axios.post(
+        "auth/reset-password/verify-otp",
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: "Failed to verify OTP" };
+    }
+  },
+  resetPassword: async (payload, resetToken) => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${resetToken}`,
+        },
+      };
+      const response = await axios.post(
+        "auth/reset-password/reset",
+        payload,
+        config
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: "Failed to reset password" };
+    }
+  },
 };
 
 export default apiService;
