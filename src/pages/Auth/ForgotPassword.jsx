@@ -36,6 +36,12 @@ const ForgotPassword = () => {
 
   const updateUiState = (field, value) => {
     setUiState((prev) => ({ ...prev, [field]: value }));
+    // if navigating to OTP step, clear previous OTP inputs
+    if (field === "step" && value === 2) {
+      setFormState((prev) => ({ ...prev, otp: ["", "", "", ""] }));
+      // focus first OTP input after clearing (small timeout to ensure render)
+      setTimeout(() => otpRefs[0].current?.focus(), 50);
+    }
   };
 
   const updateAuthData = (field, value) => {
@@ -182,7 +188,7 @@ const ForgotPassword = () => {
                   stepNum === uiState.step
                     ? "bg-[#069AA2]"
                     : stepNum < uiState.step
-                    ? "bg-green-500"
+                    ? "bg-[#0bb3bc]"
                     : "bg-gray-300"
                 }`}
               />
@@ -253,6 +259,13 @@ const ForgotPassword = () => {
               </div>
 
               <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => updateUiState("step", 1)}
+                  className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Retour
+                </button>
                 <button
                   type="submit"
                   disabled={uiState.loading}
