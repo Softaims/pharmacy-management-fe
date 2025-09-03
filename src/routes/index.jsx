@@ -3,6 +3,7 @@ import LoginPage from "../pages/Admin/LoginPage.jsx";
 import DashboardPage from "../pages/Admin/DashboardPage.jsx";
 import PharmacyDashboard from "../pages/Pharmacy/PharmacyDashboard.jsx";
 import CreatePharmacyPass from "../pages/Pharmacy/CreatePharmacyPass.jsx";
+import ForgotPassword from "../pages/Auth/ForgotPassword.jsx";
 
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -35,6 +36,7 @@ export default function AppRoutes() {
           )
         }
       />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       {/* <Route path="/set-password" element={<CreatePharmacyPass />} /> */}
       <Route
         path="/set-password"

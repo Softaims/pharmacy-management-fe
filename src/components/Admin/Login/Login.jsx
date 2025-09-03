@@ -39,17 +39,13 @@ const Login = () => {
     e.preventDefault();
 
     if (!email || !password || !role) {
-      toast.error("Veuillez remplir tous les champs", {
-        autoClose: 3000,
-        theme: "dark",
-      });
+      toast.error("Veuillez remplir tous les champs", { autoClose: 3000 });
       return;
     }
 
     if (!validateEmail(email)) {
       toast.error("Veuillez entrer une adresse e-mail valide", {
         autoClose: 3000,
-        theme: "dark",
       });
       return;
     }
@@ -59,16 +55,11 @@ const Login = () => {
     try {
       await login({ email, password, role });
 
-      toast.success("Connexion réussie ! Redirection...", {
-        autoClose: 2000,
-        theme: "dark",
-      });
+      toast.success("Connexion réussie ! Redirection...", { autoClose: 2000 });
       navigate(from, { replace: true });
     } catch (err) {
       // console.log("🚀 ~ handleSubmit ~ err:", err);
-      toast.error(err.message || "Une erreur s'est produite", {
-        theme: "dark",
-      });
+      toast.error(err.message || "Une erreur s'est produite");
     } finally {
       setLoading(false);
     }
@@ -152,6 +143,16 @@ const Login = () => {
                   disabled={isLoading || loading}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              {/* Forgot password link - visible for all roles */}
+              <div className="mt-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-sm text-[#069AA2] hover:underline font-medium"
+                >
+                  Mot de passe oublié ?
                 </button>
               </div>
             </div>

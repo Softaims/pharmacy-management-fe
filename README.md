@@ -43,8 +43,16 @@ A modern web application for pharmacy management, featuring two distinct panels:
      ```env
      VITE_API_BASE_URL=<your-backend-url>
      VITE_GOOGLE_MAPS_API_KEY=<your-google-maps-api-key>
+     VITE_APP_API_KEY=<your-firebase-api-key>
+     VITE_APP_AUTH_DOMAIN=<your-firebase-auth-domain>
+     VITE_APP_PROJECT_ID=<your-firebase-project-id>
+     VITE_APP_STORAGE_BUCKET=<your-firebase-storage-bucket>
+     VITE_APP_MESSAGING_SENDER_ID=<your-firebase-messaging-sender-id>
+     VITE_APP_APP_ID=<your-firebase-app-id>
+     VITE_APP_MEASUREMENT_ID=<your-firebase-measurement-id>
+     VITE_APP_VAPID_KEY=<your-firebase-vapid-key>
      ```
-   - Replace `<your-backend-url>` and `<your-google-maps-api-key>` with your actual values.
+   - Replace each `<...>` with your actual values from your backend and Firebase/Google Cloud Console.
 
 ### Running the Project
 
