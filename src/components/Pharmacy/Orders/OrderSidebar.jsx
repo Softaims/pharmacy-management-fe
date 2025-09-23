@@ -246,8 +246,16 @@ const OrderSidebar = ({
                 <FaRegCircle key={index} className="text-gray-300 w-3 h-3" />
               )
             );
+          let name;
 
-          const name = order.patient.firstName;
+          if (order.orderFor === "self") {
+            name = order?.patient?.firstName || "";
+          } else {
+            const firstName = order?.familyMember?.firstName || "";
+            const lastName = order?.familyMember?.lastName || "";
+            name = lastName ? `${firstName} ${lastName}` : firstName;
+          }
+
           return (
             <div
               key={order.id}
