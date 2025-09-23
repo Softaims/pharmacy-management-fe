@@ -246,15 +246,24 @@ const OrderSidebar = ({
                 <FaRegCircle key={index} className="text-gray-300 w-3 h-3" />
               )
             );
-          let name;
+const capitalize = (str) =>
+  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
-          if (order.orderFor === "self") {
-            name = order?.patient?.firstName || "";
-          } else {
-            const firstName = order?.familyMember?.firstName || "";
-            const lastName = order?.familyMember?.lastName || "";
-            name = lastName ? `${firstName} ${lastName}` : firstName;
-          }
+let name = "";
+
+if (order.orderFor === "self") {
+  const firstName = order?.patient?.firstName || "";
+  name = capitalize(firstName);
+} else {
+  const rawFirstName = order?.familyMember?.firstName || "";
+  const rawLastName = order?.familyMember?.lastName || "";
+
+  const firstName = capitalize(rawFirstName);
+  const lastName = rawLastName ? capitalize(rawLastName) : "";
+
+  name = lastName ? `${firstName} ${lastName}` : firstName;
+}
+
 
           return (
             <div

@@ -189,7 +189,10 @@ const OrderDetailsSidebar = ({
                     <ul className="mt-2 space-y-2 text-sm sm:text-base text-gray-600 border-b-[1.5px] pb-4 border-gray-200">
                       <li className="text-[#069AA2] truncate text-sm">
                         {`${person?.firstName || "—"} ${
-                          person?.lastName || ""
+                          person?.lastName
+                            ? person.lastName.charAt(0).toUpperCase() +
+                              person.lastName.slice(1)
+                            : ""
                         }`.trim()}
                       </li>
                       <li className="text-sm">
