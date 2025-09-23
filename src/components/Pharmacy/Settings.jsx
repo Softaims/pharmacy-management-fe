@@ -61,6 +61,8 @@ const Settings = () => {
   const [latitude, setLatitude] = useState(user?.pharmacy?.latitude || null);
   const [longitude, setLongitude] = useState(user?.pharmacy?.longitude || null);
   const [isActive, setIsActive] = useState(user?.pharmacy?.isActive || false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
   const [canDeliver, setCanDeliver] = useState(
     user?.pharmacy?.canDeliver || false
   );
@@ -140,31 +142,31 @@ const Settings = () => {
   ];
 
   const timeOptions = [
-    "1:00",
-    "2:00",
-    "3:00",
-    "4:00",
-    "5:00",
-    "6:00",
-    "7:00",
-    "8:00",
-    "9:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "13:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-    "18:00",
-    "19:00",
-    "20:00",
-    "21:00",
-    "22:00",
-    "23:00",
-    "24:00",
-  ];
+  "1:00", "1:30",
+  "2:00", "2:30",
+  "3:00", "3:30",
+  "4:00", "4:30",
+  "5:00", "5:30",
+  "6:00", "6:30",
+  "7:00", "7:30",
+  "8:00", "8:30",
+  "9:00", "9:30",
+  "10:00", "10:30",
+  "11:00", "11:30",
+  "12:00", "12:30",
+  "13:00", "13:30",
+  "14:00", "14:30",
+  "15:00", "15:30",
+  "16:00", "16:30",
+  "17:00", "17:30",
+  "18:00", "18:30",
+  "19:00", "19:30",
+  "20:00", "20:30",
+  "21:00", "21:30",
+  "22:00", "22:30",
+  "23:00", "23:30",
+  "24:00"
+];
 
   const handleToggle = (day) => {
     setSchedule((prevSchedule) => {
@@ -287,51 +289,62 @@ const Settings = () => {
       : timeOptions[index];
   };
 
-  const getSignedUrl = async () => {
-    try {
-      const response = await axiosInstance.get(
-        `/family/signed-url?contentType=image/png&uploadType=profile-image`
-      );
-      setSignedUrl(response.data.signedUrl);
-      setImageKey(response.data.key);
-      return response.data.signedUrl;
-    } catch (error) {
-      console.log("🚀 ~ getSignedUrl ~ error:", error);
-      toast.error("Erreur lors de la récupération de l'URL signée");
-      return null;
-    }
-  };
+const getSignedUrl = async (fileType) => {
+  try {
+    const response = await axiosInstance.get(
+      `/family/signed-url?contentType=${encodeURIComponent(fileType)}&uploadType=profile-image`
+    );
+    setSignedUrl(response.data.signedUrl);
+    setImageKey(response.data.key);
+    return response.data.signedUrl;
+  } catch (error) {
+    console.log("🚀 ~ getSignedUrl ~ error:", error);
+    toast.error("Erreur lors de la récupération de l'URL signée");
+    return null;
+  }
+};
 
-  const uploadImage = async (file) => {
-    let url = signedUrl;
-    if (!url) {
-      url = await getSignedUrl();
-    }
-    if (!url) {
-      setSignedUrl(null);
-      return;
-    }
-    try {
-      const response = await axios.put(url, file, {
-        headers: { "Content-Type": file.type },
-      });
-    } catch (error) {
-      setImageKey(null);
-      console.error("Error uploading image:,,,,,,,,,,,,,,,,,,", error);
-      setSignedUrl(null);
-      toast.error("Erreur lors du téléchargement de l'image");
-    }
-  };
+const uploadImage = async (file) => {
+  let url = signedUrl;
+  if (!url) {
+    url = await getSignedUrl(file.type);
+  }
+  if (!url) {
+    setSignedUrl(null);
+    return;
+  }
 
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (file && file.type === "image/png") {
-      setImageFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setUploadedImageUrl(previewUrl);
-      await uploadImage(file);
-    }
-  };
+  setIsUploadingImage(true); // Start uploading
+
+  try {
+    const response = await axios.put(url, file, {
+      headers: { "Content-Type": file.type },
+    });
+
+    console.log("🚀 ~ uploadImage ~ response:", response);
+  } catch (error) {
+    setImageKey(null);
+    setSignedUrl(null);
+    console.error("Error uploading image:", error);
+    toast.error("Erreur lors du téléchargement de l'image");
+  } finally {
+    setIsUploadingImage(false); // Finish uploading
+  }
+};
+
+
+const handleImageChange = async (e) => {
+  const file = e.target.files[0];
+  if (file && ["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(file.type)) {
+    setImageFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setUploadedImageUrl(previewUrl);
+    await uploadImage(file);
+  } else {
+    toast.error("Format d'image non supporté. Veuillez choisir un PNG, JPG, JPEG ou WEBP.");
+  }
+};
+
 
   const hasChanges = () => {
     let changesDetected = false;
@@ -456,6 +469,10 @@ const Settings = () => {
       toast.error("Le nom de la pharmacie est obligatoire.");
       return;
     }
+    if (isUploadingImage) {
+    toast.info("Veuillez attendre que l'image soit téléchargée...");
+    return;
+  }
     if (!address.trim()) {
       toast.error("L'adresse est obligatoire.");
       return;
@@ -585,7 +602,7 @@ const Settings = () => {
               </div>
               <input
                 type="file"
-                accept="image/png"
+                 accept="image/png, image/jpeg, image/jpg, image/webp"
                 onChange={handleImageChange}
                 className="hidden"
                 id="imageUpload"
@@ -842,18 +859,18 @@ const Settings = () => {
           )}
         </div>
 
-        <button
-          className="bg-[#069AA2] hover:bg-teal-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          onClick={() => {
-            console.log("Button clicked");
-            handleSave();
-          }}
-          disabled={isSaving}
-        >
-          {isSaving
-            ? "Mise à jour en cours..."
-            : "Enregistrer les modifications"}
-        </button>
+       <button
+  className="bg-[#069AA2] hover:bg-teal-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+  onClick={handleSave}
+  disabled={isSaving || isUploadingImage}
+>
+  {isSaving
+    ? "Mise à jour en cours..."
+    : isUploadingImage
+    ? "Téléchargement de l'image..."
+    : "Enregistrer les modifications"}
+</button>
+
       </div>
     </div>
   );
