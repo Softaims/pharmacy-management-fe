@@ -9,6 +9,7 @@ import ProtectedRoute from "./ProtectedRoute.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import useDocumentTitle from "../components/useDocumentTitle.js";
 import DeleteAccountPage from "../pages/DeletePage.jsx";
+import PrivacyPolicy from "../pages/Privacy.jsx";
 
 export default function AppRoutes() {
   const { isAuthenticated, role } = useAuth();
@@ -39,6 +40,8 @@ export default function AppRoutes() {
       />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/delete-account" element={<DeleteAccountPage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
 
       {/* <Route path="/set-password" element={<CreatePharmacyPass />} /> */}
       <Route
